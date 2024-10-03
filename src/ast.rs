@@ -2,11 +2,13 @@
 
 use std::collections::HashMap;
 
+#[derive(Clone)]
 pub struct Pos {
     pub line: usize,
     pub column: usize,
 }
 
+#[derive(Clone)]
 pub struct Loc {
     pub start: Pos,
     pub end: Pos,

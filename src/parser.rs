@@ -1,6 +1,8 @@
 use crate::ast;
 
+mod scanner;
 mod streams;
+mod token;
 
 pub struct Parser {}
 

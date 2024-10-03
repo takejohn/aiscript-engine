@@ -1,4 +1,4 @@
-use crate::ast::Pos;
+use crate::common::Location;
 
 /// 入力文字列から文字を読み取る  
 /// オリジナルのAiScriptと異なり1ページのみ
@@ -41,8 +41,8 @@ impl CharStream {
     }
 
     /// カーソル位置に対応するソースコード上の行番号と列番号を取得します。
-    pub fn get_pos(&self) -> Pos {
-        return Pos {
+    pub fn get_pos(&self) -> Location {
+        return Location::At{
             line: self.line + 1,
             column: self.column + 1,
         };
@@ -207,5 +207,11 @@ mod tests {
         assert_eq!(Ok('b' as u16), stream.char());
         stream.next();
         assert_eq!(true, stream.eof());
+    }
+}
+
+impl From<Vec<u16>> for CharStream {
+    fn from(value: Vec<u16>) -> Self {
+        CharStream::new(value, CharStreamOpts::default())
     }
 }
