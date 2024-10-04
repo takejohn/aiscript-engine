@@ -1,9 +1,9 @@
-use crate::ast::Pos;
+use crate::{common::Location, string::Utf16Str};
 
 /// 入力文字列から文字を読み取る  
 /// オリジナルのAiScriptと異なり1ページのみ
-pub struct CharStream {
-    page: Vec<u16>,
+pub struct CharStream<'a> {
+    page: &'a Utf16Str,
     address: usize,
     char: Option<u16>,
 
@@ -14,10 +14,10 @@ pub struct CharStream {
     column: usize,
 }
 
-impl CharStream {
-    pub fn new(source: impl Into<Vec<u16>>, opts: CharStreamOpts) -> Self {
+impl CharStream<'_> {
+    pub fn new<'a>(source: &'a Utf16Str, opts: CharStreamOpts) -> CharStream<'a> {
         let mut result = CharStream {
-            page: source.into(),
+            page: source,
             address: 0,
             char: None,
             line: opts.line,
@@ -33,22 +33,19 @@ impl CharStream {
     }
 
     /// カーソル位置にある文字を取得します。
-    pub fn char(&self) -> Result<u16, &'static str> {
-        match self.char {
-            Some(char) => Ok(char),
-            None => Err("end of stream"),
-        }
+    pub fn char(&self) -> Option<u16> {
+        self.char
     }
 
     /// カーソル位置に対応するソースコード上の行番号と列番号を取得します。
-    pub fn get_pos(&self) -> Pos {
-        return Pos {
+    pub fn get_pos(&self) -> Location {
+        return Location::At {
             line: self.line + 1,
             column: self.column + 1,
         };
     }
 
-    /// カーソル位置を次の文字へ進めます。
+    /// カーソル位置を<'次の文字へ進めます。
     pub fn next(&mut self) {
         if !self.eof() && self.char.is_some_and(|char| char == '\n' as u16) {
             self.line += 1;
@@ -107,7 +104,11 @@ impl CharStream {
         if self.eof() {
             self.char = None;
         } else {
-            self.char = self.page.get(self.address).map(|char| char.clone());
+            self.char = self
+                .page
+                .as_u16s()
+                .get(self.address)
+                .map(|char| char.clone());
         }
     }
 }
@@ -123,33 +124,31 @@ impl Default for CharStreamOpts {
     }
 }
 
+impl<'a> From<&'a Utf16Str> for CharStream<'a> {
+    fn from(value: &'a Utf16Str) -> Self {
+        CharStream::new(value, CharStreamOpts::default())
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use crate::string::Utf16String;
+
     use super::*;
-
-    trait AsUtf16<T> {
-        fn as_utf16(&self) -> T;
-    }
-
-    impl AsUtf16<Vec<u16>> for str {
-        fn as_utf16(&self) -> Vec<u16> {
-            self.encode_utf16().collect()
-        }
-    }
 
     #[test]
     fn char() {
-        let source = "abc".as_utf16();
-        let stream = CharStream::new(source, Default::default());
-        assert_eq!(Ok('a' as u16), stream.char());
+        let source = Utf16String::from("abc");
+        let stream = CharStream::new(&source, Default::default());
+        assert_eq!(Some('a' as u16), stream.char());
     }
 
     #[test]
     fn next() {
-        let source = "abc".as_utf16();
-        let mut stream = CharStream::new(source, Default::default());
+        let source = Utf16String::from("abc");
+        let mut stream = CharStream::new(&source, Default::default());
         stream.next();
-        assert_eq!(Ok('b' as u16), stream.char());
+        assert_eq!(Some('b' as u16), stream.char());
     }
 
     #[cfg(test)]
@@ -158,27 +157,27 @@ mod tests {
 
         #[test]
         fn test_move() {
-            let source = "abc".as_utf16();
-            let mut stream = CharStream::new(source, Default::default());
+            let source = Utf16String::from("abc");
+            let mut stream = CharStream::new(&source, Default::default());
             stream.next();
-            assert_eq!(Ok('b' as u16), stream.char());
+            assert_eq!(Some('b' as u16), stream.char());
             stream.prev();
-            assert_eq!(Ok('a' as u16), stream.char());
+            assert_eq!(Some('a' as u16), stream.char());
         }
 
         #[test]
         fn no_move_out_of_bound() {
-            let source = "abc".as_utf16();
-            let mut stream = CharStream::new(source, Default::default());
+            let source = Utf16String::from("abc");
+            let mut stream = CharStream::new(&source, Default::default());
             stream.prev();
-            assert_eq!(Ok('a' as u16), stream.char());
+            assert_eq!(Some('a' as u16), stream.char());
         }
     }
 
     #[test]
     fn eof() {
-        let source = "abc".as_utf16();
-        let mut stream = CharStream::new(source, Default::default());
+        let source = Utf16String::from("abc");
+        let mut stream = CharStream::new(&source, Default::default());
         assert_eq!(false, stream.eof());
         stream.next();
         assert_eq!(false, stream.eof());
@@ -189,22 +188,22 @@ mod tests {
     }
 
     #[test]
-    fn err_when_ref_char_at_eof() {
-        let source = "".as_utf16();
-        let stream = CharStream::new(source, Default::default());
+    fn none_when_ref_char_at_eof() {
+        let source = Utf16String::new();
+        let stream = CharStream::new(&source, Default::default());
         assert_eq!(true, stream.eof());
-        assert!(stream.char().is_err());
+        assert!(stream.char().is_none());
     }
 
     #[test]
     fn cr_skipped() {
-        let source = "a\r\nb".as_utf16();
-        let mut stream = CharStream::new(source, Default::default());
-        assert_eq!(Ok('a' as u16), stream.char());
+        let source = Utf16String::from("a\r\nb");
+        let mut stream = CharStream::new(&source, Default::default());
+        assert_eq!(Some('a' as u16), stream.char());
         stream.next();
-        assert_eq!(Ok('\n' as u16), stream.char());
+        assert_eq!(Some('\n' as u16), stream.char());
         stream.next();
-        assert_eq!(Ok('b' as u16), stream.char());
+        assert_eq!(Some('b' as u16), stream.char());
         stream.next();
         assert_eq!(true, stream.eof());
     }
