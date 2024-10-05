@@ -694,10 +694,6 @@ impl ITokenStream for Scanner<'_> {
         self.tokens.get(0).expect("no token found")
     }
 
-    fn get_kind(&self) -> &super::token::TokenKind {
-        &self.get_token().kind
-    }
-
     fn next(&mut self) -> Result<()> {
         // 現在のトークンがEOFだったら次のトークンに進まない
         if self.get_token().kind == TokenKind::EOF {
@@ -721,22 +717,6 @@ impl ITokenStream for Scanner<'_> {
         }
 
         return Ok(self.tokens.get(offset).expect("no token found"));
-    }
-
-    fn expect(&self, kind: super::token::TokenKind) -> crate::error::Result<()> {
-        if *self.get_kind() == kind {
-            return Err(Box::new(AiScriptSyntaxError::new(
-                format!("unexpected token: {:?}", self.get_kind()),
-                self.get_token().loc.clone(),
-            )));
-        }
-        return Ok(());
-    }
-
-    fn next_with(&mut self, kind: super::token::TokenKind) -> crate::error::Result<()> {
-        self.expect(kind)?;
-        self.next();
-        return Ok(());
     }
 }
 

@@ -1,6 +1,5 @@
 use crate::{
-    error::{AiScriptSyntaxError, Result},
-    parser::token::{Token, TokenKind, EOF},
+    common::Location, error::{AiScriptSyntaxError, Result}, parser::token::{Token, TokenKind, EOF}
 };
 
 /// トークンの読み取りに関するトレイト
@@ -8,8 +7,20 @@ pub(in crate::parser) trait ITokenStream {
     /// カーソル位置にあるトークンを取得します。
     fn get_token(&self) -> &Token;
 
+    /// カーソル位置にあるトークンの種類が指定したトークンの種類と一致するかどうかを示す値を取得します。
+    fn is(&self, kind: &TokenKind) -> bool {
+        self.get_token_kind() == kind
+    }
+
     /// カーソル位置にあるトークンの種類を取得します。
-    fn get_kind(&self) -> &TokenKind;
+    fn get_token_kind(&self) -> &TokenKind {
+        &self.get_token().kind
+    }
+
+    /// カーソル位置にあるトークンの位置情報を取得します。
+    fn get_pos(&self) -> &Location {
+        &self.get_token().loc
+    }
 
     /// カーソル位置を次のトークンへ進めます。
     fn next(&mut self) -> Result<()>;
@@ -19,14 +30,26 @@ pub(in crate::parser) trait ITokenStream {
 
     /// カーソル位置にあるトークンが指定したトークンの種類と一致するかを確認します。
     /// 一致しなかった場合には文法エラーを発生させます。
-    fn expect(&self, kind: TokenKind) -> Result<()>;
+    fn expect(&self, kind: &TokenKind) -> Result<()> {
+        if self.get_token_kind() == kind {
+            return Err(Box::new(AiScriptSyntaxError::new(
+                format!("unexpected token: {:?}", self.get_token_kind()),
+                self.get_token().loc.clone(),
+            )));
+        }
+        return Ok(());
+    }
 
     /// カーソル位置にあるトークンが指定したトークンの種類と一致することを確認し、
     /// カーソル位置を次のトークンへ進めます。
-    fn next_with(&mut self, kind: TokenKind) -> Result<()>;
+    fn next_with(&mut self, kind: &TokenKind) -> Result<()> {
+        self.expect(kind)?;
+        self.next()?;
+        return Ok(());
+    }
 }
 
-/// トークン列からトークンを読み取るトレイト
+/// トークン列からトークンを読み取る構造体
 pub(in crate::parser) struct TokenStream<'a> {
     source: &'a [Token],
     index: usize,
@@ -68,10 +91,6 @@ impl ITokenStream for TokenStream<'_> {
         return self.token;
     }
 
-    fn get_kind(&self) -> &TokenKind {
-        &self.get_token().kind
-    }
-
     fn next(&mut self) -> Result<()> {
         if !self.eof() {
             self.index += 1;
@@ -82,21 +101,5 @@ impl ITokenStream for TokenStream<'_> {
 
     fn lookahead(&mut self, offset: usize) -> Result<&Token> {
         Ok(self.source.get(self.index + offset).unwrap_or(&EOF))
-    }
-
-    fn expect(&self, kind: TokenKind) -> Result<()> {
-        if *self.get_kind() == kind {
-            return Err(Box::new(AiScriptSyntaxError::new(
-                format!("unexpected token: {:?}", self.get_kind()),
-                self.token.loc.clone(),
-            )));
-        }
-        return Ok(());
-    }
-
-    fn next_with(&mut self, kind: TokenKind) -> Result<()> {
-        self.expect(kind)?;
-        self.next();
-        return Ok(());
     }
 }
