@@ -1,8 +1,8 @@
 [package]
-name = "aisenv-engine"
+name = "aiscript-engine"
 description = "An AiScript Engine written in Rust."
 repository = "https://github.com/takejohn/aisenv-engine"
-version = "1.0.0+1"
+version = "0.1.0+0.1.0"
 license = "MIT"
 
 edition = "2021"

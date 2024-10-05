@@ -3,8 +3,8 @@
 version = 3
 
 [[package]]
-name = "aisenv-engine"
-version = "1.0.0+1"
+name = "aiscript-engine"
+version = "0.1.0+0.1.0"
 dependencies = [
  "wasm-bindgen",
 ]
