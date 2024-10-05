@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::wasm_bindgen;
 
 pub mod ast;
 pub mod common;
+pub mod error;
 pub mod parser;
 pub mod string;
 

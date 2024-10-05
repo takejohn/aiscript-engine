@@ -50,6 +50,8 @@ impl CharStream<'_> {
         if !self.eof() && self.char.is_some_and(|char| char == '\n' as u16) {
             self.line += 1;
             self.column = 0;
+        } else {
+            self.column += 1;
         }
         self.inc_addr();
         self.move_next();
@@ -67,7 +69,7 @@ impl CharStream<'_> {
     fn move_next(&mut self) {
         self.load_char();
         loop {
-            if !self.eof() && self.char.is_some_and(|char| char == '\r' as u16) {
+            if self.char.is_some_and(|char| char == '\r' as u16) {
                 self.inc_addr();
                 self.load_char();
                 continue;
@@ -85,7 +87,7 @@ impl CharStream<'_> {
     fn move_prev(&mut self) {
         self.load_char();
         loop {
-            if !self.eof() && self.char.is_some_and(|char| char == '\r' as u16) {
+            if self.char.is_some_and(|char| char == '\r' as u16) {
                 self.dec_addr();
                 self.load_char();
                 continue;
@@ -141,6 +143,21 @@ mod tests {
         let source = Utf16String::from("abc");
         let stream = CharStream::new(&source, Default::default());
         assert_eq!(Some('a' as u16), stream.char());
+    }
+
+    #[test]
+    fn pos() {
+        let source = Utf16String::from("ab\nc");
+        let mut stream = CharStream::new(&source, Default::default());
+        assert_eq!(stream.get_pos(), Location::At { line: 1, column: 1 });
+        stream.next();
+        assert_eq!(stream.get_pos(), Location::At { line: 1, column: 2 });
+        stream.next();
+        assert_eq!(stream.get_pos(), Location::At { line: 1, column: 3 });
+        stream.next();
+        assert_eq!(stream.get_pos(), Location::At { line: 2, column: 1 });
+        stream.next();
+        assert_eq!(stream.get_pos(), Location::At { line: 2, column: 2 });
     }
 
     #[test]
