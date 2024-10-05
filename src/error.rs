@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::common::Location;
+use crate::common::Position;
 
 pub type Result<T> = core::result::Result<T, Box<dyn AiScriptError>>;
 
@@ -9,11 +9,11 @@ pub trait AiScriptError: Debug {
 
     fn message(&self) -> &str;
 
-    fn loc(&self) -> Option<Location>;
+    fn pos(&self) -> Option<Position>;
 
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.loc() {
-            Some(loc) => write!(f, "{}: {} ({})", self.name(), self.message(), loc),
+        match self.pos() {
+            Some(pos) => write!(f, "{}: {} ({})", self.name(), self.message(), pos),
             None => write!(f, "{}: {}", self.name(), self.message()),
         }
     }
@@ -23,14 +23,14 @@ pub trait AiScriptError: Debug {
 pub struct AiScriptSyntaxError {
     message: String,
 
-    loc: Location,
+    pos: Position,
 }
 
 impl AiScriptSyntaxError {
-    pub fn new(message: impl Into<String>, loc: Location) -> AiScriptSyntaxError {
+    pub fn new(message: impl Into<String>, pos: Position) -> AiScriptSyntaxError {
         AiScriptSyntaxError {
             message: message.into(),
-            loc,
+            pos,
         }
     }
 }
@@ -50,7 +50,7 @@ impl AiScriptError for AiScriptSyntaxError {
         &self.message
     }
 
-    fn loc(&self) -> Option<Location> {
-        Some(self.loc.clone())
+    fn pos(&self) -> Option<Position> {
+        Some(self.pos.clone())
     }
 }

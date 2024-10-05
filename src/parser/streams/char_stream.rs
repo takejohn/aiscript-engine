@@ -1,4 +1,4 @@
-use crate::{common::Location, string::Utf16Str};
+use crate::{common::Position, string::Utf16Str};
 
 /// 入力文字列から文字を読み取る  
 /// オリジナルのAiScriptと異なり1ページのみ
@@ -38,8 +38,8 @@ impl CharStream<'_> {
     }
 
     /// カーソル位置に対応するソースコード上の行番号と列番号を取得します。
-    pub fn get_pos(&self) -> Location {
-        return Location::At {
+    pub fn get_pos(&self) -> Position {
+        return Position::At {
             line: self.line + 1,
             column: self.column + 1,
         };
@@ -149,15 +149,15 @@ mod tests {
     fn pos() {
         let source = Utf16String::from("ab\nc");
         let mut stream = CharStream::new(&source, Default::default());
-        assert_eq!(stream.get_pos(), Location::At { line: 1, column: 1 });
+        assert_eq!(stream.get_pos(), Position::At { line: 1, column: 1 });
         stream.next();
-        assert_eq!(stream.get_pos(), Location::At { line: 1, column: 2 });
+        assert_eq!(stream.get_pos(), Position::At { line: 1, column: 2 });
         stream.next();
-        assert_eq!(stream.get_pos(), Location::At { line: 1, column: 3 });
+        assert_eq!(stream.get_pos(), Position::At { line: 1, column: 3 });
         stream.next();
-        assert_eq!(stream.get_pos(), Location::At { line: 2, column: 1 });
+        assert_eq!(stream.get_pos(), Position::At { line: 2, column: 1 });
         stream.next();
-        assert_eq!(stream.get_pos(), Location::At { line: 2, column: 2 });
+        assert_eq!(stream.get_pos(), Position::At { line: 2, column: 2 });
     }
 
     #[test]

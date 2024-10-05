@@ -53,7 +53,7 @@ impl Scanner<'_> {
             let Some(ch) = self.stream.char() else {
                 return Ok(Token {
                     kind: TokenKind::EOF,
-                    loc: self.stream.get_pos(),
+                    pos: self.stream.get_pos(),
                     has_left_spacing,
                 });
             };
@@ -71,7 +71,7 @@ impl Scanner<'_> {
                 self.stream.next();
                 return Ok(Token {
                     kind: TokenKind::NewLine,
-                    loc: pos,
+                    pos,
                     has_left_spacing,
                 });
             }
@@ -83,13 +83,13 @@ impl Scanner<'_> {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::NotEq,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     } else {
                         Ok(Token {
                             kind: TokenKind::Not,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     }
@@ -105,7 +105,7 @@ impl Scanner<'_> {
                             self.stream.next();
                             Ok(Token {
                                 kind: TokenKind::Sharp3,
-                                loc: pos,
+                                pos,
                                 has_left_spacing,
                             })
                         } else {
@@ -118,7 +118,7 @@ impl Scanner<'_> {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::OpenSharpBracket,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     } else {
@@ -132,7 +132,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Percent,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -142,7 +142,7 @@ impl Scanner<'_> {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::And2,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     } else {
@@ -156,7 +156,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::OpenParen,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -164,7 +164,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::CloseParen,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -172,7 +172,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Asterisk,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -182,13 +182,13 @@ impl Scanner<'_> {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::PlusEq,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     } else {
                         Ok(Token {
                             kind: TokenKind::Plus,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     }
@@ -197,7 +197,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Comma,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -207,13 +207,13 @@ impl Scanner<'_> {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::MinusEq,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     } else {
                         Ok(Token {
                             kind: TokenKind::Minus,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     }
@@ -222,7 +222,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Dot,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -241,7 +241,7 @@ impl Scanner<'_> {
                     }
                     Ok(Token {
                         kind: TokenKind::Slash,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -251,13 +251,13 @@ impl Scanner<'_> {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::Colon2,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     } else {
                         Ok(Token {
                             kind: TokenKind::Colon,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     }
@@ -266,7 +266,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::SemiColon,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -277,21 +277,21 @@ impl Scanner<'_> {
                             self.stream.next();
                             return Ok(Token {
                                 kind: TokenKind::LtEq,
-                                loc: pos,
+                                pos,
                                 has_left_spacing,
                             });
                         } else if ch == ':' as u16 {
                             self.stream.next();
                             return Ok(Token {
                                 kind: TokenKind::Out,
-                                loc: pos,
+                                pos,
                                 has_left_spacing,
                             });
                         }
                     }
                     Ok(Token {
                         kind: TokenKind::Lt,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -302,21 +302,21 @@ impl Scanner<'_> {
                             self.stream.next();
                             return Ok(Token {
                                 kind: TokenKind::Eq,
-                                loc: pos,
+                                pos,
                                 has_left_spacing,
                             });
                         } else if ch == '>' as u16 {
                             self.stream.next();
                             return Ok(Token {
                                 kind: TokenKind::Arrow,
-                                loc: pos,
+                                pos,
                                 has_left_spacing,
                             });
                         }
                     }
                     Ok(Token {
                         kind: TokenKind::Eq,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -326,13 +326,13 @@ impl Scanner<'_> {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::GtEq,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     } else {
                         Ok(Token {
                             kind: TokenKind::Gt,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     }
@@ -341,7 +341,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Question,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -349,7 +349,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::At,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -357,7 +357,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::OpenBracket,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -365,7 +365,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::BackSlash,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -373,7 +373,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::CloseBracket,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -381,7 +381,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Hat,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -390,7 +390,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::OpenBrace,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -400,7 +400,7 @@ impl Scanner<'_> {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::Or2,
-                            loc: pos,
+                            pos,
                             has_left_spacing,
                         })
                     } else {
@@ -414,7 +414,7 @@ impl Scanner<'_> {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::CloseBrace,
-                        loc: pos,
+                        pos,
                         has_left_spacing,
                     })
                 }
@@ -458,7 +458,7 @@ impl Scanner<'_> {
 
         return Some(Token {
             kind: TokenKind::for_word(&value),
-            loc: pos,
+            pos,
             has_left_spacing,
         });
     }
@@ -501,7 +501,7 @@ impl Scanner<'_> {
         };
         return Ok(Some(Token {
             kind: TokenKind::NumberLiteral(value),
-            loc: pos,
+            pos,
             has_left_spacing,
         }));
     }
@@ -548,7 +548,7 @@ impl Scanner<'_> {
         }
         return Ok(Token {
             kind: TokenKind::StringLiteral(value),
-            loc: pos,
+            pos,
             has_left_spacing,
         });
     }
@@ -587,7 +587,7 @@ impl Scanner<'_> {
                         if !buf.is_empty() {
                             elements.push(Token {
                                 kind: TokenKind::TemplateStringElement(buf),
-                                loc: element_pos,
+                                pos: element_pos,
                                 has_left_spacing,
                             });
                             break;
@@ -598,7 +598,7 @@ impl Scanner<'_> {
                         if !buf.is_empty() {
                             elements.push(Token {
                                 kind: TokenKind::TemplateStringElement(buf),
-                                loc: element_pos,
+                                pos: element_pos,
                                 has_left_spacing,
                             });
                             buf = Utf16String::new();
@@ -640,12 +640,12 @@ impl Scanner<'_> {
                         // TemplateExprElementトークンの終了位置をTokenStreamが取得するためのEOFトークンを追加
                         token_buf.push(Token {
                             kind: TokenKind::EOF,
-                            loc: element_pos.clone(),
+                            pos: element_pos.clone(),
                             has_left_spacing: false,
                         });
                         elements.push(Token {
                             kind: TokenKind::TemplateExprElement(token_buf),
-                            loc: expr_element_pos,
+                            pos: expr_element_pos,
                             has_left_spacing,
                         });
                         token_buf = Vec::new();
@@ -660,7 +660,7 @@ impl Scanner<'_> {
 
         return Ok(Token {
             kind: TokenKind::Template(elements),
-            loc: pos,
+            pos,
             has_left_spacing,
         });
     }
@@ -722,7 +722,7 @@ impl ITokenStream for Scanner<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{common::Location, string::Utf16Str};
+    use crate::{common::Position, string::Utf16Str};
 
     use super::*;
 
@@ -743,7 +743,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::EOF,
-                loc: Location::At { line: 1, column: 1 },
+                pos: Position::At { line: 1, column: 1 },
                 has_left_spacing: false,
             },
         );
@@ -751,7 +751,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::EOF,
-                loc: Location::At { line: 1, column: 1 },
+                pos: Position::At { line: 1, column: 1 },
                 has_left_spacing: false,
             },
         );
@@ -765,7 +765,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::IfKeyword,
-                loc: Location::At { line: 1, column: 1 },
+                pos: Position::At { line: 1, column: 1 },
                 has_left_spacing: false,
             },
         );
@@ -773,7 +773,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::EOF,
-                loc: Location::At { line: 1, column: 3 },
+                pos: Position::At { line: 1, column: 3 },
                 has_left_spacing: false,
             },
         );
@@ -787,7 +787,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::Identifier(source.clone()),
-                loc: Location::At { line: 1, column: 1 },
+                pos: Position::At { line: 1, column: 1 },
                 has_left_spacing: false,
             },
         );
@@ -795,7 +795,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::EOF,
-                loc: Location::At { line: 1, column: 4 },
+                pos: Position::At { line: 1, column: 4 },
                 has_left_spacing: false,
             },
         );
@@ -815,7 +815,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::Identifier(Utf16String::from("abc")),
-                loc: Location::At { line: 1, column: 1 },
+                pos: Position::At { line: 1, column: 1 },
                 has_left_spacing: false,
             },
         );
@@ -823,7 +823,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::Identifier(Utf16String::from("xyz")),
-                loc: Location::At { line: 1, column: 5 },
+                pos: Position::At { line: 1, column: 5 },
                 has_left_spacing: true,
             },
         );
@@ -831,7 +831,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::EOF,
-                loc: Location::At { line: 1, column: 8 },
+                pos: Position::At { line: 1, column: 8 },
                 has_left_spacing: false,
             },
         );
@@ -845,7 +845,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::At,
-                loc: Location::At { line: 1, column: 1 },
+                pos: Position::At { line: 1, column: 1 },
                 has_left_spacing: false,
             },
         );
@@ -853,7 +853,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::Identifier(Utf16String::from("abc")),
-                loc: Location::At { line: 1, column: 2 },
+                pos: Position::At { line: 1, column: 2 },
                 has_left_spacing: false,
             },
         );
@@ -861,7 +861,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::OpenParen,
-                loc: Location::At { line: 1, column: 5 },
+                pos: Position::At { line: 1, column: 5 },
                 has_left_spacing: false,
             },
         );
@@ -869,7 +869,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::CloseParen,
-                loc: Location::At { line: 1, column: 6 },
+                pos: Position::At { line: 1, column: 6 },
                 has_left_spacing: false,
             },
         );
@@ -877,7 +877,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::OpenBrace,
-                loc: Location::At { line: 1, column: 8 },
+                pos: Position::At { line: 1, column: 8 },
                 has_left_spacing: true,
             },
         );
@@ -885,7 +885,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::CloseBrace,
-                loc: Location::At {
+                pos: Position::At {
                     line: 1,
                     column: 10,
                 },
@@ -896,7 +896,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::EOF,
-                loc: Location::At {
+                pos: Position::At {
                     line: 1,
                     column: 11,
                 },
@@ -913,7 +913,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::Identifier(Utf16String::from("aaa")),
-                loc: Location::At { line: 1, column: 1 },
+                pos: Position::At { line: 1, column: 1 },
                 has_left_spacing: false,
             },
         );
@@ -921,7 +921,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::NewLine,
-                loc: Location::At { line: 1, column: 4 },
+                pos: Position::At { line: 1, column: 4 },
                 has_left_spacing: false,
             },
         );
@@ -929,7 +929,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::Identifier(Utf16String::from("bbb")),
-                loc: Location::At { line: 2, column: 1 },
+                pos: Position::At { line: 2, column: 1 },
                 has_left_spacing: false,
             },
         );
@@ -937,7 +937,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::EOF,
-                loc: Location::At { line: 2, column: 4 },
+                pos: Position::At { line: 2, column: 4 },
                 has_left_spacing: false,
             },
         );
@@ -951,7 +951,7 @@ mod tests {
             stream.lookahead(1).unwrap(),
             &Token {
                 kind: TokenKind::Identifier(Utf16String::from("abc")),
-                loc: Location::At { line: 1, column: 2 },
+                pos: Position::At { line: 1, column: 2 },
                 has_left_spacing: false
             }
         );
@@ -959,7 +959,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::At,
-                loc: Location::At { line: 1, column: 1 },
+                pos: Position::At { line: 1, column: 1 },
                 has_left_spacing: false,
             },
         );
@@ -967,7 +967,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::Identifier(Utf16String::from("abc")),
-                loc: Location::At { line: 1, column: 2 },
+                pos: Position::At { line: 1, column: 2 },
                 has_left_spacing: false,
             },
         );
@@ -975,7 +975,7 @@ mod tests {
             &mut stream,
             &Token {
                 kind: TokenKind::OpenParen,
-                loc: Location::At { line: 1, column: 5 },
+                pos: Position::At { line: 1, column: 5 },
                 has_left_spacing: false,
             },
         );

@@ -1,5 +1,5 @@
 use crate::{
-    common::Location,
+    common::Position,
     string::{Utf16Str, Utf16String},
     utf16_str,
 };
@@ -185,12 +185,12 @@ impl TokenKind {
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub(super) struct Token {
     pub kind: TokenKind,
-    pub loc: Location,
+    pub pos: Position,
     pub has_left_spacing: bool,
 }
 
 pub const EOF: Token = Token {
     kind: TokenKind::EOF,
-    loc: Location::EOF,
+    pos: Position::EOF,
     has_left_spacing: false,
 };

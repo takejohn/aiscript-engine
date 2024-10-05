@@ -2,12 +2,12 @@
 
 use std::collections::HashMap;
 
-use crate::common::Location;
+use crate::common::Position;
 
 #[derive(Clone)]
 pub struct Loc {
-    pub start: Location,
-    pub end: Location,
+    pub start: Position,
+    pub end: Position,
 }
 
 pub struct Node {

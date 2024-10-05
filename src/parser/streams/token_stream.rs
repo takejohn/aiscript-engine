@@ -1,5 +1,7 @@
 use crate::{
-    common::Location, error::{AiScriptSyntaxError, Result}, parser::token::{Token, TokenKind, EOF}
+    common::Position,
+    error::{AiScriptSyntaxError, Result},
+    parser::token::{Token, TokenKind, EOF},
 };
 
 /// トークンの読み取りに関するトレイト
@@ -18,8 +20,8 @@ pub(in crate::parser) trait ITokenStream {
     }
 
     /// カーソル位置にあるトークンの位置情報を取得します。
-    fn get_pos(&self) -> &Location {
-        &self.get_token().loc
+    fn get_pos(&self) -> &Position {
+        &self.get_token().pos
     }
 
     /// カーソル位置を次のトークンへ進めます。
@@ -34,7 +36,7 @@ pub(in crate::parser) trait ITokenStream {
         if self.get_token_kind() == kind {
             return Err(Box::new(AiScriptSyntaxError::new(
                 format!("unexpected token: {:?}", self.get_token_kind()),
-                self.get_token().loc.clone(),
+                self.get_token().pos.clone(),
             )));
         }
         return Ok(());
