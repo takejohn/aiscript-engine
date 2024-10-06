@@ -6,6 +6,7 @@ version = 3
 name = "aiscript-engine"
 version = "0.1.0+0.1.0"
 dependencies = [
+ "derive-node",
  "wasm-bindgen",
 ]
 
@@ -20,6 +21,15 @@ name = "cfg-if"
 version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
+
+[[package]]
+name = "derive-node"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
 
 [[package]]
 name = "log"

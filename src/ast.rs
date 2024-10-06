@@ -2,6 +2,8 @@
 
 use std::collections::HashMap;
 
+use derive_node::Node;
+
 use crate::common::Position;
 
 #[derive(Clone)]
@@ -10,14 +12,12 @@ pub struct Loc {
     pub end: Position,
 }
 
-pub struct Node {
+pub trait Node {
     /// コード位置
-    pub loc: Loc,
-
-    pub kind: NodeKind,
+    fn loc(&self) -> &Loc;
 }
 
-pub enum NodeKind {
+pub enum NodeWrapper {
     /// 名前空間
     Ns(Namespace),
 
@@ -30,12 +30,15 @@ pub enum NodeKind {
     Attribute(Attribute),
 }
 
-enum StatementOrExpression {
+pub enum StatementOrExpression {
     Statement(Statement),
     Expression(Expression),
 }
 
+#[derive(Node)]
 pub struct Namespace {
+    pub loc: Loc,
+
     /// 空間名
     pub name: String,
 
@@ -43,13 +46,16 @@ pub struct Namespace {
     pub members: Vec<NamespaceMember>,
 }
 
-enum NamespaceMember {
+pub enum NamespaceMember {
     Namespace(Namespace),
 
     Def(Definition),
 }
 
+#[derive(Node)]
 pub struct Meta {
+    pub loc: Loc,
+
     /// 名
     pub name: Option<String>,
 
@@ -89,7 +95,10 @@ pub enum Statement {
     SubAssign(SubAssign),
 }
 
+#[derive(Node)]
 pub struct Definition {
+    pub loc: Loc,
+
     /// 宣言式
     pub dest: Expression,
 
@@ -106,7 +115,10 @@ pub struct Definition {
     pub attr: Vec<Attribute>,
 }
 
+#[derive(Node)]
 pub struct Attribute {
+    pub loc: Loc,
+
     /// 属性名
     pub name: String,
 
@@ -114,12 +126,18 @@ pub struct Attribute {
     pub value: Expression,
 }
 
+#[derive(Node)]
 pub struct Return {
+    pub loc: Loc,
+
     /// 式
     pub expr: Expression,
 }
 
+#[derive(Node)]
 pub struct Each {
+    pub loc: Loc,
+
     /// each文
     pub var: Expression,
 
@@ -130,7 +148,10 @@ pub struct Each {
     pub for_statement: Box<Statement>,
 }
 
+#[derive(Node)]
 pub struct For {
+    pub loc: Loc,
+
     /// イテレータ変数名
     pub var: Option<String>,
 
@@ -147,16 +168,28 @@ pub struct For {
     pub for_statement: Box<Statement>,
 }
 
+#[derive(Node)]
 pub struct Loop {
+    pub loc: Loc,
+
     /// 処理
     pub statements: Vec<Statement>,
 }
 
-pub struct Break;
+#[derive(Node)]
+pub struct Break {
+    pub loc: Loc,
+}
 
-pub struct Continue;
+#[derive(Node)]
+pub struct Continue {
+    pub loc: Loc,
+}
 
+#[derive(Node)]
 pub struct AddAssign {
+    pub loc: Loc,
+
     /// 代入先
     pub dest: Expression,
 
@@ -164,7 +197,10 @@ pub struct AddAssign {
     pub expr: Expression,
 }
 
+#[derive(Node)]
 pub struct SubAssign {
+    pub loc: Loc,
+
     /// 代入先
     pub dest: Expression,
 
@@ -172,7 +208,10 @@ pub struct SubAssign {
     pub expr: Expression,
 }
 
+#[derive(Node)]
 pub struct Assign {
+    pub loc: Loc,
+
     /// 代入先
     pub dest: Expression,
 
@@ -248,82 +287,130 @@ pub enum Expression {
     Prop(Prop),
 }
 
+#[derive(Node)]
 pub struct Not {
+    pub loc: Loc,
+
     /// 式
     pub expr: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Pow {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Mul {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Div {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Rem {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Add {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Sub {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Lt {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Lteq {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Gt {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Gteq {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Eq {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Neq {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct And {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Or {
+    pub loc: Loc,
+
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct If {
+    pub loc: Loc,
+
     /// 条件式
     pub cond: Box<Expression>,
 
@@ -336,7 +423,10 @@ pub struct If {
     pub else_process: Box<StatementOrExpression>,
 }
 
+#[derive(Node)]
 pub struct Elseif {
+    pub loc: Loc,
+
     /// elifの条件式
     pub cond: Expression,
 
@@ -344,7 +434,10 @@ pub struct Elseif {
     pub then: StatementOrExpression,
 }
 
+#[derive(Node)]
 pub struct Fn {
+    pub loc: Loc,
+
     pub args: Vec<FnArg>,
 
     /// 戻り値の型
@@ -354,7 +447,10 @@ pub struct Fn {
     pub children: Vec<StatementOrExpression>,
 }
 
-struct FnArg {
+#[derive(Node)]
+pub struct FnArg {
+    pub loc: Loc,
+
     /// 引数名
     pub dest: Expression,
 
@@ -367,7 +463,10 @@ struct FnArg {
     pub arg_type: Option<TypeSource>,
 }
 
+#[derive(Node)]
 pub struct Match {
+    pub loc: Loc,
+
     /// 対象
     pub about: Box<Expression>,
 
@@ -377,7 +476,10 @@ pub struct Match {
     pub default: Option<Box<StatementOrExpression>>,
 }
 
-struct MatchQs {
+#[derive(Node)]
+pub struct MatchQs {
+    pub loc: Loc,
+
     /// 条件
     pub q: Expression,
 
@@ -385,54 +487,87 @@ struct MatchQs {
     pub a: StatementOrExpression,
 }
 
+#[derive(Node)]
 pub struct Block {
+    pub loc: Loc,
+
     /// 処理
     pub statements: Vec<StatementOrExpression>,
 }
 
+#[derive(Node)]
 pub struct Exists {
+    pub loc: Loc,
+
     /// 変数名
     pub identifier: Identifier,
 }
 
+#[derive(Node)]
 pub struct Tmpl {
+    pub loc: Loc,
+
     /// 処理
     pub tmpl: Vec<Expression>,
 }
 
+#[derive(Node)]
 pub struct Str {
+    pub loc: Loc,
+
     /// 文字列
     pub value: String,
 }
 
+#[derive(Node)]
 pub struct Num {
+    pub loc: Loc,
+
     /// 数値
     pub value: f64,
 }
 
+#[derive(Node)]
 pub struct Bool {
+    pub loc: Loc,
+
     /// 真理値
     pub value: bool,
 }
 
-pub struct Null;
+#[derive(Node)]
+pub struct Null {
+    pub loc: Loc,
+}
 
+#[derive(Node)]
 pub struct Obj {
+    pub loc: Loc,
+
     /// オブジェクト
     pub value: HashMap<String, Expression>,
 }
 
+#[derive(Node)]
 pub struct Arr {
+    pub loc: Loc,
+
     /// アイテム
     pub value: Vec<Expression>,
 }
 
+#[derive(Node)]
 pub struct Identifier {
+    pub loc: Loc,
+
     /// 変数名
     pub name: String,
 }
 
+#[derive(Node)]
 pub struct Call {
+    pub loc: Loc,
+
     /// 対象
     pub target: Box<Expression>,
 
@@ -440,7 +575,10 @@ pub struct Call {
     pub args: Vec<Expression>,
 }
 
+#[derive(Node)]
 pub struct Index {
+    pub loc: Loc,
+
     /// 対象
     pub target: Box<Expression>,
 
@@ -448,7 +586,10 @@ pub struct Index {
     pub name: Box<Expression>,
 }
 
+#[derive(Node)]
 pub struct Prop {
+    pub loc: Loc,
+
     /// 対象
     pub target: Box<Expression>,
 
@@ -464,7 +605,10 @@ pub enum TypeSource {
     FnTypeSource(FnTypeSource),
 }
 
+#[derive(Node)]
 pub struct NamedTypeSource {
+    pub loc: Loc,
+
     /// 型名
     pub name: String,
 
@@ -472,7 +616,10 @@ pub struct NamedTypeSource {
     pub inner: Option<Box<TypeSource>>,
 }
 
+#[derive(Node)]
 pub struct FnTypeSource {
+    pub loc: Loc,
+
     /// 引数の型
     pub args: Vec<TypeSource>,
 

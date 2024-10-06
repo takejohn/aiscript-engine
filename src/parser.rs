@@ -12,6 +12,6 @@ impl Parser {
     }
 
     pub fn parse(&self, input: &str) {
-        let mut nodes: Vec<ast::Node> = Vec::new();
+        let mut nodes: Vec<ast::NodeWrapper> = Vec::new();
     }
 }
