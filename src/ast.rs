@@ -3,6 +3,7 @@
 use std::collections::HashMap;
 
 use derive_node::Node;
+use derive_wrapper::Wrapper;
 
 use crate::common::Position;
 
@@ -17,6 +18,7 @@ pub trait Node {
     fn loc(&self) -> &Loc;
 }
 
+#[derive(Wrapper)]
 pub enum NodeWrapper {
     /// 名前空間
     Ns(Namespace),
@@ -30,6 +32,7 @@ pub enum NodeWrapper {
     Attribute(Attribute),
 }
 
+#[derive(Wrapper)]
 pub enum StatementOrExpression {
     Statement(Statement),
     Expression(Expression),
@@ -46,6 +49,7 @@ pub struct Namespace {
     pub members: Vec<NamespaceMember>,
 }
 
+#[derive(Wrapper)]
 pub enum NamespaceMember {
     Namespace(Namespace),
 
@@ -63,6 +67,7 @@ pub struct Meta {
     pub value: Expression,
 }
 
+#[derive(Wrapper)]
 pub enum Statement {
     /// 変数宣言文
     Def(Definition),
@@ -219,6 +224,7 @@ pub struct Assign {
     pub expr: Expression,
 }
 
+#[derive(Wrapper)]
 pub enum Expression {
     /// if式
     If(If),

@@ -8,9 +8,7 @@ license = "MIT"
 edition = "2021"
 
 [workspace]
-members = [
-    "derive-node"
-]
+members = ["derive-node", "derive-wrapper"]
 
 [workspace.package]
 version = "0.1.0"
@@ -20,5 +18,6 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-derive-node = { path = "./derive-node" }
+derive-node.path = "./derive-node"
+derive-wrapper.path = "./derive-wrapper"
 wasm-bindgen = "0.2.93"
