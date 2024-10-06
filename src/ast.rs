@@ -18,7 +18,7 @@ pub trait Node {
     fn loc(&self) -> &Loc;
 }
 
-#[derive(Wrapper)]
+#[derive(Node, Wrapper)]
 pub enum NodeWrapper {
     /// 名前空間
     Ns(Namespace),
@@ -32,7 +32,7 @@ pub enum NodeWrapper {
     Attribute(Attribute),
 }
 
-#[derive(Wrapper)]
+#[derive(Node, Wrapper)]
 pub enum StatementOrExpression {
     Statement(Statement),
     Expression(Expression),
@@ -49,7 +49,7 @@ pub struct Namespace {
     pub members: Vec<NamespaceMember>,
 }
 
-#[derive(Wrapper)]
+#[derive(Node, Wrapper)]
 pub enum NamespaceMember {
     Namespace(Namespace),
 
@@ -67,7 +67,7 @@ pub struct Meta {
     pub value: Expression,
 }
 
-#[derive(Wrapper)]
+#[derive(Node, Wrapper)]
 pub enum Statement {
     /// 変数宣言文
     Def(Definition),
@@ -224,7 +224,7 @@ pub struct Assign {
     pub expr: Expression,
 }
 
-#[derive(Wrapper)]
+#[derive(Node, Wrapper)]
 pub enum Expression {
     /// if式
     If(If),
@@ -603,6 +603,7 @@ pub struct Prop {
     pub name: Utf16String,
 }
 
+#[derive(Node, Wrapper)]
 pub enum TypeSource {
     /// 名前付き型
     NamedTypeSource(NamedTypeSource),
