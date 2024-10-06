@@ -7,22 +7,6 @@ use std::{
     vec,
 };
 
-#[macro_export(local_inner_macros)]
-macro_rules! macro_args_len {
-    () => (0usize);
-    ( $x:tt $($xs:tt)* ) => (1usize + macro_args_len!($($xs)*));
-}
-
-/// UTF-16の文字コードから静的領域に文字列を生成するマクロ
-#[macro_export(local_inner_macros)]
-macro_rules! utf16_str {
-    ( $($c:expr),* ) => {{
-        const DATA: [u16; macro_args_len!($(($c))*)]  = [$($c as u16),*];
-        const STR: &$crate::string::Utf16Str = $crate::string::Utf16Str::new(&DATA);
-        STR
-    }};
-}
-
 /// 参照として使用できるUTF-16文字列。
 /// サロゲートペアが完全である必要はない。
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -32,10 +16,12 @@ pub struct Utf16Str {
 }
 
 impl Utf16Str {
+    #[inline]
     pub const fn new(data: &[u16]) -> &Self {
         unsafe { &*(data as *const [u16] as *const Utf16Str) }
     }
 
+    #[inline]
     pub fn new_mut(data: &mut [u16]) -> &mut Self {
         unsafe { &mut *(data as *mut [u16] as *mut Utf16Str) }
     }
@@ -206,6 +192,12 @@ impl ops::AddAssign<&Utf16Str> for Utf16String {
     }
 }
 
+impl ops::AddAssign<u16> for Utf16String {
+    fn add_assign(&mut self, rhs: u16) {
+        self.push(rhs);
+    }
+}
+
 impl ops::Add<&Utf16Str> for Utf16String {
     type Output = Self;
 
@@ -216,13 +208,25 @@ impl ops::Add<&Utf16Str> for Utf16String {
     }
 }
 
+impl ops::Add<u16> for Utf16String {
+    type Output = Self;
+
+    /// 末尾に文字を結合する破壊的メソッド
+    fn add(mut self, rhs: u16) -> Self::Output {
+        self.add_assign(rhs);
+        return self;
+    }
+}
+
 #[cfg(test)]
 mod tests {
+    use utf16_literal::utf16;
+
     use super::*;
 
     #[test]
     fn utf16_macro() {
-        let s = utf16_str!('a', 'b', 'c');
+        let s = Utf16Str::new(&utf16!("abc"));
         assert_eq!(Utf16String::from("abc").as_utf16_str(), s);
     }
 
@@ -238,7 +242,7 @@ mod tests {
         #[test]
         fn add_assign() {
             let mut buf = Utf16String::from("abc");
-            buf += &Utf16String::from("123");
+            buf += Utf16Str::new(&utf16!("123"));
             assert_eq!(buf.to_string(), "abc123")
         }
     }

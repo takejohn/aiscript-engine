@@ -1,7 +1,8 @@
+use utf16_literal::utf16;
+
 use crate::{
     common::Position,
     string::{Utf16Str, Utf16String},
-    utf16_str,
 };
 
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -153,30 +154,28 @@ pub(super) enum TokenKind {
 
 impl TokenKind {
     pub fn for_word(word: &Utf16Str) -> TokenKind {
-        match word {
-            v if v == utf16_str!('n', 'u', 'l', 'l') => TokenKind::NullKeyword,
-            v if v == utf16_str!('t', 'r', 'u', 'e') => TokenKind::TrueKeyword,
-            v if v == utf16_str!('f', 'a', 'l', 's', 'e') => TokenKind::FalseKeyword,
-            v if v == utf16_str!('e', 'a', 'c', 'h') => TokenKind::EachKeyword,
-            v if v == utf16_str!('f', 'o', 'r') => TokenKind::ForKeyword,
-            v if v == utf16_str!('l', 'o', 'o', 'p') => TokenKind::LoopKeyword,
-            v if v == utf16_str!('d', 'o') => TokenKind::DoKeyword,
-            v if v == utf16_str!('w', 'h', 'i', 'l', 'e') => TokenKind::WhileKeyword,
-            v if v == utf16_str!('b', 'r', 'e', 'a', 'k') => TokenKind::BreakKeyword,
-            v if v == utf16_str!('c', 'o', 'n', 't', 'i', 'n', 'u', 'e') => {
-                TokenKind::ContinueKeyword
-            }
-            v if v == utf16_str!('m', 'a', 't', 'c', 'h') => TokenKind::MatchKeyword,
-            v if v == utf16_str!('c', 'a', 's', 'e') => TokenKind::CaseKeyword,
-            v if v == utf16_str!('d', 'e', 'f', 'a', 'u', 'l', 't') => TokenKind::DefaultKeyword,
-            v if v == utf16_str!('i', 'f') => TokenKind::IfKeyword,
-            v if v == utf16_str!('e', 'l', 'i', 'f') => TokenKind::ElifKeyword,
-            v if v == utf16_str!('e', 'l', 's', 'e') => TokenKind::ElseKeyword,
-            v if v == utf16_str!('r', 'e', 't', 'u', 'r', 'n') => TokenKind::ReturnKeyword,
-            v if v == utf16_str!('e', 'v', 'a', 'l') => TokenKind::EvalKeyword,
-            v if v == utf16_str!('v', 'a', 'r') => TokenKind::VarKeyword,
-            v if v == utf16_str!('l', 'e', 't') => TokenKind::LetKeyword,
-            v if v == utf16_str!('e', 'x', 'i', 's', 't', 's') => TokenKind::ExistsKeyword,
+        match word.as_u16s() {
+            &utf16!("null") => TokenKind::NullKeyword,
+            &utf16!("true") => TokenKind::TrueKeyword,
+            &utf16!("false") => TokenKind::FalseKeyword,
+            &utf16!("each") => TokenKind::EachKeyword,
+            &utf16!("for") => TokenKind::ForKeyword,
+            &utf16!("loop") => TokenKind::LoopKeyword,
+            &utf16!("do") => TokenKind::DoKeyword,
+            &utf16!("while") => TokenKind::WhileKeyword,
+            &utf16!("break") => TokenKind::BreakKeyword,
+            &utf16!("continue") => TokenKind::ContinueKeyword,
+            &utf16!("match") => TokenKind::MatchKeyword,
+            &utf16!("case") => TokenKind::CaseKeyword,
+            &utf16!("default") => TokenKind::DefaultKeyword,
+            &utf16!("if") => TokenKind::IfKeyword,
+            &utf16!("elif") => TokenKind::ElifKeyword,
+            &utf16!("else") => TokenKind::ElseKeyword,
+            &utf16!("return") => TokenKind::ReturnKeyword,
+            &utf16!("eval") => TokenKind::EvalKeyword,
+            &utf16!("var") => TokenKind::VarKeyword,
+            &utf16!("let") => TokenKind::LetKeyword,
+            &utf16!("exists") => TokenKind::ExistsKeyword,
             _ => TokenKind::Identifier(Utf16String::from(word)),
         }
     }

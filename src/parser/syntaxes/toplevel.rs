@@ -1,9 +1,12 @@
 use crate::{
-    ast::{self, Loc, Meta, Namespace, Node}, error::{AiScriptSyntaxError, Result}, expect_token_kind, is_token_kind, parser::{
+    ast::{self, Loc, Meta, Namespace, Node},
+    error::{AiScriptSyntaxError, Result},
+    expect_token_kind, is_token_kind,
+    parser::{
         streams::ITokenStream,
         syntaxes::statement::{parse_def_statement, parse_statement},
         token::TokenKind,
-    }
+    },
 };
 
 use super::expressions::parse_expr;
@@ -11,7 +14,9 @@ use super::expressions::parse_expr;
 /// ```abnf
 /// TopLevel = *(Namespace / Meta / Statement)
 /// ```
-pub(in crate::parser) fn parse_top_level(s: &mut impl ITokenStream) -> Result<Vec<ast::NodeWrapper>> {
+pub(in crate::parser) fn parse_top_level(
+    s: &mut impl ITokenStream,
+) -> Result<Vec<ast::NodeWrapper>> {
     let mut nodes: Vec<ast::NodeWrapper> = Vec::new();
 
     while s.is(&TokenKind::NewLine) {
@@ -105,7 +110,10 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
     s.next()?;
 
     return Ok(Namespace {
-        loc: Loc { start: start_pos, end: s.get_pos().to_owned() },
+        loc: Loc {
+            start: start_pos,
+            end: s.get_pos().to_owned(),
+        },
         name,
         members,
     });
@@ -129,7 +137,10 @@ pub(super) fn parse_meta(s: &mut impl ITokenStream) -> Result<ast::Meta> {
     let value = parse_expr(s, true)?;
 
     return Ok(Meta {
-        loc: Loc { start: start_pos, end: value.loc().end.to_owned() },
+        loc: Loc {
+            start: start_pos,
+            end: value.loc().end.to_owned(),
+        },
         name,
         value,
     });

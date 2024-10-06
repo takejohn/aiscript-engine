@@ -22,7 +22,9 @@ macro_rules! expect_token_kind {
     ($stream: expr, $pattern: pat) => {
         match $crate::parser::streams::ITokenStream::get_token_kind($stream) {
             $pattern => std::result::Result::Ok(()),
-            _ => std::result::Result::Err($crate::parser::streams::ITokenStream::unexpected_token($stream)),
+            _ => std::result::Result::Err($crate::parser::streams::ITokenStream::unexpected_token(
+                $stream,
+            )),
         }
     };
 }

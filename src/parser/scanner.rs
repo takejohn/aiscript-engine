@@ -1,9 +1,10 @@
 use std::collections::VecDeque;
 
+use utf16_literal::utf16;
+
 use crate::{
     error::{AiScriptSyntaxError, Result},
-    string::{Utf16Str, Utf16String},
-    utf16_str,
+    string::Utf16String,
 };
 
 use super::{
@@ -495,7 +496,7 @@ impl Scanner<'_> {
             }
         }
         let value = if !fractional.is_empty() {
-            whole_number + utf16_str!('.') + &fractional
+            whole_number + utf16!('.') + fractional.as_utf16_str()
         } else {
             whole_number
         };

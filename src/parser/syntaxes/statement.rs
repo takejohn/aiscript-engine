@@ -14,7 +14,9 @@ pub(super) fn parse_def_statement(s: &mut impl ITokenStream) -> Result<ast::Defi
 /// ```abnf
 /// BlockOrStatement = Block / Statement
 /// ```
-pub(super) fn parse_block_or_statement(s: &mut impl ITokenStream) -> Result<ast::StatementOrExpression> {
+pub(super) fn parse_block_or_statement(
+    s: &mut impl ITokenStream,
+) -> Result<ast::StatementOrExpression> {
     todo!()
 }
 
