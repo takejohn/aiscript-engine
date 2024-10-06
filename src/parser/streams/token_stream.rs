@@ -1,8 +1,31 @@
 use crate::{
     common::Position,
-    error::{AiScriptSyntaxError, Result},
+    error::{AiScriptError, AiScriptSyntaxError, Result},
     parser::token::{Token, TokenKind, EOF},
 };
+
+/// カーソル位置にあるトークンの種類が指定したトークンの種類と一致するかどうかを示す値を取得します。
+#[macro_export]
+macro_rules! is_token_kind {
+    ($stream: expr, $pattern: pat) => {
+        match $crate::parser::streams::ITokenStream::get_token_kind($stream) {
+            $pattern => true,
+            _ => false,
+        }
+    };
+}
+
+/// カーソル位置にあるトークンが指定したトークンの種類と一致するかを確認します。
+/// 一致しなかった場合には文法エラーを発生させます。
+#[macro_export]
+macro_rules! expect_token_kind {
+    ($stream: expr, $pattern: pat) => {
+        match $crate::parser::streams::ITokenStream::get_token_kind($stream) {
+            $pattern => std::result::Result::Ok(()),
+            _ => std::result::Result::Err($crate::parser::streams::ITokenStream::unexpected_token($stream)),
+        }
+    };
+}
 
 /// トークンの読み取りに関するトレイト
 pub(in crate::parser) trait ITokenStream {
@@ -30,24 +53,12 @@ pub(in crate::parser) trait ITokenStream {
     /// トークンの先読みを行います。カーソル位置は移動されません。
     fn lookahead(&mut self, offset: usize) -> Result<&Token>;
 
-    /// カーソル位置にあるトークンが指定したトークンの種類と一致するかを確認します。
-    /// 一致しなかった場合には文法エラーを発生させます。
-    fn expect(&self, kind: &TokenKind) -> Result<()> {
-        if self.get_token_kind() == kind {
-            return Err(Box::new(AiScriptSyntaxError::new(
-                format!("unexpected token: {:?}", self.get_token_kind()),
-                self.get_token().pos.clone(),
-            )));
-        }
-        return Ok(());
-    }
-
-    /// カーソル位置にあるトークンが指定したトークンの種類と一致することを確認し、
-    /// カーソル位置を次のトークンへ進めます。
-    fn next_with(&mut self, kind: &TokenKind) -> Result<()> {
-        self.expect(kind)?;
-        self.next()?;
-        return Ok(());
+    /// トークンの種類が予期しない場合のエラーを生成します。
+    fn unexpected_token(&self) -> Box<dyn AiScriptError> {
+        Box::new(AiScriptSyntaxError::new(
+            format!("unexpected token: {:?}", self.get_token_kind()),
+            self.get_token().pos.clone(),
+        ))
     }
 }
 
