@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use derive_node::Node;
 use derive_wrapper::Wrapper;
 
-use crate::common::Position;
+use crate::{common::Position, string::Utf16String};
 
 #[derive(Clone)]
 pub struct Loc {
@@ -43,7 +43,7 @@ pub struct Namespace {
     pub loc: Loc,
 
     /// 空間名
-    pub name: String,
+    pub name: Utf16String,
 
     /// メンバー
     pub members: Vec<NamespaceMember>,
@@ -61,7 +61,7 @@ pub struct Meta {
     pub loc: Loc,
 
     /// 名
-    pub name: Option<String>,
+    pub name: Option<Utf16String>,
 
     /// 値
     pub value: Expression,
@@ -125,7 +125,7 @@ pub struct Attribute {
     pub loc: Loc,
 
     /// 属性名
-    pub name: String,
+    pub name: Utf16String,
 
     /// 値
     pub value: Expression,
@@ -158,7 +158,7 @@ pub struct For {
     pub loc: Loc,
 
     /// イテレータ変数名
-    pub var: Option<String>,
+    pub var: Option<Utf16String>,
 
     /// 開始値
     pub from: Option<Expression>,
@@ -522,7 +522,7 @@ pub struct Str {
     pub loc: Loc,
 
     /// 文字列
-    pub value: String,
+    pub value: Utf16String,
 }
 
 #[derive(Node)]
@@ -551,7 +551,7 @@ pub struct Obj {
     pub loc: Loc,
 
     /// オブジェクト
-    pub value: HashMap<String, Expression>,
+    pub value: HashMap<Utf16String, Expression>,
 }
 
 #[derive(Node)]
@@ -567,7 +567,7 @@ pub struct Identifier {
     pub loc: Loc,
 
     /// 変数名
-    pub name: String,
+    pub name: Utf16String,
 }
 
 #[derive(Node)]
@@ -600,7 +600,7 @@ pub struct Prop {
     pub target: Box<Expression>,
 
     /// プロパティ名
-    pub name: String,
+    pub name: Utf16String,
 }
 
 pub enum TypeSource {
@@ -616,7 +616,7 @@ pub struct NamedTypeSource {
     pub loc: Loc,
 
     /// 型名
-    pub name: String,
+    pub name: Utf16String,
 
     /// 内側の型
     pub inner: Option<Box<TypeSource>>,
