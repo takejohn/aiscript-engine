@@ -302,7 +302,7 @@ impl Scanner<'_> {
                         if ch == '=' as u16 {
                             self.stream.next();
                             return Ok(Token {
-                                kind: TokenKind::Eq,
+                                kind: TokenKind::Eq2,
                                 pos,
                                 has_left_spacing,
                             });
@@ -310,6 +310,12 @@ impl Scanner<'_> {
                             self.stream.next();
                             return Ok(Token {
                                 kind: TokenKind::Arrow,
+                                pos,
+                                has_left_spacing,
+                            });
+                        } else {
+                            return Ok(Token {
+                                kind: TokenKind::Eq,
                                 pos,
                                 has_left_spacing,
                             });
@@ -420,9 +426,9 @@ impl Scanner<'_> {
                     })
                 }
                 _ => {
-                    // if let Some(token) = self.try_read_digits(has_left_spacing) {
-                    //     return Ok(token);
-                    // }
+                    if let Some(token) = self.try_read_digits(has_left_spacing)? {
+                        return Ok(token);
+                    }
 
                     if let Some(token) = self.try_read_word(has_left_spacing) {
                         return Ok(token);
