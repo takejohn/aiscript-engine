@@ -126,7 +126,7 @@ pub(super) fn parse_meta(s: &mut impl ITokenStream) -> Result<ast::Meta> {
     let start_pos = s.get_pos().to_owned();
 
     expect_token_kind!(s, TokenKind::Sharp3)?;
-    s.next();
+    s.next()?;
 
     let name = if let TokenKind::Identifier(name) = s.get_token_kind() {
         Some(name.to_owned())

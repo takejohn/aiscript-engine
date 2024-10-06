@@ -100,19 +100,11 @@ impl Utf16String {
     }
 }
 
-impl FromIterator<char> for Utf16String {
-    fn from_iter<T: IntoIterator<Item = char>>(iter: T) -> Self {
-        let mut data = Vec::new();
-        for c in iter {
-            let cp: u32 = c as u32;
-            if cp <= 0xFFFF {
-                data.push(cp as u16);
-            } else {
-                data.push(((cp - 0x10000) / 0x400 + 0xD800) as u16);
-                data.push(((cp - 0x10000) % 0x400 + 0xDC00) as u16);
-            }
+impl<'a> FromIterator<&'a u16> for Utf16String {
+    fn from_iter<T: IntoIterator<Item = &'a u16>>(iter: T) -> Self {
+        Utf16String {
+            data: iter.into_iter().map(|&value| value).collect(),
         }
-        return Utf16String { data };
     }
 }
 
@@ -149,12 +141,6 @@ impl From<&str> for Utf16String {
 impl From<u16> for Utf16String {
     fn from(value: u16) -> Self {
         Utf16String { data: vec![value] }
-    }
-}
-
-impl From<char> for Utf16String {
-    fn from(value: char) -> Self {
-        Utf16String::from_iter(iter::once(value))
     }
 }
 

@@ -29,13 +29,32 @@ pub enum NodeWrapper {
     Statement(Statement),
     Expression(Expression),
     TypeSource(TypeSource),
-    Attribute(Attribute),
+    Attribute(Attr),
+}
+
+impl From<StatementOrExpression> for NodeWrapper {
+    fn from(value: StatementOrExpression) -> Self {
+        match value {
+            StatementOrExpression::Statement(statement) => statement.into(),
+            StatementOrExpression::Expression(expression) => expression.into(),
+        }
+    }
 }
 
 #[derive(Node, Wrapper)]
 pub enum StatementOrExpression {
     Statement(Statement),
     Expression(Expression),
+}
+
+impl StatementOrExpression {
+    pub fn from_statement(statement: impl Into<Statement>) -> Self {
+        StatementOrExpression::Statement(statement.into())
+    }
+
+    pub fn from_expr(expr: impl Into<Expression>) -> Self {
+        StatementOrExpression::Expression(expr.into())
+    }
 }
 
 #[derive(Node)]
@@ -117,11 +136,11 @@ pub struct Definition {
     pub is_mut: bool,
 
     /// 付加された属性
-    pub attr: Vec<Attribute>,
+    pub attr: Vec<Attr>,
 }
 
 #[derive(Node)]
-pub struct Attribute {
+pub struct Attr {
     pub loc: Loc,
 
     /// 属性名
@@ -150,7 +169,7 @@ pub struct Each {
     pub items: Expression,
 
     /// 本体処理
-    pub for_statement: Box<Statement>,
+    pub for_statement: Box<StatementOrExpression>,
 }
 
 #[derive(Node)]
@@ -170,7 +189,7 @@ pub struct For {
     pub times: Option<Expression>,
 
     /// 本体処理
-    pub for_statement: Box<Statement>,
+    pub for_statement: Box<StatementOrExpression>,
 }
 
 #[derive(Node)]
@@ -178,7 +197,7 @@ pub struct Loop {
     pub loc: Loc,
 
     /// 処理
-    pub statements: Vec<Statement>,
+    pub statements: Vec<StatementOrExpression>,
 }
 
 #[derive(Node)]
@@ -426,7 +445,7 @@ pub struct If {
     pub elseif: Vec<Elseif>,
 
     /// else節
-    pub else_process: Box<StatementOrExpression>,
+    pub else_statement: Option<Box<StatementOrExpression>>,
 }
 
 #[derive(Node)]
@@ -447,7 +466,7 @@ pub struct Fn {
     pub args: Vec<FnArg>,
 
     /// 戻り値の型
-    pub ret_type: TypeSource,
+    pub ret_type: Option<TypeSource>,
 
     /// 本体処理
     pub children: Vec<StatementOrExpression>,
