@@ -1,3 +1,5 @@
+use std::u16;
+
 use proc_macro::TokenStream;
 use quote::TokenStreamExt;
 use syn::{parse_macro_input, Expr, Lit, LitChar, LitStr};
@@ -39,7 +41,11 @@ fn str_to_utf16(s: LitStr) -> proc_macro2::TokenStream {
 }
 
 fn char_to_utf16(ch: LitChar) -> proc_macro2::TokenStream {
-    let value = ch.value() as u16;
+    let value = ch.value();
+    if value as u32 > u16::MAX as u32 {
+        panic!("character out of range");
+    }
+    let value = value as u16;
 
     let mut stream = proc_macro2::TokenStream::new();
     stream.append(proc_macro2::Literal::u16_suffixed(value));

@@ -13,20 +13,20 @@ use super::{
 };
 
 fn is_space_char(char: u16) -> bool {
-    char == ' ' as u16 || char == '\t' as u16
+    char == utf16!(' ') || char == utf16!('\t')
 }
 
 fn is_line_break_char(char: u16) -> bool {
-    char == '\r' as u16 || char == '\n' as u16
+    char == utf16!('\r') || char == utf16!('\n')
 }
 
 fn is_digit(char: u16) -> bool {
-    char >= '0' as u16 && char <= '9' as u16
+    char >= utf16!('0') && char <= utf16!('9')
 }
 
 fn is_word_char(char: u16) -> bool {
-    (char >= 'A' as u16 && char <= 'Z' as u16)
-        || (char >= 'a' as u16 && char <= 'z' as u16)
+    (char >= utf16!('A') && char <= utf16!('Z'))
+        || (char >= utf16!('a') && char <= utf16!('z'))
         || is_digit(char)
 }
 
@@ -78,9 +78,9 @@ impl Scanner<'_> {
             }
 
             return match ch {
-                c if c == '!' as u16 => {
+                utf16!('!') => {
                     self.stream.next();
-                    if self.stream.char().is_some_and(|char| char == '=' as u16) {
+                    if self.stream.char().is_some_and(|char| char == utf16!('=')) {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::NotEq,
@@ -95,14 +95,14 @@ impl Scanner<'_> {
                         })
                     }
                 }
-                c if c == '"' as u16 || c == '\'' as u16 => {
-                    return self.read_string_literal(c, has_left_spacing);
+                utf16!('"') | utf16!('\'') => {
+                    return self.read_string_literal(ch, has_left_spacing);
                 }
-                c if c == '#' as u16 => {
+                utf16!('#') => {
                     self.stream.next();
-                    if self.stream.char().is_some_and(|ch| ch == '#' as u16) {
+                    if self.stream.char().is_some_and(|ch| ch == utf16!('#')) {
                         self.stream.next();
-                        if self.stream.char().is_some_and(|ch| ch == '#' as u16) {
+                        if self.stream.char().is_some_and(|ch| ch == utf16!('#')) {
                             self.stream.next();
                             Ok(Token {
                                 kind: TokenKind::Sharp3,
@@ -115,7 +115,7 @@ impl Scanner<'_> {
                                 pos,
                             )))
                         }
-                    } else if self.stream.char().is_some_and(|ch| ch == '[' as u16) {
+                    } else if self.stream.char().is_some_and(|ch| ch == utf16!('[')) {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::OpenSharpBracket,
@@ -129,7 +129,7 @@ impl Scanner<'_> {
                         )))
                     }
                 }
-                c if c == '%' as u16 => {
+                utf16!('%') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Percent,
@@ -137,9 +137,9 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '&' as u16 => {
+                utf16!('&') => {
                     self.stream.next();
-                    if self.stream.char().is_some_and(|ch| ch == '&' as u16) {
+                    if self.stream.char().is_some_and(|ch| ch == utf16!('&')) {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::And2,
@@ -153,7 +153,7 @@ impl Scanner<'_> {
                         )))
                     }
                 }
-                c if c == '(' as u16 => {
+                utf16!('(') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::OpenParen,
@@ -161,7 +161,7 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == ')' as u16 => {
+                utf16!(')') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::CloseParen,
@@ -169,7 +169,7 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '*' as u16 => {
+                utf16!('*') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Asterisk,
@@ -177,9 +177,9 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '+' as u16 => {
+                utf16!('+') => {
                     self.stream.next();
-                    if self.stream.char().is_some_and(|ch| ch == '=' as u16) {
+                    if self.stream.char().is_some_and(|ch| ch == utf16!('=')) {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::PlusEq,
@@ -194,7 +194,7 @@ impl Scanner<'_> {
                         })
                     }
                 }
-                c if c == ',' as u16 => {
+                utf16!(',') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Comma,
@@ -202,9 +202,9 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '-' as u16 => {
+                utf16!('-') => {
                     self.stream.next();
-                    if self.stream.char().is_some_and(|ch| c == '=' as u16) {
+                    if self.stream.char().is_some_and(|ch| ch == utf16!('=')) {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::MinusEq,
@@ -219,7 +219,7 @@ impl Scanner<'_> {
                         })
                     }
                 }
-                c if c == '.' as u16 => {
+                utf16!('.') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Dot,
@@ -227,14 +227,14 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '/' as u16 => {
+                utf16!('/') => {
                     self.stream.next();
                     if let Some(ch) = self.stream.char() {
-                        if ch == '*' as u16 {
+                        if ch == utf16!('*') {
                             self.stream.next();
                             self.skip_comment_range();
                             continue;
-                        } else if ch == '/' as u16 {
+                        } else if ch == utf16!('/') {
                             self.stream.next();
                             self.skip_comment_line();
                             continue;
@@ -246,9 +246,9 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == ':' as u16 => {
+                utf16!(':') => {
                     self.stream.next();
-                    if self.stream.char().is_some_and(|ch| ch == ':' as u16) {
+                    if self.stream.char().is_some_and(|ch| ch == utf16!(':')) {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::Colon2,
@@ -263,7 +263,7 @@ impl Scanner<'_> {
                         })
                     }
                 }
-                c if c == ';' as u16 => {
+                utf16!(';') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::SemiColon,
@@ -271,17 +271,17 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '<' as u16 => {
+                utf16!('<') => {
                     self.stream.next();
                     if let Some(ch) = self.stream.char() {
-                        if ch == '=' as u16 {
+                        if ch == utf16!('=') {
                             self.stream.next();
                             return Ok(Token {
                                 kind: TokenKind::LtEq,
                                 pos,
                                 has_left_spacing,
                             });
-                        } else if ch == ':' as u16 {
+                        } else if ch == utf16!(':') {
                             self.stream.next();
                             return Ok(Token {
                                 kind: TokenKind::Out,
@@ -296,17 +296,17 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '=' as u16 => {
+                utf16!('=') => {
                     self.stream.next();
                     if let Some(ch) = self.stream.char() {
-                        if ch == '=' as u16 {
+                        if ch == utf16!('=') {
                             self.stream.next();
                             return Ok(Token {
                                 kind: TokenKind::Eq2,
                                 pos,
                                 has_left_spacing,
                             });
-                        } else if ch == '>' as u16 {
+                        } else if ch == utf16!('>') {
                             self.stream.next();
                             return Ok(Token {
                                 kind: TokenKind::Arrow,
@@ -327,9 +327,9 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '>' as u16 => {
+                utf16!('>') => {
                     self.stream.next();
-                    if self.stream.char().is_some_and(|ch| ch == '=' as u16) {
+                    if self.stream.char().is_some_and(|ch| ch == utf16!('=')) {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::GtEq,
@@ -344,7 +344,7 @@ impl Scanner<'_> {
                         })
                     }
                 }
-                c if c == '?' as u16 => {
+                utf16!('?') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Question,
@@ -352,7 +352,7 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '@' as u16 => {
+                utf16!('@') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::At,
@@ -360,7 +360,7 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '[' as u16 => {
+                utf16!('[') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::OpenBracket,
@@ -368,7 +368,7 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '\\' as u16 => {
+                utf16!('\\') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::BackSlash,
@@ -376,7 +376,7 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == ']' as u16 => {
+                utf16!(']') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::CloseBracket,
@@ -384,7 +384,7 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '^' as u16 => {
+                utf16!('^') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::Hat,
@@ -392,8 +392,8 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '`' as u16 => self.read_template(has_left_spacing),
-                c if c == '{' as u16 => {
+                utf16!('`') => self.read_template(has_left_spacing),
+                utf16!('{') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::OpenBrace,
@@ -401,9 +401,9 @@ impl Scanner<'_> {
                         has_left_spacing,
                     })
                 }
-                c if c == '|' as u16 => {
+                utf16!('|') => {
                     self.stream.next();
-                    if self.stream.char().is_some_and(|ch| ch == '|' as u16) {
+                    if self.stream.char().is_some_and(|ch| ch == utf16!('|')) {
                         self.stream.next();
                         Ok(Token {
                             kind: TokenKind::Or2,
@@ -417,7 +417,7 @@ impl Scanner<'_> {
                         )))
                     }
                 }
-                c if c == '}' as u16 => {
+                utf16!('}') => {
                     self.stream.next();
                     Ok(Token {
                         kind: TokenKind::CloseBrace,
@@ -487,7 +487,7 @@ impl Scanner<'_> {
             return Ok(None);
         }
         if let Some(ch) = self.stream.char() {
-            if ch == '.' as u16 {
+            if ch == utf16!('.') {
                 self.stream.next();
                 while let Some(ch) = self.stream.char() {
                     if !is_digit(ch) {
@@ -532,7 +532,7 @@ impl Scanner<'_> {
                     let Some(ch) = self.stream.char() else {
                         return Err(Box::new(AiScriptSyntaxError::new("unexpected EOF", pos)));
                     };
-                    if ch == '\\' as u16 {
+                    if ch == utf16!('\\') {
                         self.stream.next();
                         state = State::Escape;
                     } else if ch == literal_mark {
@@ -584,11 +584,11 @@ impl Scanner<'_> {
                         // テンプレートの終了が無いままEOFに達した
                         return Err(Box::new(AiScriptSyntaxError::new("unexpected EOF", pos)));
                     };
-                    if ch == '\\' as u16 {
+                    if ch == utf16!('\\') {
                         // エスケープ
                         self.stream.next();
                         state = State::Escape;
-                    } else if ch == '`' as u16 {
+                    } else if ch == utf16!('`') {
                         // テンプレートの終了
                         self.stream.next();
                         if !buf.is_empty() {
@@ -599,7 +599,7 @@ impl Scanner<'_> {
                             });
                             break;
                         }
-                    } else if ch == '{' as u16 {
+                    } else if ch == utf16!('{') {
                         // 埋め込み式の開始
                         self.stream.next();
                         if !buf.is_empty() {
@@ -640,7 +640,7 @@ impl Scanner<'_> {
                         continue;
                     }
                     // 埋め込み式の終了
-                    if ch == '}' as u16 {
+                    if ch == utf16!('}') {
                         let expr_element_pos = element_pos.clone();
                         // ここから文字列エレメントになるので位置を更新
                         element_pos = self.stream.get_pos();
@@ -673,7 +673,7 @@ impl Scanner<'_> {
     }
 
     fn skip_comment_line(&mut self) {
-        while self.stream.char().is_some_and(|ch| ch != '\n' as u16) {
+        while self.stream.char().is_some_and(|ch| ch != utf16!('\n')) {
             self.stream.next();
         }
     }
@@ -683,9 +683,9 @@ impl Scanner<'_> {
             let Some(ch) = self.stream.char() else {
                 break;
             };
-            if ch == '*' as u16 {
+            if ch == utf16!('*') {
                 self.stream.next();
-                if self.stream.char().is_some_and(|ch| ch == '/' as u16) {
+                if self.stream.char().is_some_and(|ch| ch == utf16!('/')) {
                     self.stream.next();
                     break;
                 }

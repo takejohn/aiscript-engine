@@ -1,3 +1,5 @@
+use utf16_literal::utf16;
+
 use crate::{common::Position, string::Utf16Str};
 
 /// 入力文字列から文字を読み取る  
@@ -47,7 +49,7 @@ impl CharStream<'_> {
 
     /// カーソル位置を<'次の文字へ進めます。
     pub fn next(&mut self) {
-        if !self.eof() && self.char.is_some_and(|char| char == '\n' as u16) {
+        if !self.eof() && self.char.is_some_and(|char| char == utf16!('\n')) {
             self.line += 1;
             self.column = 0;
         } else {
@@ -69,7 +71,7 @@ impl CharStream<'_> {
     fn move_next(&mut self) {
         self.load_char();
         loop {
-            if self.char.is_some_and(|char| char == '\r' as u16) {
+            if self.char.is_some_and(|char| char == utf16!('\r')) {
                 self.inc_addr();
                 self.load_char();
                 continue;
@@ -87,7 +89,7 @@ impl CharStream<'_> {
     fn move_prev(&mut self) {
         self.load_char();
         loop {
-            if self.char.is_some_and(|char| char == '\r' as u16) {
+            if self.char.is_some_and(|char| char == utf16!('\r')) {
                 self.dec_addr();
                 self.load_char();
                 continue;
@@ -134,6 +136,8 @@ impl<'a> From<&'a Utf16Str> for CharStream<'a> {
 
 #[cfg(test)]
 mod tests {
+    use utf16_literal::utf16;
+
     use crate::string::Utf16String;
 
     use super::*;
@@ -142,7 +146,7 @@ mod tests {
     fn char() {
         let source = Utf16String::from("abc");
         let stream = CharStream::new(&source, Default::default());
-        assert_eq!(Some('a' as u16), stream.char());
+        assert_eq!(Some(utf16!('a')), stream.char());
     }
 
     #[test]
@@ -165,7 +169,7 @@ mod tests {
         let source = Utf16String::from("abc");
         let mut stream = CharStream::new(&source, Default::default());
         stream.next();
-        assert_eq!(Some('b' as u16), stream.char());
+        assert_eq!(Some(utf16!('b')), stream.char());
     }
 
     #[cfg(test)]
@@ -177,9 +181,9 @@ mod tests {
             let source = Utf16String::from("abc");
             let mut stream = CharStream::new(&source, Default::default());
             stream.next();
-            assert_eq!(Some('b' as u16), stream.char());
+            assert_eq!(Some(utf16!('b')), stream.char());
             stream.prev();
-            assert_eq!(Some('a' as u16), stream.char());
+            assert_eq!(Some(utf16!('a')), stream.char());
         }
 
         #[test]
@@ -187,7 +191,7 @@ mod tests {
             let source = Utf16String::from("abc");
             let mut stream = CharStream::new(&source, Default::default());
             stream.prev();
-            assert_eq!(Some('a' as u16), stream.char());
+            assert_eq!(Some(utf16!('a')), stream.char());
         }
     }
 
@@ -216,11 +220,11 @@ mod tests {
     fn cr_skipped() {
         let source = Utf16String::from("a\r\nb");
         let mut stream = CharStream::new(&source, Default::default());
-        assert_eq!(Some('a' as u16), stream.char());
+        assert_eq!(Some(utf16!('a')), stream.char());
         stream.next();
-        assert_eq!(Some('\n' as u16), stream.char());
+        assert_eq!(Some(utf16!('\n')), stream.char());
         stream.next();
-        assert_eq!(Some('b' as u16), stream.char());
+        assert_eq!(Some(utf16!('b')), stream.char());
         stream.next();
         assert_eq!(true, stream.eof());
     }
