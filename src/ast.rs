@@ -472,20 +472,24 @@ pub struct Fn {
     pub children: Vec<StatementOrExpression>,
 }
 
-#[derive(Node)]
 pub struct FnArg {
-    pub loc: Loc,
-
     /// 引数名
     pub dest: Expression,
 
-    pub optional: bool,
-
-    /// 引数の初期値
-    pub default: Option<Expression>,
+    /// 実引数が省略された場合の挙動
+    pub value: FnArgValue,
 
     /// 引数の型
     pub arg_type: Option<TypeSource>,
+}
+
+pub enum FnArgValue {
+    Optional,
+
+    /// 引数の初期値
+    Default(Expression),
+
+    Required,
 }
 
 #[derive(Node)]
