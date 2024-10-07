@@ -19,11 +19,11 @@ pub(in crate::parser) fn parse_top_level(
 ) -> Result<Vec<ast::NodeWrapper>> {
     let mut nodes: Vec<ast::NodeWrapper> = Vec::new();
 
-    while s.is(&TokenKind::NewLine) {
+    while is_token_kind!(s, TokenKind::NewLine) {
         s.next()?;
     }
 
-    while !s.is(&TokenKind::EOF) {
+    while !is_token_kind!(s, TokenKind::EOF) {
         match s.get_token_kind() {
             TokenKind::Colon2 => {
                 nodes.push(parse_namespace(s)?.into());
@@ -39,7 +39,7 @@ pub(in crate::parser) fn parse_top_level(
         // terminator
         match s.get_token_kind() {
             TokenKind::NewLine | TokenKind::SemiColon => {
-                while s.is(&TokenKind::NewLine) || s.is(&TokenKind::SemiColon) {
+                while is_token_kind!(s, TokenKind::NewLine | TokenKind::SemiColon) {
                     s.next()?;
                 }
             }
@@ -75,11 +75,11 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
     expect_token_kind!(s, TokenKind::OpenBrace)?;
     s.next()?;
 
-    while s.is(&TokenKind::NewLine) {
+    while is_token_kind!(s, TokenKind::NewLine) {
         s.next()?;
     }
 
-    while !s.is(&TokenKind::CloseBrace) {
+    while !is_token_kind!(s, TokenKind::CloseBrace) {
         match s.get_token_kind() {
             TokenKind::VarKeyword | TokenKind::LetKeyword | TokenKind::At => {
                 members.push(parse_def_statement(s)?.into());
@@ -93,7 +93,7 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
         // terminator
         match s.get_token_kind() {
             TokenKind::NewLine | TokenKind::SemiColon => {
-                while s.is(&TokenKind::NewLine) || s.is(&TokenKind::SemiColon) {
+                while is_token_kind!(s, TokenKind::NewLine | TokenKind::SemiColon) {
                     s.next()?;
                 }
             }

@@ -19,25 +19,21 @@ macro_rules! is_token_kind {
 /// 一致しなかった場合には文法エラーを発生させます。
 #[macro_export]
 macro_rules! expect_token_kind {
-    ($stream: expr, $pattern: pat) => {
-        match $crate::parser::streams::ITokenStream::get_token_kind($stream) {
-            $pattern => std::result::Result::Ok(()),
-            _ => std::result::Result::Err($crate::parser::streams::ITokenStream::unexpected_token(
-                $stream,
+    ($stream: expr, $pattern: pat) => {{
+        let s = &$stream;
+        match $crate::parser::streams::ITokenStream::get_token_kind(*s) {
+            $pattern => ::std::result::Result::Ok(()),
+            _ => ::std::result::Result::Err($crate::parser::streams::ITokenStream::unexpected_token(
+                *s,
             )),
         }
-    };
+    }};
 }
 
 /// トークンの読み取りに関するトレイト
 pub(in crate::parser) trait ITokenStream {
     /// カーソル位置にあるトークンを取得します。
     fn get_token(&self) -> &Token;
-
-    /// カーソル位置にあるトークンの種類が指定したトークンの種類と一致するかどうかを示す値を取得します。
-    fn is(&self, kind: &TokenKind) -> bool {
-        self.get_token_kind() == kind
-    }
 
     /// カーソル位置にあるトークンの種類を取得します。
     fn get_token_kind(&self) -> &TokenKind {
