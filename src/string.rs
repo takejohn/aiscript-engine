@@ -3,6 +3,7 @@ use std::{
     char::decode_utf16,
     fmt::{Debug, Display},
     iter,
+    num::ParseFloatError,
     ops::{self, AddAssign},
     vec,
 };
@@ -36,6 +37,32 @@ impl Utf16Str {
 
     pub fn len(&self) -> usize {
         self.data.len()
+    }
+
+    pub fn parse<F: FromUtf16Str>(&self) -> Result<F, F::Err> {
+        F::from(self)
+    }
+
+    /// selfを区切り文字として引数に与えらえれた文字列を結合する。
+    pub fn join<'a>(&self, strings: impl Iterator<Item = impl Into<&'a Utf16Str>>) -> Utf16String {
+        let mut iter = strings;
+        let mut result = Utf16String::new();
+        if let Some(first) = iter.next() {
+            result += first.into();
+        } else {
+            return result;
+        }
+        while let Some(item) = iter.next() {
+            result += self;
+            result += item.into();
+        }
+        return result;
+    }
+}
+
+impl<'a> From<&'a Utf16String> for &'a Utf16Str {
+    fn from(value: &'a Utf16String) -> Self {
+        value.as_utf16_str()
     }
 }
 
@@ -201,6 +228,21 @@ impl ops::Add<u16> for Utf16String {
     fn add(mut self, rhs: u16) -> Self::Output {
         self.add_assign(rhs);
         return self;
+    }
+}
+
+pub trait FromUtf16Str: Sized {
+    type Err;
+
+    fn from(s: &Utf16Str) -> Result<Self, Self::Err>;
+}
+
+impl FromUtf16Str for f64 {
+    type Err = ParseFloatError;
+
+    fn from(s: &Utf16Str) -> Result<Self, Self::Err> {
+        // TODO: ECMAScriptと同じアルゴリズムを用いる
+        s.to_string().parse()
     }
 }
 

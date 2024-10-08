@@ -15,7 +15,19 @@ pub(super) enum TokenKind {
     NumberLiteral(Utf16String),
     StringLiteral(Utf16String),
 
-    // template string
+    /* template string
+    TODO: TemplateStringElement, TemplateExprElementを列挙型TemplateElementとし、
+    TokenをトレイトとしてTemplateElementにTokenを実装する
+
+    enum TemplateElement {
+        String(Utf16String),
+        Expr(Vec<Token>),
+    }
+
+    impl Token for TemplateElement {
+        ...
+    }
+    */
     Template(Vec<Token>),
     TemplateStringElement(Utf16String),
     TemplateExprElement(Vec<Token>),

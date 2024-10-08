@@ -23,9 +23,9 @@ macro_rules! expect_token_kind {
         let s = &$stream;
         match $crate::parser::streams::ITokenStream::get_token_kind(*s) {
             $pattern => ::std::result::Result::Ok(()),
-            _ => ::std::result::Result::Err($crate::parser::streams::ITokenStream::unexpected_token(
-                *s,
-            )),
+            _ => ::std::result::Result::Err(
+                $crate::parser::streams::ITokenStream::unexpected_token(*s),
+            ),
         }
     }};
 }
@@ -45,7 +45,8 @@ pub(in crate::parser) trait ITokenStream {
         &self.get_token().pos
     }
 
-    /// カーソル位置を次のトークンへ進めます。
+    /// カーソル位置を次のトークンへ進めます。  
+    /// TODO: 呼び出し時のカーソル位置にあるトークンをムーブアウトして返す (`Result<Token>`)
     fn next(&mut self) -> Result<()>;
 
     /// トークンの先読みを行います。カーソル位置は移動されません。

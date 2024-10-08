@@ -284,20 +284,8 @@ pub enum Expression {
     /// 否定
     Not(Not),
 
-    Pow(Pow),
-    Mul(Mul),
-    Div(Div),
-    Rem(Rem),
-    Add(Add),
-    Sub(Sub),
-    Lt(Lt),
-    Lteq(Lteq),
-    Gt(Gt),
-    Gteq(Gteq),
-    Eq(Eq),
-    Neq(Neq),
-    And(And),
-    Or(Or),
+    /// 二項演算
+    Binary(Binary),
 
     /// 変数などの識別子
     Identifier(Identifier),
@@ -313,123 +301,38 @@ pub enum Expression {
 }
 
 #[derive(Node)]
+pub struct Binary {
+    pub loc: Loc,
+
+    pub op: BinaryOperator,
+
+    pub left: Box<Expression>,
+    pub right: Box<Expression>,
+}
+
+pub enum BinaryOperator {
+    Pow,
+    Mul,
+    Div,
+    Rem,
+    Add,
+    Sub,
+    Lt,
+    Lteq,
+    Gt,
+    Gteq,
+    Eq,
+    Neq,
+    And,
+    Or,
+}
+
+#[derive(Node)]
 pub struct Not {
     pub loc: Loc,
 
     /// 式
     pub expr: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Pow {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Mul {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Div {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Rem {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Add {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Sub {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Lt {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Lteq {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Gt {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Gteq {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Eq {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Neq {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct And {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
-}
-
-#[derive(Node)]
-pub struct Or {
-    pub loc: Loc,
-
-    pub left: Box<Expression>,
-    pub right: Box<Expression>,
 }
 
 #[derive(Node)]
@@ -448,10 +351,7 @@ pub struct If {
     pub else_statement: Option<Box<StatementOrExpression>>,
 }
 
-#[derive(Node)]
 pub struct Elseif {
-    pub loc: Loc,
-
     /// elifの条件式
     pub cond: Expression,
 
@@ -499,16 +399,13 @@ pub struct Match {
     /// 対象
     pub about: Box<Expression>,
 
-    pub qs: Vec<MatchQs>,
+    pub qs: Vec<MatchQ>,
 
     /// デフォルト値
     pub default: Option<Box<StatementOrExpression>>,
 }
 
-#[derive(Node)]
-pub struct MatchQs {
-    pub loc: Loc,
-
+pub struct MatchQ {
     /// 条件
     pub q: Expression,
 
@@ -612,7 +509,7 @@ pub struct Index {
     pub target: Box<Expression>,
 
     /// インデックス
-    pub name: Box<Expression>,
+    pub index: Box<Expression>,
 }
 
 #[derive(Node)]
