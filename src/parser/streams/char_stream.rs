@@ -2,8 +2,8 @@ use utf16_literal::utf16;
 
 use crate::{common::Position, string::Utf16Str};
 
-/// 入力文字列から文字を読み取る  
-/// オリジナルのAiScriptと異なり1ページのみ
+/// 入力文字列から文字を読み取る。  
+/// オリジナルのAiScriptと異なり1ページのみで、バックトラック機能は提供しない。
 pub struct CharStream<'a> {
     page: &'a Utf16Str,
     address: usize,
@@ -59,11 +59,6 @@ impl CharStream<'_> {
         self.move_next();
     }
 
-    pub fn prev(&mut self) {
-        self.dec_addr();
-        self.move_prev();
-    }
-
     fn end_of_page(&self) -> bool {
         return self.address >= self.page.len();
     }
@@ -83,24 +78,6 @@ impl CharStream<'_> {
     fn inc_addr(&mut self) {
         if !self.end_of_page() {
             self.address += 1;
-        }
-    }
-
-    fn move_prev(&mut self) {
-        self.load_char();
-        loop {
-            if self.char.is_some_and(|char| char == utf16!('\r')) {
-                self.dec_addr();
-                self.load_char();
-                continue;
-            }
-            break;
-        }
-    }
-
-    fn dec_addr(&mut self) {
-        if self.address > 0 {
-            self.address -= 1;
         }
     }
 
@@ -170,29 +147,6 @@ mod tests {
         let mut stream = CharStream::new(&source, Default::default());
         stream.next();
         assert_eq!(Some(utf16!('b')), stream.char());
-    }
-
-    #[cfg(test)]
-    mod prev {
-        use super::*;
-
-        #[test]
-        fn test_move() {
-            let source = Utf16String::from("abc");
-            let mut stream = CharStream::new(&source, Default::default());
-            stream.next();
-            assert_eq!(Some(utf16!('b')), stream.char());
-            stream.prev();
-            assert_eq!(Some(utf16!('a')), stream.char());
-        }
-
-        #[test]
-        fn no_move_out_of_bound() {
-            let source = Utf16String::from("abc");
-            let mut stream = CharStream::new(&source, Default::default());
-            stream.prev();
-            assert_eq!(Some(utf16!('a')), stream.char());
-        }
     }
 
     #[test]

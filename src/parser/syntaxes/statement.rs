@@ -11,7 +11,6 @@ use crate::{
         syntaxes::{
             common::{parse_dest, parse_params, parse_type},
             expressions::parse_expr,
-            statement,
         },
         token::TokenKind,
     },

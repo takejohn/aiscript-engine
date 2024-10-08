@@ -2,7 +2,14 @@
 // この値は演算子が左と右に対してどのくらい結合力があるかを表わしています。詳細はpratt parsingの説明ページを参照してください。
 
 use crate::{
-    ast, error::Result, expect_token_kind, is_token_kind, parser::{streams::ITokenStream, syntaxes::expressions::{parse_atom, parse_infix, parse_postfix, parse_prefix}, token::TokenKind}
+    ast,
+    error::Result,
+    expect_token_kind, is_token_kind,
+    parser::{
+        streams::ITokenStream,
+        syntaxes::expressions::{parse_atom, parse_infix, parse_postfix, parse_prefix},
+        token::TokenKind,
+    },
 };
 
 pub(super) type BindingPower = i32;
@@ -67,7 +74,9 @@ pub(super) fn parse_pratt(
                 break;
             }
 
-            if matches!(token_kind, TokenKind::OpenBracket | TokenKind::OpenParen) && s.get_token().has_left_spacing {
+            if matches!(token_kind, TokenKind::OpenBracket | TokenKind::OpenParen)
+                && s.get_token().has_left_spacing
+            {
                 // 前にスペースがある場合は後置演算子として処理しない
             } else {
                 left = parse_postfix(s, left)?;
