@@ -27,9 +27,9 @@ pub enum NodeWrapper {
     Meta(Meta),
 
     Statement(Statement),
-    Expression(Expression),
+    Expr(Expression),
     TypeSource(TypeSource),
-    Attribute(Attr),
+    Attr(Attribute),
 }
 
 impl From<StatementOrExpression> for NodeWrapper {
@@ -111,12 +111,6 @@ pub enum Statement {
 
     /// 代入文
     Assign(Assign),
-
-    /// 加算代入文
-    AddAssign(AddAssign),
-
-    /// 減算代入文
-    SubAssign(SubAssign),
 }
 
 #[derive(Node)]
@@ -136,11 +130,11 @@ pub struct Definition {
     pub is_mut: bool,
 
     /// 付加された属性
-    pub attr: Vec<Attr>,
+    pub attr: Vec<Attribute>,
 }
 
 #[derive(Node)]
-pub struct Attr {
+pub struct Attribute {
     pub loc: Loc,
 
     /// 属性名
@@ -176,20 +170,27 @@ pub struct Each {
 pub struct For {
     pub loc: Loc,
 
-    /// イテレータ変数名
-    pub var: Option<Utf16String>,
-
-    /// 開始値
-    pub from: Option<Expression>,
-
-    /// 終値
-    pub to: Option<Expression>,
-
-    /// 回数
-    pub times: Option<Expression>,
+    pub iter: ForIterator,
 
     /// 本体処理
     pub for_statement: Box<StatementOrExpression>,
+}
+
+pub enum ForIterator {
+    Range {
+        /// イテレータ変数名
+        var: Utf16String,
+
+        /// 開始値
+        from: Expression,
+
+        /// 終値
+        to: Expression,
+    },
+    Number {
+        /// 回数
+        times: Expression,
+    }
 }
 
 #[derive(Node)]
@@ -211,36 +212,27 @@ pub struct Continue {
 }
 
 #[derive(Node)]
-pub struct AddAssign {
-    pub loc: Loc,
-
-    /// 代入先
-    pub dest: Expression,
-
-    /// 式
-    pub expr: Expression,
-}
-
-#[derive(Node)]
-pub struct SubAssign {
-    pub loc: Loc,
-
-    /// 代入先
-    pub dest: Expression,
-
-    /// 式
-    pub expr: Expression,
-}
-
-#[derive(Node)]
 pub struct Assign {
     pub loc: Loc,
 
+    pub op: AssignOperator,
+
     /// 代入先
     pub dest: Expression,
 
     /// 式
     pub expr: Expression,
+}
+
+pub enum AssignOperator {
+    /// 再代入文
+    Reassign,
+
+    /// 加算代入文
+    AddAssign,
+
+    /// 減算代入文
+    SubAssign,
 }
 
 #[derive(Node, Wrapper)]

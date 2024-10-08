@@ -356,10 +356,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
                 start: start_pos,
                 end: s.get_pos().to_owned(),
             },
-            var: Some(name),
-            from: Some(from),
-            to: Some(to),
-            times: None,
+            iter: ast::ForIterator::Range { var: name, from, to },
             for_statement: Box::new(body.into()),
         });
     } else {
@@ -379,10 +376,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
                 start: start_pos,
                 end: s.get_pos().to_owned(),
             },
-            var: None,
-            from: None,
-            to: None,
-            times: Some(times),
+            iter: ast::ForIterator::Number { times },
             for_statement: Box::new(body.into()),
         });
     }
@@ -411,7 +405,7 @@ fn parse_return(s: &mut impl ITokenStream) -> Result<ast::Return> {
 /// StatementWithAttr = *Attr Statement
 /// ```
 fn parse_statement_with_attr(s: &mut impl ITokenStream) -> Result<ast::Definition> {
-    let mut attrs: Vec<ast::Attr> = Vec::new();
+    let mut attrs: Vec<ast::Attribute> = Vec::new();
     while is_token_kind!(s, TokenKind::OpenSharpBracket) {
         attrs.push(parse_attr(s)?);
         expect_token_kind!(s, TokenKind::NewLine)?;
@@ -437,7 +431,7 @@ fn parse_statement_with_attr(s: &mut impl ITokenStream) -> Result<ast::Definitio
 /// ```abnf
 /// Attr = "#[" IDENT [StaticExpr] "]"
 /// ```
-fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attr> {
+fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attribute> {
     let start_pos = s.get_pos().clone();
 
     expect_token_kind!(s, TokenKind::OpenSharpBracket)?;
@@ -466,7 +460,7 @@ fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attr> {
     expect_token_kind!(s, TokenKind::CloseBracket)?;
     s.next()?;
 
-    return Ok(ast::Attr {
+    return Ok(ast::Attribute {
         loc: Loc {
             start: start_pos,
             end: s.get_pos().to_owned(),
@@ -609,6 +603,7 @@ fn try_parse_assign(
                     start: start_pos,
                     end: s.get_pos().to_owned(),
                 },
+                op: ast::AssignOperator::Reassign,
                 dest,
                 expr,
             }));
@@ -616,11 +611,12 @@ fn try_parse_assign(
         TokenKind::PlusEq => {
             s.next()?;
             let expr = parse_expr(s, false)?;
-            return Ok(StatementOrExpression::from_statement(ast::AddAssign {
+            return Ok(StatementOrExpression::from_statement(ast::Assign {
                 loc: Loc {
                     start: start_pos,
                     end: s.get_pos().to_owned(),
                 },
+                op: ast::AssignOperator::AddAssign,
                 dest,
                 expr,
             }));
@@ -628,11 +624,12 @@ fn try_parse_assign(
         TokenKind::MinusEq => {
             s.next()?;
             let expr = parse_expr(s, false)?;
-            return Ok(StatementOrExpression::from_statement(ast::SubAssign {
+            return Ok(StatementOrExpression::from_statement(ast::Assign {
                 loc: Loc {
                     start: start_pos,
                     end: s.get_pos().to_owned(),
                 },
+                op: ast::AssignOperator::SubAssign,
                 dest,
                 expr,
             }));
