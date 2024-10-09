@@ -173,7 +173,7 @@ fn reserved_word_error(name: impl Into<Utf16String>, loc: ast::Loc) -> Box<dyn A
     ))
 }
 
-pub fn validate_keyword(nodes: &mut Vec<ast::NodeWrapper>) -> Result<()> {
+pub(in crate::parser) fn validate_keyword(nodes: &mut Vec<ast::NodeWrapper>) -> Result<()> {
     let mut dest_validator = DestValidator;
     let mut node_validator = NodeValidator::new(&mut dest_validator);
     let mut validator = RecursiveVisitor::new(&mut node_validator);

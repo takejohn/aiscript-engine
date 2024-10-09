@@ -5,7 +5,7 @@ mod syntaxes;
 mod token;
 
 use crate::{ast, error::Result, string::Utf16Str};
-use plugins::validate_keyword;
+use plugins::{validate_keyword, validate_type};
 use scanner::Scanner;
 use syntaxes::parse_top_level;
 
@@ -24,7 +24,7 @@ pub struct Parser {
 impl Parser {
     pub fn new() -> Self {
         return Parser {
-            validate_plugins: vec![Box::new(validate_keyword)],
+            validate_plugins: vec![Box::new(validate_keyword), Box::new(validate_type)],
             transform_plugins: Vec::new(),
         };
     }
