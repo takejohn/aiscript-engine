@@ -356,7 +356,11 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
                 start: start_pos,
                 end: s.get_pos().to_owned(),
             },
-            iter: ast::ForIterator::Range { var: name, from, to },
+            iter: ast::ForIterator::Range {
+                var: name,
+                from,
+                to,
+            },
             for_statement: Box::new(body.into()),
         });
     } else {

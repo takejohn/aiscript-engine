@@ -5,7 +5,10 @@ use std::collections::HashMap;
 use derive_node::Node;
 use derive_wrapper::Wrapper;
 
-use crate::{common::Position, string::Utf16String};
+use crate::{
+    common::Position,
+    string::{Utf16Str, Utf16String},
+};
 
 #[derive(Clone)]
 pub struct Loc {
@@ -16,6 +19,11 @@ pub struct Loc {
 pub trait Node {
     /// コード位置
     fn loc(&self) -> &Loc;
+}
+
+/// 予約語でない名前を持つノード。
+pub trait NamedNode: Node {
+    fn name(&self) -> &Utf16Str;
 }
 
 #[derive(Node, Wrapper)]
@@ -66,6 +74,12 @@ pub struct Namespace {
 
     /// メンバー
     pub members: Vec<NamespaceMember>,
+}
+
+impl NamedNode for Namespace {
+    fn name(&self) -> &Utf16Str {
+        &self.name
+    }
 }
 
 #[derive(Node, Wrapper)]
@@ -144,6 +158,12 @@ pub struct Attribute {
     pub value: Expression,
 }
 
+impl NamedNode for Attribute {
+    fn name(&self) -> &Utf16Str {
+        &self.name
+    }
+}
+
 #[derive(Node)]
 pub struct Return {
     pub loc: Loc,
@@ -190,7 +210,7 @@ pub enum ForIterator {
     Number {
         /// 回数
         times: Expression,
-    }
+    },
 }
 
 #[derive(Node)]
@@ -482,6 +502,12 @@ pub struct Identifier {
     pub name: Utf16String,
 }
 
+impl NamedNode for Identifier {
+    fn name(&self) -> &Utf16Str {
+        &self.name
+    }
+}
+
 #[derive(Node)]
 pub struct Call {
     pub loc: Loc,
@@ -513,6 +539,12 @@ pub struct Prop {
 
     /// プロパティ名
     pub name: Utf16String,
+}
+
+impl NamedNode for Prop {
+    fn name(&self) -> &Utf16Str {
+        &self.name
+    }
 }
 
 #[derive(Node, Wrapper)]
