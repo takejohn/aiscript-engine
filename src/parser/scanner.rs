@@ -597,8 +597,8 @@ impl Scanner<'_> {
                                 pos: element_pos,
                                 has_left_spacing,
                             });
-                            break;
                         }
+                        break;
                     } else if ch == utf16!('{') {
                         // 埋め込み式の開始
                         self.stream.next();
@@ -657,6 +657,7 @@ impl Scanner<'_> {
                         });
                         token_buf = Vec::new();
                         state = State::String;
+                        self.stream.next();
                     } else {
                         let token = self.read_token()?;
                         token_buf.push(token);
@@ -729,7 +730,9 @@ impl ITokenStream for Scanner<'_> {
 
 #[cfg(test)]
 mod tests {
-    use crate::{common::Position, string::Utf16Str};
+    use std::borrow::Borrow;
+
+    use crate::{common::Position, is_token_kind, string::Utf16Str};
 
     use super::*;
 
@@ -737,9 +740,13 @@ mod tests {
         Scanner::new(source).unwrap()
     }
 
-    fn next(stream: &mut Scanner, token: &Token) {
-        assert_eq!(stream.get_token(), token);
+    fn next(stream: &mut Scanner, token: impl Borrow<Token>) {
+        assert_eq!(stream.get_token(), token.borrow());
         stream.next().unwrap();
+    }
+
+    fn fails(source: &Utf16Str) {
+        assert!(Scanner::new(source).is_err());
     }
 
     #[test]
@@ -986,5 +993,363 @@ mod tests {
                 has_left_spacing: false,
             },
         );
+    }
+
+    #[test]
+    fn symbols() {
+        let source = Utf16Str::new(&utf16!("="));
+        let mut stream = init(source);
+        next(
+            &mut stream,
+            Token {
+                kind: TokenKind::Eq,
+                pos: Position::At { line: 1, column: 1 },
+                has_left_spacing: false,
+            },
+        );
+
+        fails(Utf16Str::new(&utf16!("##")));
+        fails(Utf16Str::new(&utf16!("#")));
+        fails(Utf16Str::new(&utf16!("&")));
+        fails(Utf16Str::new(&utf16!("|")));
+    }
+
+    #[test]
+    fn numbers() {
+        let source = Utf16Str::new(&utf16!("1.23\n4.56"));
+        let mut stream = init(source);
+        next(
+            &mut stream,
+            Token {
+                kind: TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("1.23"))),
+                pos: Position::At { line: 1, column: 1 },
+                has_left_spacing: false,
+            },
+        );
+        next(
+            &mut stream,
+            Token {
+                kind: TokenKind::NewLine,
+                pos: Position::At { line: 1, column: 5 },
+                has_left_spacing: false,
+            },
+        );
+        next(
+            &mut stream,
+            Token {
+                kind: TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("4.56"))),
+                pos: Position::At { line: 2, column: 1 },
+                has_left_spacing: false,
+            },
+        );
+
+        fails(Utf16Str::new(&utf16!("1.")));
+    }
+
+    #[test]
+    fn strings() {
+        let source = Utf16Str::new(&utf16!(r#""a\\b""#));
+        let mut stream = init(source);
+        next(
+            &mut stream,
+            Token {
+                kind: TokenKind::StringLiteral(Utf16String::from_iter(&utf16!("a\\b"))),
+                pos: Position::At { line: 1, column: 1 },
+                has_left_spacing: false,
+            },
+        );
+
+        fails(Utf16Str::new(&utf16!(r#"""#)));
+        fails(Utf16Str::new(&utf16!(r#""\"#)));
+    }
+
+    #[test]
+    fn comments() {
+        let source = Utf16Str::new(&utf16!("/**"));
+        let mut stream = init(source);
+        next(
+            &mut stream,
+            Token {
+                kind: TokenKind::EOF,
+                pos: Position::At { line: 1, column: 4 },
+                has_left_spacing: false,
+            },
+        );
+    }
+
+    #[test]
+    fn templates() {
+        let source = Utf16Str::new(&utf16!(r#"`{true}&{false }\\`"#));
+        let mut stream = init(source);
+        next(
+            &mut stream,
+            Token {
+                kind: TokenKind::Template(vec![
+                    Token {
+                        kind: TokenKind::TemplateExprElement(vec![
+                            Token {
+                                kind: TokenKind::TrueKeyword,
+                                pos: Position::At { line: 1, column: 3 },
+                                has_left_spacing: false,
+                            },
+                            Token {
+                                kind: TokenKind::EOF,
+                                pos: Position::At { line: 1, column: 7 },
+                                has_left_spacing: false,
+                            },
+                        ]),
+                        pos: Position::At { line: 1, column: 3 },
+                        has_left_spacing: false,
+                    },
+                    Token {
+                        kind: TokenKind::TemplateStringElement(Utf16String::from_iter(&utf16!(
+                            "&"
+                        ))),
+                        pos: Position::At { line: 1, column: 7 },
+                        has_left_spacing: false,
+                    },
+                    Token {
+                        kind: TokenKind::TemplateExprElement(vec![
+                            Token {
+                                kind: TokenKind::FalseKeyword,
+                                pos: Position::At {
+                                    line: 1,
+                                    column: 10,
+                                },
+                                has_left_spacing: false,
+                            },
+                            Token {
+                                kind: TokenKind::EOF,
+                                pos: Position::At {
+                                    line: 1,
+                                    column: 16,
+                                },
+                                has_left_spacing: false,
+                            },
+                        ]),
+                        pos: Position::At {
+                            line: 1,
+                            column: 10,
+                        },
+                        has_left_spacing: false,
+                    },
+                    Token {
+                        kind: TokenKind::TemplateStringElement(Utf16String::from_iter(&utf16!(
+                            "\\"
+                        ))),
+                        pos: Position::At {
+                            line: 1,
+                            column: 16,
+                        },
+                        has_left_spacing: false,
+                    },
+                ]),
+                pos: Position::At { line: 1, column: 1 },
+                has_left_spacing: false,
+            },
+        );
+
+        fails(Utf16Str::new(&utf16!(r#"`"#)));
+        fails(Utf16Str::new(&utf16!(r#"`\"#)));
+        fails(Utf16Str::new(&utf16!(r#"`{"#)));
+    }
+
+    #[test]
+    fn tokens() {
+        let source = Utf16Str::new(&utf16!(
+            r#"
+/// line comment
+/*
+block comment
+*/
+### {}
+:: Ns {}
+#[test]
+let o = {
+    f: @(x?: str) {
+        if x != null <: x
+    }
+    a: [2 * (3 / 4) \
+        % 5 ^ 6,
+        ``]
+}
+!true && false || 1 < 2
+o.f("abc")
+1 + 1 == 2; 1 <= 3; +3 > -5; 4 >= 2
+var x = 0
+while x < 3 x += 2
+do x -= 1 while x > 0
+for 5 {
+    <: 'Hello'
+}
+each let item, o.a {
+    <: item
+}
+match x {default => 42}
+            "#
+        ));
+        let mut stream = init(source);
+        let expected = [
+            TokenKind::NewLine,
+            TokenKind::NewLine,
+            TokenKind::NewLine,
+            TokenKind::Sharp3,
+            TokenKind::OpenBrace,
+            TokenKind::CloseBrace,
+            TokenKind::NewLine,
+            TokenKind::Colon2,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("Ns"))),
+            TokenKind::OpenBrace,
+            TokenKind::CloseBrace,
+            TokenKind::NewLine,
+            TokenKind::OpenSharpBracket,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("test"))),
+            TokenKind::CloseBracket,
+            TokenKind::NewLine,
+            TokenKind::LetKeyword,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("o"))),
+            TokenKind::Eq,
+            TokenKind::OpenBrace,
+            TokenKind::NewLine,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("f"))),
+            TokenKind::Colon,
+            TokenKind::At,
+            TokenKind::OpenParen,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("x"))),
+            TokenKind::Question,
+            TokenKind::Colon,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("str"))),
+            TokenKind::CloseParen,
+            TokenKind::OpenBrace,
+            TokenKind::NewLine,
+            TokenKind::IfKeyword,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("x"))),
+            TokenKind::NotEq,
+            TokenKind::NullKeyword,
+            TokenKind::Out,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("x"))),
+            TokenKind::NewLine,
+            TokenKind::CloseBrace,
+            TokenKind::NewLine,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("a"))),
+            TokenKind::Colon,
+            TokenKind::OpenBracket,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("2"))),
+            TokenKind::Asterisk,
+            TokenKind::OpenParen,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("3"))),
+            TokenKind::Slash,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("4"))),
+            TokenKind::CloseParen,
+            TokenKind::BackSlash,
+            TokenKind::NewLine,
+            TokenKind::Percent,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("5"))),
+            TokenKind::Hat,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("6"))),
+            TokenKind::Comma,
+            TokenKind::NewLine,
+            TokenKind::Template(Vec::new()),
+            TokenKind::CloseBracket,
+            TokenKind::NewLine,
+            TokenKind::CloseBrace,
+            TokenKind::NewLine,
+            TokenKind::Not,
+            TokenKind::TrueKeyword,
+            TokenKind::And2,
+            TokenKind::FalseKeyword,
+            TokenKind::Or2,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("1"))),
+            TokenKind::Lt,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("2"))),
+            TokenKind::NewLine,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("o"))),
+            TokenKind::Dot,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("f"))),
+            TokenKind::OpenParen,
+            TokenKind::StringLiteral(Utf16String::from_iter(&utf16!("abc"))),
+            TokenKind::CloseParen,
+            TokenKind::NewLine,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("1"))),
+            TokenKind::Plus,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("1"))),
+            TokenKind::Eq2,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("2"))),
+            TokenKind::SemiColon,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("1"))),
+            TokenKind::LtEq,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("3"))),
+            TokenKind::SemiColon,
+            TokenKind::Plus,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("3"))),
+            TokenKind::Gt,
+            TokenKind::Minus,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("5"))),
+            TokenKind::SemiColon,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("4"))),
+            TokenKind::GtEq,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("2"))),
+            TokenKind::NewLine,
+            TokenKind::VarKeyword,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("x"))),
+            TokenKind::Eq,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("0"))),
+            TokenKind::NewLine,
+            TokenKind::WhileKeyword,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("x"))),
+            TokenKind::Lt,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("3"))),
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("x"))),
+            TokenKind::PlusEq,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("2"))),
+            TokenKind::NewLine,
+            TokenKind::DoKeyword,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("x"))),
+            TokenKind::MinusEq,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("1"))),
+            TokenKind::WhileKeyword,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("x"))),
+            TokenKind::Gt,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("0"))),
+            TokenKind::NewLine,
+            TokenKind::ForKeyword,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("5"))),
+            TokenKind::OpenBrace,
+            TokenKind::NewLine,
+            TokenKind::Out,
+            TokenKind::StringLiteral(Utf16String::from_iter(&utf16!("Hello"))),
+            TokenKind::NewLine,
+            TokenKind::CloseBrace,
+            TokenKind::NewLine,
+            TokenKind::EachKeyword,
+            TokenKind::LetKeyword,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("item"))),
+            TokenKind::Comma,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("o"))),
+            TokenKind::Dot,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("a"))),
+            TokenKind::OpenBrace,
+            TokenKind::NewLine,
+            TokenKind::Out,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("item"))),
+            TokenKind::NewLine,
+            TokenKind::CloseBrace,
+            TokenKind::NewLine,
+            TokenKind::MatchKeyword,
+            TokenKind::Identifier(Utf16String::from_iter(&utf16!("x"))),
+            TokenKind::OpenBrace,
+            TokenKind::DefaultKeyword,
+            TokenKind::Arrow,
+            TokenKind::NumberLiteral(Utf16String::from_iter(&utf16!("42"))),
+            TokenKind::CloseBrace,
+            TokenKind::NewLine,
+        ];
+        let mut expected_iter = expected.iter();
+        while !is_token_kind!(&stream, TokenKind::EOF) {
+            let kind = stream.get_token_kind();
+            assert_eq!(kind, expected_iter.next().unwrap());
+            stream.next().unwrap();
+        }
+        assert!(expected_iter.next().is_none());
     }
 }
