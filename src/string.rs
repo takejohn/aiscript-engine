@@ -1,10 +1,11 @@
 use core::slice;
 use std::{
+    borrow::{Borrow, BorrowMut},
     char::decode_utf16,
     fmt::{Debug, Display},
     iter,
     num::ParseFloatError,
-    ops::{self, AddAssign},
+    ops::{self, AddAssign, Index, IndexMut},
     vec,
 };
 
@@ -27,10 +28,12 @@ impl Utf16Str {
         unsafe { &mut *(data as *mut [u16] as *mut Utf16Str) }
     }
 
+    #[inline]
     pub fn as_u16s(&self) -> &[u16] {
         &self.data
     }
 
+    #[inline]
     pub fn as_mut_u16s(&mut self) -> &mut [u16] {
         &mut self.data
     }
@@ -42,27 +45,27 @@ impl Utf16Str {
     pub fn parse<F: FromUtf16Str>(&self) -> Result<F, F::Err> {
         F::from(self)
     }
+}
 
-    /// selfを区切り文字として引数に与えらえれた文字列を結合する。
-    pub fn join<'a>(&self, strings: impl Iterator<Item = impl Into<&'a Utf16Str>>) -> Utf16String {
-        let mut iter = strings;
-        let mut result = Utf16String::new();
-        if let Some(first) = iter.next() {
-            result += first.into();
-        } else {
-            return result;
-        }
-        while let Some(item) = iter.next() {
-            result += self;
-            result += item.into();
-        }
-        return result;
+impl ToOwned for Utf16Str {
+    type Owned = Utf16String;
+
+    fn to_owned(&self) -> Self::Owned {
+        Utf16String::from_iter(self.as_u16s())
     }
 }
 
-impl<'a> From<&'a Utf16String> for &'a Utf16Str {
-    fn from(value: &'a Utf16String) -> Self {
-        value.as_utf16_str()
+impl Index<usize> for Utf16Str {
+    type Output = u16;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.data[index]
+    }
+}
+
+impl IndexMut<usize> for Utf16Str {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.data[index]
     }
 }
 
@@ -124,6 +127,51 @@ impl Utf16String {
 
     pub fn push(&mut self, ch: u16) {
         self.data.push(ch);
+    }
+
+    /// sepを区切り文字として引数に与えらえれた文字列を結合する。
+    pub fn join<S>(strings: &[S], sep: &Utf16Str) -> Utf16String
+    where
+        S: Borrow<Utf16Str>,
+    {
+        let mut iter = strings.iter();
+        let mut result = Utf16String::new();
+        if let Some(first) = iter.next() {
+            result += first.borrow();
+        } else {
+            return result;
+        }
+        while let Some(item) = iter.next() {
+            result += sep;
+            result += item.borrow();
+        }
+        return result;
+    }
+}
+
+impl Borrow<Utf16Str> for Utf16String {
+    fn borrow(&self) -> &Utf16Str {
+        self.as_utf16_str()
+    }
+}
+
+impl BorrowMut<Utf16Str> for Utf16String {
+    fn borrow_mut(&mut self) -> &mut Utf16Str {
+        self.as_mut_utf16_str()
+    }
+}
+
+impl Index<usize> for Utf16String {
+    type Output = u16;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.data[index]
+    }
+}
+
+impl IndexMut<usize> for Utf16String {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        &mut self.data[index]
     }
 }
 
@@ -258,20 +306,179 @@ mod tests {
         assert_eq!(Utf16String::from("abc").as_utf16_str(), s);
     }
 
-    mod utf16_string {
+    mod utf16 {
         use super::*;
 
         #[test]
-        fn to_string() {
+        fn convert() {
+            let data = utf16!("abc");
+            let s = Utf16Str::new(&data);
+            assert_eq!(s.as_u16s(), &data);
+
+            let mut mut_data = data.to_owned();
+            let s_mut = Utf16Str::new_mut(&mut mut_data);
+            assert_eq!(s_mut.as_mut_u16s(), &data);
+        }
+
+        #[test]
+        fn len() {
+            let s = Utf16Str::new(&utf16!("abc"));
+            assert_eq!(s.len(), 3);
+
+            let s = Utf16Str::new(&utf16!("🥰"));
+            assert_eq!(s.len(), 2);
+        }
+
+        #[test]
+        fn parse() {
+            let s = Utf16Str::new(&utf16!("9.75"));
+            assert_eq!(s.parse::<f64>().unwrap(), 9.75);
+        }
+
+        #[test]
+        fn join() {
+            let sep = Utf16Str::new(&utf16!(" "));
+
+            assert_eq!(
+                Utf16String::join(&[] as &[&Utf16Str], sep),
+                Utf16String::new()
+            );
+
+            let strings = [Utf16Str::new(&utf16!("abc")), Utf16Str::new(&utf16!("123"))];
+            assert_eq!(
+                Utf16String::join(&strings, sep),
+                Utf16String::from_iter(&utf16!("abc 123"))
+            );
+        }
+
+        #[test]
+        fn to_owned() {
+            let s = Utf16Str::new(&utf16!("abc"));
+            assert_eq!(s.to_owned(), Utf16String::from_iter(&utf16!("abc")));
+        }
+
+        #[test]
+        fn index() {
+            let s = Utf16Str::new(&utf16!("abc"));
+            assert_eq!(s[0], utf16!('a'));
+
+            let mut data = utf16!("abc");
+            let s = Utf16Str::new_mut(&mut data);
+            s[0] = utf16!('1');
+            assert_eq!(s[0], utf16!('1'));
+        }
+
+        #[test]
+        fn display() {
+            let s = Utf16Str::new(&utf16!("abc"));
+            assert_eq!(s.to_string(), "abc");
+
+            let data = utf16!("🥰");
+            let s0 = Utf16Str::new(slice::from_ref(&data[0]));
+            let s1 = Utf16Str::new(slice::from_ref(&data[1]));
+            assert_eq!(s0.to_string(), "\u{FFFD}");
+            assert_eq!(s1.to_string(), "\u{FFFD}");
+        }
+
+        #[test]
+        fn debug() {
+            let s = Utf16Str::new(&utf16!("abc"));
+            assert_eq!(format!("{:?}", s), "abc");
+
+            let data = utf16!("🥰");
+            let s0 = Utf16Str::new(slice::from_ref(&data[0]));
+            let s1 = Utf16Str::new(slice::from_ref(&data[1]));
+            assert_eq!(format!("{:?}", s0), "\u{FFFD}");
+            assert_eq!(format!("{:?}", s1), "\u{FFFD}");
+        }
+    }
+
+    mod utf16_string {
+        use ops::{Deref, DerefMut};
+
+        use super::*;
+
+        #[test]
+        fn len() {
+            let s = Utf16String::from_iter(&utf16!("abc"));
+            assert_eq!(s.len(), 3);
+
+            let s = Utf16String::from_iter(&utf16!("🥰"));
+            assert_eq!(s.len(), 2);
+        }
+
+        #[test]
+        fn borrow() {
+            let mut s = Utf16String::from_iter(&utf16!("abc"));
+            let s_mut: &mut Utf16Str = s.borrow_mut();
+            s_mut[2] = utf16!('1');
+            let s_immutable: &Utf16Str = s.borrow();
+            assert_eq!(s_immutable, Utf16Str::new(&utf16!("ab1")));
+        }
+
+        #[test]
+        fn index() {
+            let s = Utf16String::from_iter(&utf16!("abc"));
+            assert_eq!(s[0], utf16!('a'));
+
+            let mut s = Utf16String::from_iter(&utf16!("abc"));
+            s[0] = utf16!('1');
+            assert_eq!(s[0], utf16!('1'));
+        }
+
+        #[test]
+        fn deref() {
+            let s = Utf16String::from_iter(&utf16!("abc"));
+            assert_eq!(s.deref(), Utf16Str::new(&utf16!("abc")));
+
+            let mut s = Utf16String::from_iter(&utf16!("abc"));
+            s.deref_mut()[0] = utf16!('1');
+            assert_eq!(s.deref(), Utf16Str::new(&utf16!("1bc")));
+        }
+
+        #[test]
+        fn display() {
             let original = "abc";
             assert_eq!(Utf16String::from("abc").to_string(), original);
         }
 
         #[test]
+        fn debug() {
+            let original = "abc";
+            assert_eq!(format!("{:?}", Utf16String::from("abc")), original);
+        }
+
+        #[test]
+        fn into_iter() {
+            let mut iter = Utf16String::from_iter(&utf16!("abc")).into_iter();
+            assert_eq!(iter.next(), Some(utf16!('a')));
+            assert_eq!(iter.next(), Some(utf16!('b')));
+            assert_eq!(iter.next(), Some(utf16!('c')));
+            assert_eq!(iter.next(), None);
+        }
+
+        #[test]
         fn add_assign() {
-            let mut buf = Utf16String::from("abc");
+            let mut buf = Utf16String::from_iter(&utf16!("abc"));
             buf += Utf16Str::new(&utf16!("123"));
-            assert_eq!(buf.to_string(), "abc123")
+            assert_eq!(buf.as_utf16_str(), Utf16Str::new(&utf16!("abc123")));
+            buf += utf16!('4');
+            assert_eq!(buf.as_utf16_str(), Utf16Str::new(&utf16!("abc1234")));
+        }
+
+        #[test]
+        fn add() {
+            let buf = Utf16String::from_iter(&utf16!("abc"));
+            assert_eq!(
+                (buf + Utf16Str::new(&utf16!("123"))).as_utf16_str(),
+                Utf16Str::new(&utf16!("abc123"))
+            );
+
+            let buf = Utf16String::from_iter(&utf16!("abc"));
+            assert_eq!(
+                (buf + utf16!('d')).as_utf16_str(),
+                Utf16Str::new(&utf16!("abcd"))
+            );
         }
     }
 }

@@ -682,7 +682,7 @@ fn parse_reference(s: &mut impl ITokenStream) -> Result<ast::Identifier> {
             start: start_pos,
             end: s.get_pos().to_owned(),
         },
-        name: Utf16Str::new(&utf16!(":")).join(segs.iter()),
+        name: Utf16String::join(&segs, Utf16Str::new(&utf16!(":"))),
     });
 }
 
