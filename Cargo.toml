@@ -24,4 +24,5 @@ utf16-literal.path = "./utf16-literal"
 wasm-bindgen = "0.2.93"
 
 [dev-dependencies]
+indoc = "2.0.5"
 pretty_assertions = "1.4.1"

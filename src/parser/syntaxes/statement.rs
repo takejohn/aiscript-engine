@@ -167,13 +167,15 @@ fn parse_fn_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
     let TokenKind::Identifier(name) = s.get_token_kind() else {
         return Err(s.unexpected_token());
     };
+    let name = name.clone();
     let name_start_pos = s.get_pos().clone();
+    s.next()?;
     let dest = ast::Identifier {
         loc: Loc {
             start: name_start_pos,
             end: s.get_pos().to_owned(),
         },
-        name: name.to_owned(),
+        name,
     };
 
     let params = parse_params(s)?;
@@ -595,51 +597,26 @@ fn try_parse_assign(
     s: &mut impl ITokenStream,
     dest: ast::Expression,
 ) -> Result<ast::StatementOrExpression> {
-    let start_pos = s.get_pos().clone();
-
-    // Assign
-    match s.get_token_kind() {
-        TokenKind::Eq => {
-            s.next()?;
-            let expr = parse_expr(s, false)?;
-            return Ok(StatementOrExpression::from_statement(ast::Assign {
-                loc: Loc {
-                    start: start_pos,
-                    end: s.get_pos().to_owned(),
-                },
-                op: ast::AssignOperator::Reassign,
-                dest,
-                expr,
-            }));
-        }
-        TokenKind::PlusEq => {
-            s.next()?;
-            let expr = parse_expr(s, false)?;
-            return Ok(StatementOrExpression::from_statement(ast::Assign {
-                loc: Loc {
-                    start: start_pos,
-                    end: s.get_pos().to_owned(),
-                },
-                op: ast::AssignOperator::AddAssign,
-                dest,
-                expr,
-            }));
-        }
-        TokenKind::MinusEq => {
-            s.next()?;
-            let expr = parse_expr(s, false)?;
-            return Ok(StatementOrExpression::from_statement(ast::Assign {
-                loc: Loc {
-                    start: start_pos,
-                    end: s.get_pos().to_owned(),
-                },
-                op: ast::AssignOperator::SubAssign,
-                dest,
-                expr,
-            }));
-        }
+    let op = match s.get_token_kind() {
+        TokenKind::Eq => ast::AssignOperator::Reassign,
+        TokenKind::PlusEq => ast::AssignOperator::AddAssign,
+        TokenKind::MinusEq => ast::AssignOperator::SubAssign,
         _ => {
             return Ok(dest.into());
         }
-    }
+    };
+
+    // Assign
+    let start_pos = s.get_pos().clone();
+    s.next()?;
+    let expr = parse_expr(s, false)?;
+    return Ok(StatementOrExpression::from_statement(ast::Assign {
+        loc: Loc {
+            start: start_pos,
+            end: s.get_pos().to_owned(),
+        },
+        op,
+        dest,
+        expr,
+    }));
 }
