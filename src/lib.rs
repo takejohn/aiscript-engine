@@ -1,8 +1,11 @@
+mod parser;
 mod visit;
 
+pub(crate) mod common;
+
 pub mod ast;
-pub mod common;
 pub mod error;
-pub mod parser;
 pub mod string;
 pub mod types;
+
+pub use parser::{Parser, ParserPlugin, PluginType};

@@ -5,12 +5,11 @@ use std::collections::HashMap;
 use derive_node::Node;
 use derive_wrapper::Wrapper;
 
-use crate::{
-    common::Position,
-    string::{Utf16Str, Utf16String},
-};
+use crate::string::{Utf16Str, Utf16String};
 
-#[derive(Clone)]
+pub use crate::common::Position;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Loc {
     pub start: Position,
     pub end: Position,
@@ -26,7 +25,7 @@ pub trait NamedNode: Node {
     fn name(&self) -> &Utf16Str;
 }
 
-#[derive(Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
 pub enum NodeWrapper {
     /// 名前空間
     Ns(Namespace),
@@ -49,7 +48,7 @@ impl From<StatementOrExpression> for NodeWrapper {
     }
 }
 
-#[derive(Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
 pub enum StatementOrExpression {
     Statement(Statement),
     Expression(Expression),
@@ -65,7 +64,7 @@ impl StatementOrExpression {
     }
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Namespace {
     pub loc: Loc,
 
@@ -82,14 +81,14 @@ impl NamedNode for Namespace {
     }
 }
 
-#[derive(Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
 pub enum NamespaceMember {
     Namespace(Namespace),
 
     Def(Definition),
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Meta {
     pub loc: Loc,
 
@@ -100,7 +99,7 @@ pub struct Meta {
     pub value: Expression,
 }
 
-#[derive(Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
 pub enum Statement {
     /// 変数宣言文
     Def(Definition),
@@ -127,7 +126,7 @@ pub enum Statement {
     Assign(Assign),
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Definition {
     pub loc: Loc,
 
@@ -147,7 +146,7 @@ pub struct Definition {
     pub attr: Vec<Attribute>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Attribute {
     pub loc: Loc,
 
@@ -164,7 +163,7 @@ impl NamedNode for Attribute {
     }
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Return {
     pub loc: Loc,
 
@@ -172,7 +171,7 @@ pub struct Return {
     pub expr: Expression,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Each {
     pub loc: Loc,
 
@@ -186,7 +185,7 @@ pub struct Each {
     pub for_statement: Box<StatementOrExpression>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct For {
     pub loc: Loc,
 
@@ -196,6 +195,7 @@ pub struct For {
     pub for_statement: Box<StatementOrExpression>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum ForIterator {
     Range {
         /// イテレータ変数名
@@ -213,7 +213,7 @@ pub enum ForIterator {
     },
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Loop {
     pub loc: Loc,
 
@@ -221,17 +221,17 @@ pub struct Loop {
     pub statements: Vec<StatementOrExpression>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Break {
     pub loc: Loc,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Continue {
     pub loc: Loc,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Assign {
     pub loc: Loc,
 
@@ -244,6 +244,7 @@ pub struct Assign {
     pub expr: Expression,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum AssignOperator {
     /// 再代入文
     Reassign,
@@ -255,7 +256,7 @@ pub enum AssignOperator {
     SubAssign,
 }
 
-#[derive(Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
 pub enum Expression {
     /// if式
     If(If),
@@ -312,7 +313,7 @@ pub enum Expression {
     Prop(Prop),
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Binary {
     pub loc: Loc,
 
@@ -322,6 +323,7 @@ pub struct Binary {
     pub right: Box<Expression>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum BinaryOperator {
     Pow,
     Mul,
@@ -339,7 +341,7 @@ pub enum BinaryOperator {
     Or,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Not {
     pub loc: Loc,
 
@@ -347,7 +349,7 @@ pub struct Not {
     pub expr: Box<Expression>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct If {
     pub loc: Loc,
 
@@ -363,6 +365,7 @@ pub struct If {
     pub else_statement: Option<Box<StatementOrExpression>>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct Elseif {
     /// elifの条件式
     pub cond: Expression,
@@ -371,7 +374,7 @@ pub struct Elseif {
     pub then: StatementOrExpression,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Fn {
     pub loc: Loc,
 
@@ -384,6 +387,7 @@ pub struct Fn {
     pub children: Vec<StatementOrExpression>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct FnArg {
     /// 引数名
     pub dest: Expression,
@@ -395,6 +399,7 @@ pub struct FnArg {
     pub arg_type: Option<TypeSource>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub enum FnArgValue {
     Optional,
 
@@ -404,7 +409,7 @@ pub enum FnArgValue {
     Required,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Match {
     pub loc: Loc,
 
@@ -417,6 +422,7 @@ pub struct Match {
     pub default: Option<Box<StatementOrExpression>>,
 }
 
+#[derive(Debug, PartialEq, Eq)]
 pub struct MatchQ {
     /// 条件
     pub q: Expression,
@@ -425,7 +431,7 @@ pub struct MatchQ {
     pub a: StatementOrExpression,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Block {
     pub loc: Loc,
 
@@ -433,7 +439,7 @@ pub struct Block {
     pub statements: Vec<StatementOrExpression>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Exists {
     pub loc: Loc,
 
@@ -441,7 +447,7 @@ pub struct Exists {
     pub identifier: Identifier,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Tmpl {
     pub loc: Loc,
 
@@ -449,7 +455,7 @@ pub struct Tmpl {
     pub tmpl: Vec<Expression>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Str {
     pub loc: Loc,
 
@@ -457,7 +463,7 @@ pub struct Str {
     pub value: Utf16String,
 }
 
-#[derive(Node)]
+#[derive(Debug, Node)]
 pub struct Num {
     pub loc: Loc,
 
@@ -465,7 +471,15 @@ pub struct Num {
     pub value: f64,
 }
 
-#[derive(Node)]
+impl PartialEq for Num {
+    fn eq(&self, other: &Self) -> bool {
+        self.loc == other.loc && self.value.to_bits() == other.value.to_bits()
+    }
+}
+
+impl Eq for Num {}
+
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Bool {
     pub loc: Loc,
 
@@ -473,12 +487,12 @@ pub struct Bool {
     pub value: bool,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Null {
     pub loc: Loc,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Obj {
     pub loc: Loc,
 
@@ -486,7 +500,7 @@ pub struct Obj {
     pub value: HashMap<Utf16String, Expression>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Arr {
     pub loc: Loc,
 
@@ -494,7 +508,7 @@ pub struct Arr {
     pub value: Vec<Expression>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Identifier {
     pub loc: Loc,
 
@@ -508,7 +522,7 @@ impl NamedNode for Identifier {
     }
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Call {
     pub loc: Loc,
 
@@ -519,7 +533,7 @@ pub struct Call {
     pub args: Vec<Expression>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Index {
     pub loc: Loc,
 
@@ -530,7 +544,7 @@ pub struct Index {
     pub index: Box<Expression>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct Prop {
     pub loc: Loc,
 
@@ -547,7 +561,7 @@ impl NamedNode for Prop {
     }
 }
 
-#[derive(Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
 pub enum TypeSource {
     /// 名前付き型
     NamedTypeSource(NamedTypeSource),
@@ -556,7 +570,7 @@ pub enum TypeSource {
     FnTypeSource(FnTypeSource),
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct NamedTypeSource {
     pub loc: Loc,
 
@@ -567,7 +581,7 @@ pub struct NamedTypeSource {
     pub inner: Option<Box<TypeSource>>,
 }
 
-#[derive(Node)]
+#[derive(Debug, PartialEq, Eq, Node)]
 pub struct FnTypeSource {
     pub loc: Loc,
 

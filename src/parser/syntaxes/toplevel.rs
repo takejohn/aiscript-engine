@@ -84,7 +84,7 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
             TokenKind::VarKeyword | TokenKind::LetKeyword | TokenKind::At => {
                 members.push(parse_def_statement(s)?.into());
             }
-            TokenKind::Colon => {
+            TokenKind::Colon2 => {
                 members.push(parse_namespace(s)?.into());
             }
             _ => {}
@@ -129,7 +129,9 @@ pub(super) fn parse_meta(s: &mut impl ITokenStream) -> Result<ast::Meta> {
     s.next()?;
 
     let name = if let TokenKind::Identifier(name) = s.get_token_kind() {
-        Some(name.to_owned())
+        let name = name.clone();
+        s.next()?;
+        Some(name)
     } else {
         None
     };
