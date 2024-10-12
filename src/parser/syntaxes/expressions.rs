@@ -4,7 +4,7 @@ use pratt::{parse_pratt, BindingPower};
 use utf16_literal::utf16;
 
 use crate::{
-    ast::{self, Loc, Node},
+    ast::{self, Loc, NodeBase},
     error::{AiScriptSyntaxError, Result},
     expect_token_kind, is_token_kind,
     parser::{

@@ -1,5 +1,5 @@
 use crate::{
-    ast::{self, Loc, Meta, Namespace, Node},
+    ast::{self, Loc, Meta, Namespace, NodeBase},
     error::{AiScriptSyntaxError, Result},
     expect_token_kind, is_token_kind,
     parser::{
@@ -16,8 +16,8 @@ use super::expressions::parse_expr;
 /// ```
 pub(in crate::parser) fn parse_top_level(
     s: &mut impl ITokenStream,
-) -> Result<Vec<ast::NodeWrapper>> {
-    let mut nodes: Vec<ast::NodeWrapper> = Vec::new();
+) -> Result<Vec<ast::Node>> {
+    let mut nodes: Vec<ast::Node> = Vec::new();
 
     while is_token_kind!(s, TokenKind::NewLine) {
         s.next()?;

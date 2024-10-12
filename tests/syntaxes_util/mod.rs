@@ -2,7 +2,7 @@ extern crate aiscript_engine;
 
 use aiscript_engine::{ast, string::Utf16String, Parser};
 
-pub(super) fn parse(source: &str) -> Vec<ast::NodeWrapper> {
+pub(super) fn parse(source: &str) -> Vec<ast::Node> {
     let source = Utf16String::from(source);
     let mut parser = Parser::new();
     return parser.parse(&source).unwrap();

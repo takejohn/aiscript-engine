@@ -9,7 +9,7 @@ use plugins::{validate_keyword, validate_type};
 use scanner::Scanner;
 use syntaxes::parse_top_level;
 
-pub type ParserPlugin = dyn FnMut(&mut Vec<ast::NodeWrapper>) -> Result<()>;
+pub type ParserPlugin = dyn FnMut(&mut Vec<ast::Node>) -> Result<()>;
 
 pub enum PluginType {
     Validate,
@@ -36,9 +36,9 @@ impl Parser {
         }
     }
 
-    pub fn parse(&mut self, input: &Utf16Str) -> Result<Vec<ast::NodeWrapper>> {
+    pub fn parse(&mut self, input: &Utf16Str) -> Result<Vec<ast::Node>> {
         let mut scanner = Scanner::new(input)?;
-        let mut nodes: Vec<ast::NodeWrapper> = parse_top_level(&mut scanner)?;
+        let mut nodes: Vec<ast::Node> = parse_top_level(&mut scanner)?;
 
         // validate the node tree
         for plugin in &mut self.validate_plugins {

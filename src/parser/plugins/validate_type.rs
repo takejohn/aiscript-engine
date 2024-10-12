@@ -28,7 +28,7 @@ impl Visitor for NodeValidator {
     }
 }
 
-pub(in crate::parser) fn validate_type(nodes: &mut Vec<ast::NodeWrapper>) -> Result<()> {
+pub(in crate::parser) fn validate_type(nodes: &mut Vec<ast::Node>) -> Result<()> {
     let mut node_validator = NodeValidator;
     let mut validator = RecursiveVisitor::new(&mut node_validator);
     for node in nodes {

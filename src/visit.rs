@@ -2,7 +2,7 @@ use crate::{ast::*, error::Result};
 
 /// [`Node`]にアクセスして処理を行うトレイト。
 pub(super) trait Visitor {
-    fn visit(&mut self, node: &mut NodeWrapper) -> Result<()> {
+    fn visit(&mut self, node: &mut Node) -> Result<()> {
         let _ = node;
         Ok(())
     }
@@ -170,14 +170,14 @@ impl<'a> RecursiveVisitor<'a> {
 }
 
 impl<'a> Visitor for RecursiveVisitor<'a> {
-    fn visit(&mut self, node: &mut NodeWrapper) -> Result<()> {
+    fn visit(&mut self, node: &mut Node) -> Result<()> {
         match node {
-            NodeWrapper::Ns(namespace) => self.visit_ns(namespace),
-            NodeWrapper::Meta(meta) => self.visit_meta(meta),
-            NodeWrapper::Statement(statement) => self.visit_statement(statement),
-            NodeWrapper::Expr(expr) => self.visit_expr(expr),
-            NodeWrapper::TypeSource(type_source) => self.visit_type_source(type_source),
-            NodeWrapper::Attr(attr) => self.visit_attr(attr),
+            Node::Ns(namespace) => self.visit_ns(namespace),
+            Node::Meta(meta) => self.visit_meta(meta),
+            Node::Statement(statement) => self.visit_statement(statement),
+            Node::Expr(expr) => self.visit_expr(expr),
+            Node::TypeSource(type_source) => self.visit_type_source(type_source),
+            Node::Attr(attr) => self.visit_attr(attr),
         }
     }
 

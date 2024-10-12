@@ -3,7 +3,7 @@ use std::vec;
 use utf16_literal::utf16;
 
 use crate::{
-    ast::{self, Expression, Identifier, Loc, Node, Statement, StatementOrExpression},
+    ast::{self, Expression, Identifier, Loc, NodeBase, Statement, StatementOrExpression},
     error::{AiScriptSyntaxError, Result},
     expect_token_kind, is_token_kind,
     parser::{

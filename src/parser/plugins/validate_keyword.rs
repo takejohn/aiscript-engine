@@ -5,7 +5,7 @@
 use utf16_literal::utf16;
 
 use crate::{
-    ast::{self, NamedNode, Node},
+    ast::{self, NamedNode, NodeBase},
     error::{AiScriptError, AiScriptSyntaxError, Result},
     string::{Utf16Str, Utf16String},
     visit::{RecursiveVisitor, Visitor, VisitorExtra},
@@ -173,7 +173,7 @@ fn reserved_word_error(name: impl Into<Utf16String>, loc: ast::Loc) -> Box<dyn A
     ))
 }
 
-pub(in crate::parser) fn validate_keyword(nodes: &mut Vec<ast::NodeWrapper>) -> Result<()> {
+pub(in crate::parser) fn validate_keyword(nodes: &mut Vec<ast::Node>) -> Result<()> {
     let mut dest_validator = DestValidator;
     let mut node_validator = NodeValidator::new(&mut dest_validator);
     let mut validator = RecursiveVisitor::new(&mut node_validator);

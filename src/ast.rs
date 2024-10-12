@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use derive_node::Node;
+use derive_node::NodeBase;
 use derive_wrapper::Wrapper;
 use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
 
@@ -16,19 +16,19 @@ pub struct Loc {
     pub end: Position,
 }
 
-pub trait Node {
+pub trait NodeBase {
     /// コード位置
     fn loc(&self) -> &Loc;
 }
 
 /// 予約語でない名前を持つノード。
-pub trait NamedNode: Node {
+pub trait NamedNode: NodeBase {
     fn name(&self) -> &Utf16Str;
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Wrapper, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub enum NodeWrapper {
+pub enum Node {
     /// 名前空間
     Ns(Namespace),
 
@@ -45,7 +45,7 @@ pub enum NodeWrapper {
     Expr(Expression),
 }
 
-impl From<StatementOrExpression> for NodeWrapper {
+impl From<StatementOrExpression> for Node {
     fn from(value: StatementOrExpression) -> Self {
         match value {
             StatementOrExpression::Statement(statement) => statement.into(),
@@ -54,7 +54,7 @@ impl From<StatementOrExpression> for NodeWrapper {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Wrapper, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum StatementOrExpression {
     Statement(Statement),
@@ -71,7 +71,7 @@ impl StatementOrExpression {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Namespace {
     pub loc: Loc,
 
@@ -88,7 +88,7 @@ impl NamedNode for Namespace {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Wrapper, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum NamespaceMember {
     Namespace(Namespace),
@@ -96,7 +96,7 @@ pub enum NamespaceMember {
     Def(Definition),
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Meta {
     pub loc: Loc,
 
@@ -107,7 +107,7 @@ pub struct Meta {
     pub value: Expression,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Wrapper, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Statement {
     /// 変数宣言文
@@ -136,7 +136,7 @@ pub enum Statement {
     Assign(Assign),
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Definition {
     pub loc: Loc,
 
@@ -156,7 +156,7 @@ pub struct Definition {
     pub attr: Vec<Attribute>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Attribute {
     pub loc: Loc,
 
@@ -173,7 +173,7 @@ impl NamedNode for Attribute {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Return {
     pub loc: Loc,
 
@@ -181,7 +181,7 @@ pub struct Return {
     pub expr: Expression,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Each {
     pub loc: Loc,
 
@@ -195,7 +195,7 @@ pub struct Each {
     pub for_statement: Box<StatementOrExpression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct For {
     pub loc: Loc,
 
@@ -224,7 +224,7 @@ pub enum ForIterator {
     },
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Loop {
     pub loc: Loc,
 
@@ -232,17 +232,17 @@ pub struct Loop {
     pub statements: Vec<StatementOrExpression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Break {
     pub loc: Loc,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Continue {
     pub loc: Loc,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Assign {
     pub loc: Loc,
 
@@ -269,7 +269,7 @@ pub enum AssignOperator {
     SubAssign,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Wrapper, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum Expression {
     /// if式
@@ -328,7 +328,7 @@ pub enum Expression {
     Binary(Binary),
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Binary {
     pub loc: Loc,
 
@@ -358,7 +358,7 @@ pub enum BinaryOperator {
     Or,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Not {
     pub loc: Loc,
 
@@ -366,7 +366,7 @@ pub struct Not {
     pub expr: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct If {
     pub loc: Loc,
 
@@ -391,7 +391,7 @@ pub struct Elseif {
     pub then: StatementOrExpression,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Fn {
     pub loc: Loc,
 
@@ -571,7 +571,7 @@ impl<'de> Deserialize<'de> for FnArgValue {
 
 // 以上FnArgValueのSerialize, Deserialize実装
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Match {
     pub loc: Loc,
 
@@ -593,7 +593,7 @@ pub struct MatchQ {
     pub a: StatementOrExpression,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Block {
     pub loc: Loc,
 
@@ -601,7 +601,7 @@ pub struct Block {
     pub statements: Vec<StatementOrExpression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Exists {
     pub loc: Loc,
 
@@ -609,7 +609,7 @@ pub struct Exists {
     pub identifier: Identifier,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Tmpl {
     pub loc: Loc,
 
@@ -617,7 +617,7 @@ pub struct Tmpl {
     pub tmpl: Vec<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Str {
     pub loc: Loc,
 
@@ -625,7 +625,7 @@ pub struct Str {
     pub value: Utf16String,
 }
 
-#[derive(Debug, Node, Serialize, Deserialize)]
+#[derive(Debug, NodeBase, Serialize, Deserialize)]
 pub struct Num {
     pub loc: Loc,
 
@@ -641,7 +641,7 @@ impl PartialEq for Num {
 
 impl Eq for Num {}
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Bool {
     pub loc: Loc,
 
@@ -649,12 +649,12 @@ pub struct Bool {
     pub value: bool,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Null {
     pub loc: Loc,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Obj {
     pub loc: Loc,
 
@@ -662,7 +662,7 @@ pub struct Obj {
     pub value: HashMap<Utf16String, Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Arr {
     pub loc: Loc,
 
@@ -670,7 +670,7 @@ pub struct Arr {
     pub value: Vec<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Identifier {
     pub loc: Loc,
 
@@ -684,7 +684,7 @@ impl NamedNode for Identifier {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Call {
     pub loc: Loc,
 
@@ -695,7 +695,7 @@ pub struct Call {
     pub args: Vec<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Index {
     pub loc: Loc,
 
@@ -706,7 +706,7 @@ pub struct Index {
     pub index: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct Prop {
     pub loc: Loc,
 
@@ -723,7 +723,7 @@ impl NamedNode for Prop {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Wrapper, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum TypeSource {
     /// 名前付き型
@@ -735,7 +735,7 @@ pub enum TypeSource {
     FnTypeSource(FnTypeSource),
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct NamedTypeSource {
     pub loc: Loc,
 
@@ -746,7 +746,7 @@ pub struct NamedTypeSource {
     pub inner: Option<Box<TypeSource>>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
+#[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
 pub struct FnTypeSource {
     pub loc: Loc,
 
