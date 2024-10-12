@@ -9,6 +9,8 @@ use std::{
     vec,
 };
 
+use serde::{de::Visitor, Deserialize, Serialize};
+
 /// 参照として使用できるUTF-16文字列。
 /// サロゲートペアが完全である必要はない。
 #[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
@@ -94,6 +96,15 @@ impl<'a> IntoIterator for &'a Utf16Str {
 
     fn into_iter(self) -> Self::IntoIter {
         self.data.into_iter().cloned()
+    }
+}
+
+impl Serialize for Utf16Str {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
     }
 }
 
@@ -279,6 +290,41 @@ impl ops::Add<u16> for Utf16String {
     }
 }
 
+impl Serialize for Utf16String {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(&self.to_string())
+    }
+}
+
+struct Utf16StringVisitor;
+
+impl<'de> Visitor<'de> for Utf16StringVisitor {
+    type Value = Utf16String;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("Utf16String")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        Ok(Utf16String::from(v))
+    }
+}
+
+impl<'de> Deserialize<'de> for Utf16String {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_str(Utf16StringVisitor)
+    }
+}
+
 pub trait FromUtf16Str: Sized {
     type Err;
 
@@ -391,6 +437,12 @@ mod tests {
             assert_eq!(format!("{:?}", s0), "\u{FFFD}");
             assert_eq!(format!("{:?}", s1), "\u{FFFD}");
         }
+
+        #[test]
+        fn serialize() {
+            let s = Utf16Str::new(&utf16!("abc"));
+            assert_eq!(serde_json::to_string(s).unwrap(), r#""abc""#);
+        }
     }
 
     mod utf16_string {
@@ -479,6 +531,18 @@ mod tests {
                 (buf + utf16!('d')).as_utf16_str(),
                 Utf16Str::new(&utf16!("abcd"))
             );
+        }
+
+        #[test]
+        fn serialize() {
+            let s = Utf16String::from_iter(&utf16!("abc"));
+            assert_eq!(serde_json::to_string(&s).unwrap(), r#""abc""#);
+        }
+
+        #[test]
+        fn deserialize() {
+            let s = serde_json::from_str::<Utf16String>(r#""abc""#).unwrap();
+            assert_eq!(s, Utf16String::from_iter(&utf16!("abc")));
         }
     }
 }
