@@ -20,6 +20,8 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 derive-node.path = "./derive-node"
 derive-wrapper.path = "./derive-wrapper"
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
 utf16-literal.path = "./utf16-literal"
 wasm-bindgen = "0.2.93"
 
