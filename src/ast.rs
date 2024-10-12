@@ -27,7 +27,7 @@ pub trait NamedNode: NodeBase {
 }
 
 #[derive(Debug, PartialEq, Eq, NodeBase, Wrapper, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum Node {
     /// 名前空間
     Ns(Namespace),
