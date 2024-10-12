@@ -70,6 +70,32 @@ enum PositionValue {
 
 struct PositionValueVisitor;
 
+macro_rules! visit_int {
+    ( $ident:ident : $ty:ty ) => {
+        fn $ident<E>(self, v: $ty) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            Ok(if v < 0 {
+                PositionValue::Negative
+            } else {
+                PositionValue::NotNegative(v as usize)
+            })
+        }
+    };
+}
+
+macro_rules! visit_uint {
+    ( $ident:ident : $ty:ty ) => {
+        fn $ident<E>(self, v: $ty) -> Result<Self::Value, E>
+        where
+            E: serde::de::Error,
+        {
+            Ok(PositionValue::NotNegative(v as usize))
+        }
+    };
+}
+
 impl<'de> Visitor<'de> for PositionValueVisitor {
     type Value = PositionValue;
 
@@ -77,16 +103,16 @@ impl<'de> Visitor<'de> for PositionValueVisitor {
         formatter.write_str("integer")
     }
 
-    fn visit_i128<E>(self, v: i128) -> Result<Self::Value, E>
-    where
-        E: serde::de::Error,
-    {
-        Ok(if v < 0 {
-            PositionValue::Negative
-        } else {
-            PositionValue::NotNegative(v as usize)
-        })
-    }
+    visit_int!(visit_i8: i8);
+    visit_int!(visit_i16: i16);
+    visit_int!(visit_i32: i32);
+    visit_int!(visit_i64: i64);
+    visit_int!(visit_i128: i128);
+    visit_uint!(visit_u8: u8);
+    visit_uint!(visit_u16: u16);
+    visit_uint!(visit_u32: u32);
+    visit_uint!(visit_u64: u64);
+    visit_uint!(visit_u128: u128);
 }
 
 impl<'de> Deserialize<'de> for PositionValue {
@@ -94,7 +120,7 @@ impl<'de> Deserialize<'de> for PositionValue {
     where
         D: serde::Deserializer<'de>,
     {
-        deserializer.deserialize_i128(PositionValueVisitor)
+        deserializer.deserialize_any(PositionValueVisitor)
     }
 }
 

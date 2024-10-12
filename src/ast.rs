@@ -4,12 +4,13 @@ use std::collections::HashMap;
 
 use derive_node::Node;
 use derive_wrapper::Wrapper;
+use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
 
 use crate::string::{Utf16Str, Utf16String};
 
 pub use crate::common::Position;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Loc {
     pub start: Position,
     pub end: Position,
@@ -25,7 +26,8 @@ pub trait NamedNode: Node {
     fn name(&self) -> &Utf16Str;
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum NodeWrapper {
     /// 名前空間
     Ns(Namespace),
@@ -33,10 +35,14 @@ pub enum NodeWrapper {
     /// メタデータ定義
     Meta(Meta),
 
-    Statement(Statement),
-    Expr(Expression),
     TypeSource(TypeSource),
     Attr(Attribute),
+
+    #[serde(untagged)]
+    Statement(Statement),
+
+    #[serde(untagged)]
+    Expr(Expression),
 }
 
 impl From<StatementOrExpression> for NodeWrapper {
@@ -48,7 +54,8 @@ impl From<StatementOrExpression> for NodeWrapper {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum StatementOrExpression {
     Statement(Statement),
     Expression(Expression),
@@ -64,7 +71,7 @@ impl StatementOrExpression {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Namespace {
     pub loc: Loc,
 
@@ -81,14 +88,15 @@ impl NamedNode for Namespace {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum NamespaceMember {
     Namespace(Namespace),
 
     Def(Definition),
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Meta {
     pub loc: Loc,
 
@@ -99,7 +107,8 @@ pub struct Meta {
     pub value: Expression,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum Statement {
     /// 変数宣言文
     Def(Definition),
@@ -123,10 +132,11 @@ pub enum Statement {
     Continue(Continue),
 
     /// 代入文
+    #[serde(untagged)]
     Assign(Assign),
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Definition {
     pub loc: Loc,
 
@@ -146,7 +156,7 @@ pub struct Definition {
     pub attr: Vec<Attribute>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Attribute {
     pub loc: Loc,
 
@@ -163,7 +173,7 @@ impl NamedNode for Attribute {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Return {
     pub loc: Loc,
 
@@ -171,7 +181,7 @@ pub struct Return {
     pub expr: Expression,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Each {
     pub loc: Loc,
 
@@ -185,7 +195,7 @@ pub struct Each {
     pub for_statement: Box<StatementOrExpression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct For {
     pub loc: Loc,
 
@@ -195,7 +205,8 @@ pub struct For {
     pub for_statement: Box<StatementOrExpression>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+// TODO: json変換
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub enum ForIterator {
     Range {
         /// イテレータ変数名
@@ -213,7 +224,7 @@ pub enum ForIterator {
     },
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Loop {
     pub loc: Loc,
 
@@ -221,20 +232,21 @@ pub struct Loop {
     pub statements: Vec<StatementOrExpression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Break {
     pub loc: Loc,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Continue {
     pub loc: Loc,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Assign {
     pub loc: Loc,
 
+    #[serde(rename = "type")]
     pub op: AssignOperator,
 
     /// 代入先
@@ -244,10 +256,11 @@ pub struct Assign {
     pub expr: Expression,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum AssignOperator {
     /// 再代入文
-    Reassign,
+    Assign,
 
     /// 加算代入文
     AddAssign,
@@ -256,7 +269,8 @@ pub enum AssignOperator {
     SubAssign,
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum Expression {
     /// if式
     If(If),
@@ -297,9 +311,6 @@ pub enum Expression {
     /// 否定
     Not(Not),
 
-    /// 二項演算
-    Binary(Binary),
-
     /// 変数などの識別子
     Identifier(Identifier),
 
@@ -311,19 +322,25 @@ pub enum Expression {
 
     /// プロパティアクセス
     Prop(Prop),
+
+    /// 二項演算
+    #[serde(untagged)]
+    Binary(Binary),
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Binary {
     pub loc: Loc,
 
+    #[serde(rename = "type")]
     pub op: BinaryOperator,
 
     pub left: Box<Expression>,
     pub right: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub enum BinaryOperator {
     Pow,
     Mul,
@@ -341,7 +358,7 @@ pub enum BinaryOperator {
     Or,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Not {
     pub loc: Loc,
 
@@ -349,7 +366,7 @@ pub struct Not {
     pub expr: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct If {
     pub loc: Loc,
 
@@ -365,7 +382,7 @@ pub struct If {
     pub else_statement: Option<Box<StatementOrExpression>>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Elseif {
     /// elifの条件式
     pub cond: Expression,
@@ -374,7 +391,7 @@ pub struct Elseif {
     pub then: StatementOrExpression,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Fn {
     pub loc: Loc,
 
@@ -387,12 +404,13 @@ pub struct Fn {
     pub children: Vec<StatementOrExpression>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct FnArg {
     /// 引数名
     pub dest: Expression,
 
     /// 実引数が省略された場合の挙動
+    #[serde(flatten)]
     pub value: FnArgValue,
 
     /// 引数の型
@@ -403,13 +421,157 @@ pub struct FnArg {
 pub enum FnArgValue {
     Optional,
 
-    /// 引数の初期値
-    Default(Expression),
-
-    Required,
+    Required {
+        /// 引数の初期値
+        default: Option<Expression>,
+    },
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+// booleanのtagが実装されたら自力実装しなくて済むはずだけど……
+// https://github.com/serde-rs/serde/issues/745#issuecomment-294314786
+//
+// #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+// #[serde(tag = "optional")]
+// pub enum FnArgValue {
+//     #[serde(rename = "true")]
+//     Optional,
+//
+//     #[serde(rename = "false")]
+//     Required {
+//         /// 引数の初期値
+//         default: Option<Expression>,
+//     },
+// }
+//
+// 以下FnArgValueのSerialize, Deserialize実装
+
+impl Serialize for FnArgValue {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        match self {
+            FnArgValue::Optional => {
+                let mut result = serializer.serialize_map(Some(1))?;
+                result.serialize_entry("optional", &true)?;
+                return result.end();
+            }
+            FnArgValue::Required { default: None } => {
+                let mut result = serializer.serialize_map(Some(1))?;
+                result.serialize_entry("optional", &false)?;
+                return result.end();
+            }
+            FnArgValue::Required {
+                default: Some(default),
+            } => {
+                let mut result = serializer.serialize_map(Some(2))?;
+                result.serialize_entry("optional", &false)?;
+                result.serialize_entry("default", default)?;
+                return result.end();
+            }
+        }
+    }
+}
+
+enum FnArgValueKey {
+    Optional,
+    Default,
+}
+
+struct FnArgValueKeyVisitor;
+
+impl<'de> Visitor<'de> for FnArgValueKeyVisitor {
+    type Value = FnArgValueKey;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("\"optional\" or \"default\"")
+    }
+
+    fn visit_str<E>(self, v: &str) -> Result<Self::Value, E>
+    where
+        E: serde::de::Error,
+    {
+        match v {
+            "optional" => Ok(FnArgValueKey::Optional),
+            "default" => Ok(FnArgValueKey::Default),
+            _ => Err(serde::de::Error::unknown_field(v, &["optional", "default"])),
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for FnArgValueKey {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_identifier(FnArgValueKeyVisitor)
+    }
+}
+
+struct FnArgValueVisitor;
+
+impl<'de> Visitor<'de> for FnArgValueVisitor {
+    type Value = FnArgValue;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("FnArgValue")
+    }
+
+    fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+    where
+        A: serde::de::MapAccess<'de>,
+    {
+        let mut optional: Option<bool> = None;
+        let mut default: Option<Expression> = None;
+        let mut received_default = false;
+
+        while let Some(key) = map.next_key::<FnArgValueKey>()? {
+            match key {
+                FnArgValueKey::Optional => {
+                    if optional.is_some() {
+                        return Err(serde::de::Error::duplicate_field("optional"));
+                    }
+                    optional = Some(map.next_value::<bool>()?);
+                }
+                FnArgValueKey::Default => {
+                    if received_default {
+                        return Err(serde::de::Error::duplicate_field("default"));
+                    }
+                    default = map.next_value::<Option<Expression>>()?;
+                    received_default = true;
+                }
+            }
+        }
+
+        let Some(optional) = optional else {
+            return Err(serde::de::Error::missing_field("optional"));
+        };
+
+        if optional {
+            if default.is_some() {
+                return Err(serde::de::Error::custom(
+                    "unexpected \"default\" value when \"optional\" is true",
+                ));
+            }
+            return Ok(FnArgValue::Optional);
+        } else {
+            return Ok(FnArgValue::Required { default });
+        }
+    }
+}
+
+impl<'de> Deserialize<'de> for FnArgValue {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer.deserialize_map(FnArgValueVisitor)
+    }
+}
+
+// 以上FnArgValueのSerialize, Deserialize実装
+
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Match {
     pub loc: Loc,
 
@@ -422,7 +584,7 @@ pub struct Match {
     pub default: Option<Box<StatementOrExpression>>,
 }
 
-#[derive(Debug, PartialEq, Eq)]
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct MatchQ {
     /// 条件
     pub q: Expression,
@@ -431,7 +593,7 @@ pub struct MatchQ {
     pub a: StatementOrExpression,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Block {
     pub loc: Loc,
 
@@ -439,7 +601,7 @@ pub struct Block {
     pub statements: Vec<StatementOrExpression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Exists {
     pub loc: Loc,
 
@@ -447,7 +609,7 @@ pub struct Exists {
     pub identifier: Identifier,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Tmpl {
     pub loc: Loc,
 
@@ -455,7 +617,7 @@ pub struct Tmpl {
     pub tmpl: Vec<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Str {
     pub loc: Loc,
 
@@ -463,7 +625,7 @@ pub struct Str {
     pub value: Utf16String,
 }
 
-#[derive(Debug, Node)]
+#[derive(Debug, Node, Serialize, Deserialize)]
 pub struct Num {
     pub loc: Loc,
 
@@ -479,7 +641,7 @@ impl PartialEq for Num {
 
 impl Eq for Num {}
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Bool {
     pub loc: Loc,
 
@@ -487,12 +649,12 @@ pub struct Bool {
     pub value: bool,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Null {
     pub loc: Loc,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Obj {
     pub loc: Loc,
 
@@ -500,7 +662,7 @@ pub struct Obj {
     pub value: HashMap<Utf16String, Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Arr {
     pub loc: Loc,
 
@@ -508,7 +670,7 @@ pub struct Arr {
     pub value: Vec<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Identifier {
     pub loc: Loc,
 
@@ -522,7 +684,7 @@ impl NamedNode for Identifier {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Call {
     pub loc: Loc,
 
@@ -533,7 +695,7 @@ pub struct Call {
     pub args: Vec<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Index {
     pub loc: Loc,
 
@@ -544,7 +706,7 @@ pub struct Index {
     pub index: Box<Expression>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct Prop {
     pub loc: Loc,
 
@@ -561,16 +723,19 @@ impl NamedNode for Prop {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Node, Wrapper)]
+#[derive(Debug, PartialEq, Eq, Node, Wrapper, Serialize, Deserialize)]
+#[serde(tag = "type")]
 pub enum TypeSource {
     /// 名前付き型
+    #[serde(rename = "namedTypeSource")]
     NamedTypeSource(NamedTypeSource),
 
     /// 関数の型
+    #[serde(rename = "fnTypeSource")]
     FnTypeSource(FnTypeSource),
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct NamedTypeSource {
     pub loc: Loc,
 
@@ -581,7 +746,7 @@ pub struct NamedTypeSource {
     pub inner: Option<Box<TypeSource>>,
 }
 
-#[derive(Debug, PartialEq, Eq, Node)]
+#[derive(Debug, PartialEq, Eq, Node, Serialize, Deserialize)]
 pub struct FnTypeSource {
     pub loc: Loc,
 
@@ -590,4 +755,78 @@ pub struct FnTypeSource {
 
     /// 戻り値の型
     pub result: Box<TypeSource>,
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use pretty_assertions::assert_eq;
+
+    fn serialize<T: Serialize>(value: &T, expected: &str) {
+        assert_eq!(serde_json::to_string(value).unwrap(), expected);
+    }
+
+    fn deserialize<'a, T: std::fmt::Debug + Eq + Deserialize<'a>>(s: &'a str, expected: &T) {
+        assert_eq!(&serde_json::from_str::<T>(s).unwrap(), expected);
+    }
+
+    fn deserialize_fails<'a, T: Deserialize<'a>>(s: &'a str) {
+        assert!(serde_json::from_str::<T>(s).is_err());
+    }
+
+    mod fn_arg_value {
+        use super::*;
+
+        #[test]
+        fn test_serialize() {
+            serialize(&FnArgValue::Optional, r#"{"optional":true}"#);
+            serialize(
+                &FnArgValue::Required { default: None },
+                r#"{"optional":false}"#,
+            );
+            serialize(
+                &FnArgValue::Required {
+                    default: Some(
+                        Null {
+                            loc: Loc {
+                                start: Position::At { line: 1, column: 8 },
+                                end: Position::At { line: 1, column: 9 },
+                            },
+                        }
+                        .into(),
+                    ),
+                },
+                r#"{"optional":false,"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#,
+            );
+        }
+
+        #[test]
+        fn test_deserialize() {
+            deserialize(r#"{"optional":true}"#, &FnArgValue::Optional);
+            deserialize(
+                r#"{"optional":false}"#,
+                &FnArgValue::Required { default: None },
+            );
+            deserialize(
+                r#"{"optional":false,"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#,
+                &FnArgValue::Required {
+                    default: Some(
+                        Null {
+                            loc: Loc {
+                                start: Position::At { line: 1, column: 8 },
+                                end: Position::At { line: 1, column: 9 },
+                            },
+                        }
+                        .into(),
+                    ),
+                },
+            );
+
+            deserialize_fails::<FnArgValue>(r#"{}"#);
+            deserialize_fails::<FnArgValue>(r#"{"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#);
+            deserialize_fails::<FnArgValue>(r#"{"optional":true,"optional":true}"#);
+            deserialize_fails::<FnArgValue>(r#"{"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}},"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#);
+            deserialize_fails::<FnArgValue>(r#"{"optional":true,"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#);
+        }
+    }
 }

@@ -86,7 +86,7 @@ fn fn_def() {
                         name: Utf16String::from("x"),
                     }
                     .into(),
-                    value: ast::FnArgValue::Required,
+                    value: ast::FnArgValue::Required { default: None },
                     arg_type: Some(
                         ast::NamedTypeSource {
                             loc: loc((1, 7), (1, 10)),

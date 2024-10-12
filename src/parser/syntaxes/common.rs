@@ -47,9 +47,11 @@ pub(super) fn parse_params(s: &mut impl ITokenStream) -> Result<Vec<ast::FnArg>>
             }
             TokenKind::Eq => {
                 s.next()?;
-                ast::FnArgValue::Default(parse_expr(s, false)?)
+                ast::FnArgValue::Required {
+                    default: Some(parse_expr(s, false)?),
+                }
             }
-            _ => ast::FnArgValue::Required,
+            _ => ast::FnArgValue::Required { default: None },
         };
         let ty = if is_token_kind!(s, TokenKind::Colon) {
             s.next()?;

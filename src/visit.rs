@@ -262,7 +262,10 @@ impl<'a> Visitor for RecursiveVisitor<'a> {
     fn visit_fn(&mut self, node: &mut Fn) -> Result<()> {
         self.visitor.visit_fn(node)?;
         for arg in &mut node.args {
-            if let FnArgValue::Default(expr) = &mut arg.value {
+            if let FnArgValue::Required {
+                default: Some(expr),
+            } = &mut arg.value
+            {
                 self.visit_expr(expr)?;
             }
         }

@@ -598,7 +598,7 @@ fn try_parse_assign(
     dest: ast::Expression,
 ) -> Result<ast::StatementOrExpression> {
     let op = match s.get_token_kind() {
-        TokenKind::Eq => ast::AssignOperator::Reassign,
+        TokenKind::Eq => ast::AssignOperator::Assign,
         TokenKind::PlusEq => ast::AssignOperator::AddAssign,
         TokenKind::MinusEq => ast::AssignOperator::SubAssign,
         _ => {
