@@ -827,10 +827,16 @@ mod test {
             );
 
             deserialize_fails::<FnArgValue>(r#"{}"#);
-            deserialize_fails::<FnArgValue>(r#"{"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#);
+            deserialize_fails::<FnArgValue>(
+                r#"{"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#,
+            );
             deserialize_fails::<FnArgValue>(r#"{"optional":true,"optional":true}"#);
-            deserialize_fails::<FnArgValue>(r#"{"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}},"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#);
-            deserialize_fails::<FnArgValue>(r#"{"optional":true,"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#);
+            deserialize_fails::<FnArgValue>(
+                r#"{"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}},"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#,
+            );
+            deserialize_fails::<FnArgValue>(
+                r#"{"optional":true,"default":{"type":"null","loc":{"start":{"line":1,"column":8},"end":{"line":1,"column":9}}}}"#,
+            );
         }
     }
 }

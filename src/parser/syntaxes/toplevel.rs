@@ -14,9 +14,7 @@ use super::expressions::parse_expr;
 /// ```abnf
 /// TopLevel = *(Namespace / Meta / Statement)
 /// ```
-pub(in crate::parser) fn parse_top_level(
-    s: &mut impl ITokenStream,
-) -> Result<Vec<ast::Node>> {
+pub(in crate::parser) fn parse_top_level(s: &mut impl ITokenStream) -> Result<Vec<ast::Node>> {
     let mut nodes: Vec<ast::Node> = Vec::new();
 
     while is_token_kind!(s, TokenKind::NewLine) {

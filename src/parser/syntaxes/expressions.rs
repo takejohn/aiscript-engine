@@ -705,6 +705,7 @@ fn parse_object(s: &mut impl ITokenStream, is_static: bool) -> Result<ast::Obj> 
             return Err(s.unexpected_token());
         };
         let k = k.clone();
+        s.next()?;
 
         expect_token_kind!(s, TokenKind::Colon)?;
         s.next()?;

@@ -5,6 +5,7 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "@syuilo/aiscript": "link:../aiscript"
+    "@syuilo/aiscript": "link:../aiscript",
+    "dedent": "^1.5.3"
   }
 }
