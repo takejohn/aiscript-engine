@@ -6,3 +6,15 @@ var b: str =
 @f(x: num): num {
     x
 }
+
+let [x0, x1] = [1, 2]
+
+@g(
+    x: num,
+    y?: str,
+    z = ""
+) {}
+
+let add: @(num, num) => num = @(a, b) { a + b }
+
+let array: arr<num> = [1, 2]

@@ -37,6 +37,10 @@ pub(super) fn parse_params(s: &mut impl ITokenStream) -> Result<Vec<ast::FnArg>>
     expect_token_kind!(s, TokenKind::OpenParen)?;
     s.next()?;
 
+    if is_token_kind!(s, TokenKind::NewLine) {
+        s.next()?;
+    }
+
     while !is_token_kind!(s, TokenKind::CloseParen) {
         let dest = parse_dest(s)?;
 
