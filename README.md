@@ -2,3 +2,6 @@
 
 Rustで書かれたAiScriptエンジンです。
 [AiScript](https://github.com/aiscript-dev/aiscript)リポジトリの`master`ブランチを参照しています。
+
+- パーサ移植済み
+- インタプリタ着手中
