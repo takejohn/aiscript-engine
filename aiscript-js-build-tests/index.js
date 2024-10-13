@@ -34,6 +34,10 @@ await fs.writeFile(
                 },
             }
         }
+        fn fails(script: &str) {
+            let script = aiscript_engine::string::Utf16String::from(script);
+            assert!(aiscript_engine::Parser::new().parse(&script).is_err());
+        }
     ` + '\n'
 );
 
@@ -45,38 +49,52 @@ await Promise.all(files.map(async file => {
     }
 
     const script = await fs.readFile(path.resolve(resourceDir, file), 'utf-8');
-    const astJson = JSON.stringify(parse(file, script), (_key, value) => {
-        if (value instanceof Map) {
-            return Object.fromEntries(value);
-        }
-        return value;
-    });
+    const ast = parse(file, script);
     const basename = path.basename(file, '.is');
-    const astJsonFilename = path.resolve(resourceDir, 'ast.' + basename + '.json');
-    await fs.writeFile(astJsonFilename, astJson, 'utf-8');
 
-    await fs.appendFile(
-        testFile,
-        dedent`
-            #[test]
-            fn test_${basename}() {
-                test(include_str!("./resources/${basename}.is"), include_str!("./resources/ast.${basename}.json"));
+    if (!(ast instanceof AiScriptError)) {
+        const astJson = JSON.stringify(ast, (_key, value) => {
+            if (value instanceof Map) {
+                return Object.fromEntries(value);
             }
-        ` + '\n'
-    );
+            return value;
+        });
+        const astJsonFilename = path.resolve(resourceDir, 'ast.' + basename + '.json');
+        await fs.writeFile(astJsonFilename, astJson, 'utf-8');
+
+        await fs.appendFile(
+            testFile,
+            dedent`
+                #[test]
+                fn test_${basename}() {
+                    test(include_str!("./resources/${basename}.is"), include_str!("./resources/ast.${basename}.json"));
+                }
+            ` + '\n'
+        );
+    } else {
+        await fs.appendFile(
+            testFile,
+            dedent`
+                #[test]
+                fn test_${basename}() {
+                    fails(include_str!("./resources/${basename}.is"));
+                }
+            ` + '\n'
+        )
+    }
 }));
 
 /**
  * @param {string} filename
  * @param {string} script
- * @returns {import('@syuilo/aiscript').Ast.Node[]}
+ * @returns {import('@syuilo/aiscript').Ast.Node[] | AiScriptError}
  */
 function parse(filename, script) {
     try {
         return Parser.parse(script);
     } catch (e) {
         if (e instanceof AiScriptError) {
-            throw new TypeError(`error while parsing ${filename}: ${e.message}`);
+            return e;
         } else {
             throw e;
         }

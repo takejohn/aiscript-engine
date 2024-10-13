@@ -1,1 +1,5 @@
 let a = 42
+
+@f(x: num): num {
+    x
+}
