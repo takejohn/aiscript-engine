@@ -1,0 +1,7 @@
+each let element, [2, 3, 5] {
+    <: element
+}
+
+each (let item, [1, 2, 3]) {
+    <: item
+}

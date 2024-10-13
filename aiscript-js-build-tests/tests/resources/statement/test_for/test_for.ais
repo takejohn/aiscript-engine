@@ -1,0 +1,23 @@
+for (let i, 5) {
+    <: i
+}
+
+for (let j = 1, 5) {
+    <: j
+}
+
+for let k, 3 {
+    <: k
+}
+
+for let l = -1, 3 {
+    <: l
+}
+
+for (1 + 1) {
+    <: "Hello"
+}
+
+for 10 {
+    <: "Hello"
+}

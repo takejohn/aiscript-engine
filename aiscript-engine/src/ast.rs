@@ -144,7 +144,7 @@ pub struct Definition {
     pub dest: Expression,
 
     /// 変数の型
-    #[serde(rename = "type")]
+    #[serde(rename = "varType")]
     pub var_type: Option<TypeSource>,
 
     /// 式
@@ -194,6 +194,7 @@ pub struct Each {
     pub items: Expression,
 
     /// 本体処理
+    #[serde(rename = "for")]
     pub for_statement: Box<StatementOrExpression>,
 }
 
@@ -201,14 +202,16 @@ pub struct Each {
 pub struct For {
     pub loc: Loc,
 
+    #[serde(flatten)]
     pub iter: ForIterator,
 
     /// 本体処理
+    #[serde(rename = "for")]
     pub for_statement: Box<StatementOrExpression>,
 }
 
-// TODO: json変換
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(untagged)]
 pub enum ForIterator {
     Range {
         /// イテレータ変数名
@@ -220,7 +223,7 @@ pub enum ForIterator {
         /// 終値
         to: Expression,
     },
-    Number {
+    Times {
         /// 回数
         times: Expression,
     },

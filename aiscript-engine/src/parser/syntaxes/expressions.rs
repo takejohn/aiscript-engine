@@ -33,7 +33,7 @@ fn parse_prefix(s: &mut impl ITokenStream, min_bp: BindingPower) -> Result<ast::
     s.next()?;
 
     // 改行のエスケープ
-    if !is_token_kind!(s, TokenKind::BackSlash) {
+    if is_token_kind!(s, TokenKind::BackSlash) {
         s.next()?;
         expect_token_kind!(s, TokenKind::NewLine)?;
         s.next()?;
@@ -758,7 +758,7 @@ fn parse_array(s: &mut impl ITokenStream, is_static: bool) -> Result<ast::Arr> {
     }
 
     let mut value: Vec<ast::Expression> = Vec::new();
-    while is_token_kind!(s, TokenKind::CloseBracket) {
+    while !is_token_kind!(s, TokenKind::CloseBracket) {
         value.push(parse_expr(s, is_static)?);
 
         // separator

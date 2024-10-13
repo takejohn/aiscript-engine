@@ -321,7 +321,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
         let name = name.clone();
         s.next()?;
 
-        let from = if is_token_kind!(s, TokenKind::Eq) {
+        let from: Expression = if is_token_kind!(s, TokenKind::Eq) {
             s.next()?;
             parse_expr(s, false)?
         } else {
@@ -382,7 +382,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
                 start: start_pos,
                 end: s.get_pos().to_owned(),
             },
-            iter: ast::ForIterator::Number { times },
+            iter: ast::ForIterator::Times { times },
             for_statement: Box::new(body.into()),
         });
     }
@@ -449,7 +449,7 @@ fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attribute> {
     let name = name.clone();
     s.next()?;
 
-    let value = if is_token_kind!(s, TokenKind::CloseBracket) {
+    let value = if !is_token_kind!(s, TokenKind::CloseBracket) {
         parse_expr(s, true)?
     } else {
         let close_pos = s.get_pos().clone();

@@ -219,7 +219,7 @@ impl<'a> Visitor for RecursiveVisitor<'a> {
                 self.visit_expr(from)?;
                 self.visit_expr(to)
             }
-            ForIterator::Number { times } => self.visit_expr(times),
+            ForIterator::Times { times } => self.visit_expr(times),
         }
     }
 
