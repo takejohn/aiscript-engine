@@ -1,0 +1,7 @@
+@(x, y) {
+    x + y
+}
+
+@(x: num, y: num): num {
+    x + y
+}

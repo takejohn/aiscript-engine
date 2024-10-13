@@ -1,0 +1,28 @@
+if true <: "Hello, world!"
+
+let a = 1
+if a == 0 {
+    <: "0"
+} else if a == 1 {
+    <: "1"
+} else {
+    <: "more"
+}
+
+if a == 0 {
+    <: "0"
+}
+else if a == 1 {
+    <: "1"
+}
+else {
+    <: "more"
+}
+
+if a == 0 {
+    <: "0"
+} elif a == 1 {
+    <: "1"
+} else {
+    <: "more"
+}

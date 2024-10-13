@@ -384,6 +384,7 @@ pub struct If {
     pub elseif: Vec<Elseif>,
 
     /// else節
+    #[serde(rename = "else")]
     pub else_statement: Option<Box<StatementOrExpression>>,
 }
 

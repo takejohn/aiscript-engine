@@ -490,7 +490,7 @@ fn parse_fn_expr(s: &mut impl ITokenStream) -> Result<ast::Fn> {
 
     let params = parse_params(s)?;
 
-    let ty = if !is_token_kind!(s, TokenKind::Colon) {
+    let ty = if is_token_kind!(s, TokenKind::Colon) {
         s.next()?;
         Some(parse_type(s)?)
     } else {
@@ -549,7 +549,6 @@ fn parse_match(s: &mut impl ITokenStream) -> Result<ast::Match> {
                 if is_token_kind!(s, TokenKind::NewLine) {
                     s.next()?;
                 }
-                break;
             }
             TokenKind::DefaultKeyword | TokenKind::CloseBrace => {}
             _ => {

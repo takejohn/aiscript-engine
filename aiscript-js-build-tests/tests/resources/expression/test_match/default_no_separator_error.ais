@@ -1,0 +1,2 @@
+let a = 1
+match a { default => "more" case 1 => "one" }

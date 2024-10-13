@@ -1,0 +1,11 @@
+:: Ns {
+    let a = 42
+
+    :: Inner {
+        let b = "Hello"
+    }
+}
+
+Ns:a
+
+Ns:Inner:b

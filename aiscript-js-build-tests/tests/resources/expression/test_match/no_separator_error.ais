@@ -1,0 +1,2 @@
+let a = 1
+match a { case 1 => "one" case 2 => "two" }

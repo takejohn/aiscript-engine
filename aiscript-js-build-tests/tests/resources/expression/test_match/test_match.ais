@@ -1,0 +1,14 @@
+let a = 1
+match a {
+    case 0 => "zero",
+    case 1 => "one",
+    default => "more",
+}
+
+match a {
+    case 0 => "zero"
+    case 1 => "one"
+    default => "more"
+}
+
+match a { case 0 => "zero" }
