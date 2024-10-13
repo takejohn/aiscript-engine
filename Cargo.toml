@@ -1,30 +1,13 @@
-[package]
-name = "aiscript-engine"
-description = "An AiScript Engine written in Rust."
-repository = "https://github.com/takejohn/aiscript-engine"
-version = "0.1.0+0.1.0"
-license = "MIT"
-
-edition = "2021"
-
 [workspace]
-members = [ "aiscript-js-build-tests","derive-node", "derive-wrapper", "utf16-literal"]
+members = [
+    "aiscript-engine",
+    "aiscript-js-build-tests",
+    "derive-node",
+    "derive-wrapper",
+    "utf16-literal"
+]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.0+1.0.0"
+license = "MIT"
 edition = "2021"
-
-[lib]
-crate-type = ["cdylib", "rlib"]
-
-[dependencies]
-derive-node.path = "./derive-node"
-derive-wrapper.path = "./derive-wrapper"
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = "1.0.128"
-utf16-literal.path = "./utf16-literal"
-wasm-bindgen = "0.2.93"
-
-[dev-dependencies]
-indoc = "2.0.5"
-pretty_assertions = "1.4.1"

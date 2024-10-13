@@ -8,6 +8,6 @@ edition.workspace = true
 [dependencies]
 
 [dev-dependencies]
-aiscript-engine.path = "../"
+aiscript-engine.path = "../aiscript-engine"
 pretty_assertions = "1.4.1"
 serde_json = "1.0.128"
