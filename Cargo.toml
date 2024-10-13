@@ -8,7 +8,7 @@ license = "MIT"
 edition = "2021"
 
 [workspace]
-members = ["derive-node", "derive-wrapper", "utf16-literal"]
+members = [ "aiscript-js-build-tests","derive-node", "derive-wrapper", "utf16-literal"]
 
 [workspace.package]
 version = "0.1.0"

@@ -7,9 +7,12 @@ import dedent from 'dedent';
 import fs from 'fs/promises';
 import path from 'path';
 
-const dirname = path.resolve(import.meta.dirname, '../tests/resources/');
+const testDir = path.resolve(import.meta.dirname, './tests/');
+const resourceDir = path.resolve(testDir, './resources/');
+const testFile = path.resolve(testDir, './parser_auto.rs');
 
-const testFile = path.resolve(import.meta.dirname, '../tests/parser_auto.rs');
+await fs.mkdir(testDir, { recursive: true });
+await fs.mkdir(resourceDir, { recursive: true });
 
 await fs.writeFile(
     testFile,
@@ -34,14 +37,14 @@ await fs.writeFile(
     ` + '\n'
 );
 
-const files = await fs.readdir(dirname);
+const files = await fs.readdir(resourceDir);
 await Promise.all(files.map(async file => {
     const extname = path.extname(file);
     if (extname != '.is') {
         return;
     }
 
-    const script = await fs.readFile(path.resolve(dirname, file), 'utf-8');
+    const script = await fs.readFile(path.resolve(resourceDir, file), 'utf-8');
     const astJson = JSON.stringify(parse(file, script), (_key, value) => {
         if (value instanceof Map) {
             return Object.fromEntries(value);
@@ -49,7 +52,7 @@ await Promise.all(files.map(async file => {
         return value;
     });
     const basename = path.basename(file, '.is');
-    const astJsonFilename = path.resolve(dirname, 'ast.' + basename + '.json');
+    const astJsonFilename = path.resolve(resourceDir, 'ast.' + basename + '.json');
     await fs.writeFile(astJsonFilename, astJson, 'utf-8');
 
     await fs.appendFile(
