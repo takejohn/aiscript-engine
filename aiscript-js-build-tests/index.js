@@ -11,6 +11,7 @@ const INDENT_STRING = '    ';
 const TEST_DIR = path.resolve(import.meta.dirname, './tests/');
 const RESOURCE_DIR = path.resolve(TEST_DIR, './resources/');
 const TEST_FILE = path.resolve(TEST_DIR, './parser_auto.rs');
+const AISCRIPT_EXTENSION = '.ais';
 
 await fs.mkdir(TEST_DIR, { recursive: true });
 await fs.mkdir(RESOURCE_DIR, { recursive: true });
@@ -18,7 +19,7 @@ await fs.mkdir(RESOURCE_DIR, { recursive: true });
 await fs.writeFile(
     TEST_FILE,
     dedent`
-        //! .isファイルから自動生成されたパーサのテスト
+        //! .aisファイルから自動生成されたパーサのテスト
         mod utils {
             pub(super) fn test(script: &str, expected_ast_json: &str) {
                 let script = aiscript_engine::string::Utf16String::from(script);
@@ -66,14 +67,14 @@ async function visitDir(pathArray) {
 
         const filename = entry.name;
         const extname = path.extname(filename);
-        if (extname != '.is') {
+        if (extname != AISCRIPT_EXTENSION) {
             continue;
         }
 
         const scriptFilename = path.resolve(dirname, filename);
         const script = await fs.readFile(scriptFilename, 'utf-8');
         const ast = parse(filename, script);
-        const basename = path.basename(filename, '.is');
+        const basename = path.basename(filename, AISCRIPT_EXTENSION);
 
         if (!(ast instanceof AiScriptError)) {
             const astJson = JSON.stringify(ast, (_key, value) => {
