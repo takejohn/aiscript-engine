@@ -96,7 +96,7 @@ impl<'a> NodeValidator<'a> {
 
 impl<'a> Visitor for NodeValidator<'a> {
     fn visit_def(&mut self, node: &mut ast::Definition) -> Result<()> {
-        self.dest.visit_def(node)
+        self.dest.visit_expr(&mut node.dest)
     }
 
     fn visit_ns(&mut self, node: &mut ast::Namespace) -> Result<()> {
