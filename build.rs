@@ -28,8 +28,17 @@ fn build_parser_tests() {
         fn test(script: &str, expected_ast_json: &str) {{
             let script = aiscript_engine::string::Utf16String::from(script);
             let ast = aiscript_engine::Parser::new().parse(&script).unwrap();
-            let expected_ast = serde_json::from_str::<Vec<aiscript_engine::ast::Node>>(expected_ast_json).unwrap();
-            pretty_assertions::assert_eq!(ast, expected_ast);
+            let expected_ast = serde_json::from_str::<Vec<aiscript_engine::ast::Node>>(expected_ast_json);
+            match expected_ast {{
+                Ok(expected_ast) => {{
+                    pretty_assertions::assert_eq!(ast, expected_ast);
+                }},
+                Err(_) => {{
+                    let ast = serde_json::to_value(ast).unwrap();
+                    let expected_ast = serde_json::from_str::<serde_json::Value>(expected_ast_json).unwrap();
+                    pretty_assertions::assert_eq!(ast, expected_ast);
+                }},
+            }}
         }}
     "#}).unwrap();
 

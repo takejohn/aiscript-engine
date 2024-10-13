@@ -185,7 +185,7 @@ impl<'a> Visitor for RecursiveVisitor<'a> {
         self.visitor.visit_ns(node)?;
         for member in &mut node.members {
             match member {
-                NamespaceMember::Namespace(ref mut namespace) => self.visit_ns(namespace)?,
+                NamespaceMember::Ns(ref mut namespace) => self.visit_ns(namespace)?,
                 NamespaceMember::Def(ref mut definition) => self.visit_def(definition)?,
             }
         }

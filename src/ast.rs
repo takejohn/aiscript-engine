@@ -89,9 +89,9 @@ impl NamedNode for Namespace {
 }
 
 #[derive(Debug, PartialEq, Eq, NodeBase, Wrapper, Serialize, Deserialize)]
-#[serde(untagged)]
+#[serde(tag = "type", rename_all = "camelCase")]
 pub enum NamespaceMember {
-    Namespace(Namespace),
+    Ns(Namespace),
 
     Def(Definition),
 }
@@ -144,12 +144,14 @@ pub struct Definition {
     pub dest: Expression,
 
     /// 変数の型
+    #[serde(rename = "type")]
     pub var_type: Option<TypeSource>,
 
     /// 式
     pub expr: Expression,
 
     /// ミュータブルか否か
+    #[serde(rename = "mut")]
     pub is_mut: bool,
 
     /// 付加された属性
@@ -398,6 +400,7 @@ pub struct Fn {
     pub args: Vec<FnArg>,
 
     /// 戻り値の型
+    #[serde(rename = "retType")]
     pub ret_type: Option<TypeSource>,
 
     /// 本体処理
@@ -414,6 +417,7 @@ pub struct FnArg {
     pub value: FnArgValue,
 
     /// 引数の型
+    #[serde(rename = "argType")]
     pub arg_type: Option<TypeSource>,
 }
 
