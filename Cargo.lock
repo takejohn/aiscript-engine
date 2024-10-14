@@ -67,6 +67,8 @@ name = "aiscript-js-build-tests"
 version = "0.1.0+1.0.0"
 dependencies = [
  "aiscript-engine",
+ "aiscript-engine-ast",
+ "aiscript-engine-common",
  "pretty_assertions",
  "serde_json",
 ]

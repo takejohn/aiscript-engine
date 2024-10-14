@@ -22,9 +22,9 @@ await fs.writeFile(
         //! .aisファイルから自動生成されたパーサのテスト
         mod utils {
             pub(super) fn test(script: &str, expected_ast_json: &str) {
-                let script = aiscript_engine::string::Utf16String::from(script);
+                let script = aiscript_engine_common::Utf16String::from(script);
                 let ast = aiscript_engine::Parser::new().parse(&script).unwrap();
-                let expected_ast = serde_json::from_str::<Vec<aiscript_engine::ast::Node>>(expected_ast_json);
+                let expected_ast = serde_json::from_str::<Vec<aiscript_engine_ast::Node>>(expected_ast_json);
                 match expected_ast {
                     Ok(expected_ast) => {
                         pretty_assertions::assert_eq!(ast, expected_ast);
@@ -37,7 +37,7 @@ await fs.writeFile(
                 }
             }
             pub(super) fn fails(script: &str) {
-                let script = aiscript_engine::string::Utf16String::from(script);
+                let script = aiscript_engine_common::Utf16String::from(script);
                 assert!(aiscript_engine::Parser::new().parse(&script).is_err());
             }
         }
