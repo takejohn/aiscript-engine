@@ -1,23 +1,15 @@
 use std::vec;
 
+use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16String};
+use aiscript_engine_lexer::{expect_token_kind, is_token_kind, ITokenStream, TokenKind};
 use utf16_literal::utf16;
 
 use crate::{
     ast::{self, Expression, Identifier, Loc, NodeBase, Statement, StatementOrExpression},
-    error::{AiScriptSyntaxError, Result},
-    expect_token_kind, is_token_kind,
-    parser::{
-        streams::ITokenStream,
-        syntaxes::{
-            common::{parse_dest, parse_params, parse_type},
-            expressions::parse_expr,
-        },
-        token::TokenKind,
-    },
-    string::Utf16String,
+    syntaxes::expressions::parse_expr,
 };
 
-use super::common::parse_block;
+use super::common::{parse_block, parse_dest, parse_params, parse_type};
 
 pub(super) fn parse_statement(s: &mut impl ITokenStream) -> Result<ast::StatementOrExpression> {
     fn statement(result: Result<impl Into<Statement>>) -> Result<StatementOrExpression> {

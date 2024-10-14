@@ -1,14 +1,11 @@
-use crate::{
-    common::Position,
-    error::{AiScriptError, AiScriptSyntaxError, Result},
-    parser::token::{Token, TokenKind, EOF},
-};
+use crate::token::{Token, TokenKind, EOF};
+use aiscript_engine_common::{AiScriptError, AiScriptSyntaxError, Position, Result};
 
 /// カーソル位置にあるトークンの種類が指定したトークンの種類と一致するかどうかを示す値を取得します。
 #[macro_export]
 macro_rules! is_token_kind {
     ($stream: expr, $pattern: pat) => {
-        match $crate::parser::streams::ITokenStream::get_token_kind($stream) {
+        match $crate::ITokenStream::get_token_kind($stream) {
             $pattern => true,
             _ => false,
         }
@@ -21,17 +18,15 @@ macro_rules! is_token_kind {
 macro_rules! expect_token_kind {
     ($stream: expr, $pattern: pat) => {{
         let s = &$stream;
-        match $crate::parser::streams::ITokenStream::get_token_kind(*s) {
+        match $crate::ITokenStream::get_token_kind(*s) {
             $pattern => ::std::result::Result::Ok(()),
-            _ => ::std::result::Result::Err(
-                $crate::parser::streams::ITokenStream::unexpected_token(*s),
-            ),
+            _ => ::std::result::Result::Err($crate::ITokenStream::unexpected_token(*s)),
         }
     }};
 }
 
 /// トークンの読み取りに関するトレイト
-pub(in crate::parser) trait ITokenStream {
+pub trait ITokenStream {
     /// カーソル位置にあるトークンを取得します。
     fn get_token(&self) -> &Token;
 
@@ -62,7 +57,7 @@ pub(in crate::parser) trait ITokenStream {
 }
 
 /// トークン列からトークンを読み取る構造体
-pub(in crate::parser) struct TokenStream<'a> {
+pub struct TokenStream<'a> {
     source: &'a [Token],
     index: usize,
     token: &'a Token,

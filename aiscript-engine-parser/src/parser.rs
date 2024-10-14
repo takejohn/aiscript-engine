@@ -1,13 +1,7 @@
-mod plugins;
-mod scanner;
-mod streams;
-mod syntaxes;
-mod token;
-
-use crate::{ast, error::Result, string::Utf16Str};
-use plugins::{validate_keyword, validate_type};
-use scanner::Scanner;
-use syntaxes::parse_top_level;
+use crate::plugins::{validate_keyword, validate_type};
+use aiscript_engine_ast::{self as ast, parse_top_level};
+use aiscript_engine_common::{Result, Utf16Str};
+use aiscript_engine_lexer::Scanner;
 
 pub type ParserPlugin = dyn FnMut(&mut Vec<ast::Node>) -> Result<()>;
 

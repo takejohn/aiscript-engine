@@ -1,21 +1,18 @@
 use std::collections::HashMap;
 
+use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16Str, Utf16String};
+use aiscript_engine_lexer::{
+    expect_token_kind, is_token_kind, ITokenStream, TokenKind, TokenStream,
+};
 use pratt::{parse_pratt, BindingPower};
 use utf16_literal::utf16;
 
-use crate::{
-    ast::{self, Loc, NodeBase},
-    error::{AiScriptSyntaxError, Result},
-    expect_token_kind, is_token_kind,
-    parser::{
-        streams::{ITokenStream, TokenStream},
-        syntaxes::statement::parse_block_or_statement,
-        token::TokenKind,
-    },
-    string::{Utf16Str, Utf16String},
-};
+use crate::ast::{self, Loc, NodeBase};
 
-use super::common::{parse_block, parse_params, parse_type};
+use super::{
+    common::{parse_block, parse_params, parse_type},
+    statement::parse_block_or_statement,
+};
 
 mod pratt;
 

@@ -1,6 +1,5 @@
+use aiscript_engine_common::{Position, Utf16Str};
 use utf16_literal::utf16;
-
-use crate::{common::Position, string::Utf16Str};
 
 /// 入力文字列から文字を読み取る。  
 /// オリジナルのAiScriptと異なり1ページのみで、バックトラック機能は提供しない。
@@ -113,9 +112,8 @@ impl<'a> From<&'a Utf16Str> for CharStream<'a> {
 
 #[cfg(test)]
 mod tests {
+    use aiscript_engine_common::Utf16String;
     use utf16_literal::utf16;
-
-    use crate::string::Utf16String;
 
     use super::*;
 

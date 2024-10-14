@@ -1,9 +1,7 @@
-use crate::{
-    ast::{self, Loc},
-    error::{AiScriptSyntaxError, Result},
-    expect_token_kind, is_token_kind,
-    parser::{streams::ITokenStream, token::TokenKind},
-};
+use aiscript_engine_common::{AiScriptSyntaxError, Result};
+use aiscript_engine_lexer::{expect_token_kind, is_token_kind, ITokenStream, TokenKind};
+
+use crate::ast::{self, Loc};
 
 use super::{expressions::parse_expr, statement::parse_statement};
 

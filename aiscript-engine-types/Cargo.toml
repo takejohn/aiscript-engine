@@ -1,0 +1,11 @@
+[package]
+name = "aiscript-engine-types"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+aiscript-engine-ast.path = "../aiscript-engine-ast"
+aiscript-engine-common.path = "../aiscript-engine-common"
+derive-wrapper.path = "../derive-wrapper"
+utf16-literal.path = "../utf16-literal"

@@ -1,4 +1,5 @@
-use crate::{ast::*, error::Result};
+use aiscript_engine_ast::*;
+use aiscript_engine_common::Result;
 
 /// [`Node`]にアクセスして処理を行うトレイト。
 pub(super) trait Visitor {

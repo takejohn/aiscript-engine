@@ -1,12 +1,9 @@
 use utf16_literal::utf16;
 
-use crate::{
-    common::Position,
-    string::{Utf16Str, Utf16String},
-};
+use aiscript_engine_common::{Position, Utf16Str, Utf16String};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(super) enum TokenKind {
+pub enum TokenKind {
     EOF,
     NewLine,
     Identifier(Utf16String),
@@ -194,7 +191,7 @@ impl TokenKind {
 }
 
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub(super) struct Token {
+pub struct Token {
     pub kind: TokenKind,
     pub pos: Position,
     pub has_left_spacing: bool,

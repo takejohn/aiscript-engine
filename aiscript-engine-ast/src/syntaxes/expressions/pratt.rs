@@ -1,16 +1,12 @@
 // NOTE: infix(中置演算子)ではlbpを大きくすると右結合、rbpを大きくすると左結合の演算子になります。
 // この値は演算子が左と右に対してどのくらい結合力があるかを表わしています。詳細はpratt parsingの説明ページを参照してください。
 
-use crate::{
-    ast,
-    error::Result,
-    expect_token_kind, is_token_kind,
-    parser::{
-        streams::ITokenStream,
-        syntaxes::expressions::{parse_atom, parse_infix, parse_postfix, parse_prefix},
-        token::TokenKind,
-    },
-};
+use aiscript_engine_common::Result;
+use aiscript_engine_lexer::{expect_token_kind, is_token_kind, ITokenStream, TokenKind};
+
+use crate::ast;
+
+use super::{parse_atom, parse_infix, parse_postfix, parse_prefix};
 
 pub(super) type BindingPower = i32;
 

@@ -1,20 +1,16 @@
+use aiscript_engine_ast as ast;
+use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16Str, Utf16String};
 use derive_wrapper::Wrapper;
 use utf16_literal::utf16;
 
-use crate::{
-    ast,
-    error::{AiScriptSyntaxError, Result},
-    string::{Utf16Str, Utf16String},
-};
-
 #[derive(Wrapper)]
-pub(crate) enum Type {
+pub enum Type {
     Simple(TSimple),
     Generic(TGeneric),
     Fn(TFn),
 }
 
-pub(crate) enum TSimple {
+pub enum TSimple {
     Null,
     Bool,
     Num,
@@ -24,7 +20,7 @@ pub(crate) enum TSimple {
 }
 
 impl TSimple {
-    pub(crate) fn name(&self) -> &Utf16Str {
+    pub fn name(&self) -> &Utf16Str {
         match self {
             TSimple::Null => Utf16Str::new(&utf16!("null")),
             TSimple::Bool => Utf16Str::new(&utf16!("bool")),
@@ -35,7 +31,7 @@ impl TSimple {
         }
     }
 
-    pub(crate) fn for_name(name: &Utf16Str) -> Option<Self> {
+    pub fn for_name(name: &Utf16Str) -> Option<Self> {
         match name.as_u16s() {
             &utf16!("null") => Some(TSimple::Null),
             &utf16!("bool") => Some(TSimple::Bool),
@@ -48,17 +44,17 @@ impl TSimple {
     }
 }
 
-pub(crate) enum TGeneric {
+pub enum TGeneric {
     Arr(Box<Type>),
     Obj(Box<Type>),
 }
 
-pub(crate) struct TFn {
+pub struct TFn {
     args: Vec<Type>,
     result: Box<Type>,
 }
 
-pub(crate) fn get_type_name_by_source(type_source: &ast::TypeSource) -> Utf16String {
+fn get_type_name_by_source(type_source: &ast::TypeSource) -> Utf16String {
     match type_source {
         ast::TypeSource::NamedTypeSource(type_source) => {
             if let Some(inner) = &type_source.inner {
@@ -91,7 +87,7 @@ pub(crate) fn get_type_name_by_source(type_source: &ast::TypeSource) -> Utf16Str
     }
 }
 
-pub(crate) fn get_type_by_source(type_source: &ast::TypeSource) -> Result<Type> {
+pub fn get_type_by_source(type_source: &ast::TypeSource) -> Result<Type> {
     match type_source {
         ast::TypeSource::NamedTypeSource(named_type_source) => {
             let name = &named_type_source.name;

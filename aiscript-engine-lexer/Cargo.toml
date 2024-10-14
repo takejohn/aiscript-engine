@@ -1,0 +1,9 @@
+[package]
+name = "aiscript-engine-lexer"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+aiscript-engine-common.path = "../aiscript-engine-common"
+utf16-literal.path = "../utf16-literal"

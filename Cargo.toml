@@ -1,11 +1,17 @@
 [workspace]
 members = [
     "aiscript-engine",
+    "aiscript-engine-ast",
+    "aiscript-engine-common",
+    "aiscript-engine-lexer",
+    "aiscript-engine-parser",
+    "aiscript-engine-types",
     "aiscript-js-build-tests",
     "derive-node",
     "derive-wrapper",
     "utf16-literal"
 ]
+resolver = "2"
 
 [workspace.package]
 version = "0.1.0+1.0.0"

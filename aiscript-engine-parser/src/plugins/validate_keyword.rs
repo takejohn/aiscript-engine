@@ -2,14 +2,11 @@
 // - キーワードは字句解析の段階でそれぞれのKeywordトークンとなるため除外
 // - 文脈キーワードは識別子に利用できるため除外
 
+use aiscript_engine_ast::{self as ast, NamedNode, NodeBase};
+use aiscript_engine_common::{AiScriptError, AiScriptSyntaxError, Result, Utf16Str, Utf16String};
 use utf16_literal::utf16;
 
-use crate::{
-    ast::{self, NamedNode, NodeBase},
-    error::{AiScriptError, AiScriptSyntaxError, Result},
-    string::{Utf16Str, Utf16String},
-    visit::{RecursiveVisitor, Visitor, VisitorExtra},
-};
+use super::visit::{RecursiveVisitor, Visitor, VisitorExtra};
 
 const RESERVED_WORD: &[&[u16]] = &[
     &utf16!("as"),
@@ -173,7 +170,7 @@ fn reserved_word_error(name: impl Into<Utf16String>, loc: ast::Loc) -> Box<dyn A
     ))
 }
 
-pub(in crate::parser) fn validate_keyword(nodes: &mut Vec<ast::Node>) -> Result<()> {
+pub(crate) fn validate_keyword(nodes: &mut Vec<ast::Node>) -> Result<()> {
     let mut dest_validator = DestValidator;
     let mut node_validator = NodeValidator::new(&mut dest_validator);
     let mut validator = RecursiveVisitor::new(&mut node_validator);

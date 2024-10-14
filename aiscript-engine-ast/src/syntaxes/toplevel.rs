@@ -1,20 +1,17 @@
-use crate::{
-    ast::{self, Loc, Meta, Namespace, NodeBase},
-    error::{AiScriptSyntaxError, Result},
-    expect_token_kind, is_token_kind,
-    parser::{
-        streams::ITokenStream,
-        syntaxes::statement::{parse_def_statement, parse_statement},
-        token::TokenKind,
-    },
-};
+use aiscript_engine_common::{AiScriptSyntaxError, Result};
+use aiscript_engine_lexer::{expect_token_kind, is_token_kind, ITokenStream, TokenKind};
 
-use super::expressions::parse_expr;
+use crate::ast::{self, Loc, Meta, Namespace, NodeBase};
+
+use super::{
+    expressions::parse_expr,
+    statement::{parse_def_statement, parse_statement},
+};
 
 /// ```abnf
 /// TopLevel = *(Namespace / Meta / Statement)
 /// ```
-pub(in crate::parser) fn parse_top_level(s: &mut impl ITokenStream) -> Result<Vec<ast::Node>> {
+pub fn parse_top_level(s: &mut impl ITokenStream) -> Result<Vec<ast::Node>> {
     let mut nodes: Vec<ast::Node> = Vec::new();
 
     while is_token_kind!(s, TokenKind::NewLine) {

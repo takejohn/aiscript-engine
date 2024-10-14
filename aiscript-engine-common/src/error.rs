@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use crate::common::Position;
+use crate::position::Position;
 
 pub type Result<T> = core::result::Result<T, Box<dyn AiScriptError>>;
 

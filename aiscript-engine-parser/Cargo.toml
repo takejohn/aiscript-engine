@@ -1,0 +1,12 @@
+[package]
+name = "aiscript-engine-parser"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+aiscript-engine-ast.path = "../aiscript-engine-ast"
+aiscript-engine-common.path = "../aiscript-engine-common"
+aiscript-engine-lexer.path = "../aiscript-engine-lexer"
+aiscript-engine-types.path = "../aiscript-engine-types"
+utf16-literal.path = "../utf16-literal"

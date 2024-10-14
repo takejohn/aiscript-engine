@@ -6,9 +6,7 @@ use derive_node::NodeBase;
 use derive_wrapper::Wrapper;
 use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
 
-use crate::string::{Utf16Str, Utf16String};
-
-pub use crate::common::Position;
+use aiscript_engine_common::{Position, Utf16Str, Utf16String};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Loc {

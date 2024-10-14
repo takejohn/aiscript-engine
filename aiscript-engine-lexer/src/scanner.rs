@@ -2,14 +2,11 @@ use std::collections::VecDeque;
 
 use utf16_literal::utf16;
 
-use crate::{
-    error::{AiScriptSyntaxError, Result},
-    string::Utf16String,
-};
+use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16String};
 
-use super::{
-    streams::{CharStream, ITokenStream},
+use crate::{
     token::{Token, TokenKind},
+    CharStream, ITokenStream,
 };
 
 fn is_space_char(char: u16) -> bool {
@@ -31,7 +28,7 @@ fn is_word_char(char: u16) -> bool {
 }
 
 /// 入力文字列からトークンを読み取る構造体
-pub(super) struct Scanner<'a> {
+pub struct Scanner<'a> {
     stream: CharStream<'a>,
     tokens: VecDeque<Token>,
 }
@@ -732,7 +729,9 @@ impl ITokenStream for Scanner<'_> {
 mod tests {
     use std::borrow::Borrow;
 
-    use crate::{common::Position, is_token_kind, string::Utf16Str};
+    use aiscript_engine_common::{Position, Utf16Str};
+
+    use crate::is_token_kind;
 
     use super::*;
 
