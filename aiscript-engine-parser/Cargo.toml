@@ -5,8 +5,8 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-aiscript-engine-ast.path = "../aiscript-engine-ast"
-aiscript-engine-common.path = "../aiscript-engine-common"
-aiscript-engine-lexer.path = "../aiscript-engine-lexer"
-aiscript-engine-types.path = "../aiscript-engine-types"
-utf16-literal.path = "../utf16-literal"
+aiscript-engine-ast.workspace = true
+aiscript-engine-common.workspace = true
+aiscript-engine-lexer.workspace = true
+aiscript-engine-types.workspace = true
+utf16-literal.workspace = true

@@ -5,6 +5,6 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-serde = { version = "1.0.210", features = ["derive"] }
-serde_json = "1.0.128"
-utf16-literal.path = "../utf16-literal"
+serde.workspace = true
+serde_json.workspace = true
+utf16-literal.workspace = true

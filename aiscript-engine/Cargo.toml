@@ -10,4 +10,4 @@ edition.workspace = true
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-aiscript-engine-parser.path = "../aiscript-engine-parser"
+aiscript-engine-parser.workspace = true

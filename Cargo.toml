@@ -17,3 +17,28 @@ resolver = "2"
 version = "0.1.0+1.0.0"
 license = "MIT"
 edition = "2021"
+
+[workspace.dependencies]
+# workspace members
+aiscript-engine.path = "aiscript-engine"
+aiscript-engine-ast.path = "aiscript-engine-ast"
+aiscript-engine-common.path = "aiscript-engine-common"
+aiscript-engine-lexer.path = "aiscript-engine-lexer"
+aiscript-engine-parser.path = "aiscript-engine-parser"
+aiscript-engine-types.path = "aiscript-engine-types"
+derive-node.path = "derive-node"
+derive-wrapper.path = "derive-wrapper"
+utf16-literal.path = "utf16-literal"
+
+# libraries
+serde = { version = "1.0.210", features = ["derive"] }
+serde_json = "1.0.128"
+
+# libraries for development
+indoc = "2.0.5"
+pretty_assertions = "1.4.1"
+
+# libraries for procedural macros
+proc-macro2 = "1.0.86"
+quote = "1.0.37"
+syn = "2.0.79"

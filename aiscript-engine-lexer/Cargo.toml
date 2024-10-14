@@ -5,5 +5,5 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
-aiscript-engine-common.path = "../aiscript-engine-common"
-utf16-literal.path = "../utf16-literal"
+aiscript-engine-common.workspace = true
+utf16-literal.workspace = true
