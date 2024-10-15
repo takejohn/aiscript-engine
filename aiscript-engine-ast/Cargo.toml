@@ -9,6 +9,7 @@ aiscript-engine-common.workspace = true
 aiscript-engine-lexer.workspace = true
 derive-node.workspace = true
 derive-wrapper.workspace = true
+indexmap.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 utf16-literal.workspace = true

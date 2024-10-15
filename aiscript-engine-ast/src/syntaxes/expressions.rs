@@ -1,9 +1,8 @@
-use std::collections::HashMap;
-
 use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16Str, Utf16String};
 use aiscript_engine_lexer::{
     expect_token_kind, is_token_kind, ITokenStream, TokenKind, TokenStream,
 };
+use indexmap::IndexMap;
 use pratt::{parse_pratt, BindingPower};
 use utf16_literal::utf16;
 
@@ -695,7 +694,7 @@ fn parse_object(s: &mut impl ITokenStream, is_static: bool) -> Result<ast::Obj> 
         s.next()?;
     }
 
-    let mut map: HashMap<Utf16String, ast::Expression> = HashMap::new();
+    let mut map: IndexMap<Utf16String, ast::Expression> = IndexMap::new();
     while !is_token_kind!(s, TokenKind::CloseBrace) {
         let TokenKind::Identifier(k) = s.get_token_kind() else {
             return Err(s.unexpected_token());

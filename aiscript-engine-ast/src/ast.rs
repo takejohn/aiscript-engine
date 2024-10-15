@@ -1,9 +1,8 @@
 //! ASTノード
 
-use std::collections::HashMap;
-
 use derive_node::NodeBase;
 use derive_wrapper::Wrapper;
+use indexmap::IndexMap;
 use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
 
 use aiscript_engine_common::{Position, Utf16Str, Utf16String};
@@ -665,7 +664,7 @@ pub struct Obj {
     pub loc: Loc,
 
     /// オブジェクト
-    pub value: HashMap<Utf16String, Expression>,
+    pub value: IndexMap<Utf16String, Expression>,
 }
 
 #[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
