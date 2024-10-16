@@ -3,6 +3,7 @@ members = [
     "aiscript-engine",
     "aiscript-engine-ast",
     "aiscript-engine-common",
+    "aiscript-engine-interpreter",
     "aiscript-engine-lexer",
     "aiscript-engine-parser",
     "aiscript-engine-types",
@@ -31,6 +32,8 @@ derive-wrapper.path = "derive-wrapper"
 utf16-literal.path = "utf16-literal"
 
 # libraries
+gc-arena = "0.5.3"
+gc-arena-derive = "0.5.3"
 indexmap = { version = "2.6.0", features = ["serde"] }
 serde = { version = "1.0.210", features = ["derive"] }
 serde_json = "1.0.128"
