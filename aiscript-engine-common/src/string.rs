@@ -40,12 +40,20 @@ impl Utf16Str {
         &mut self.data
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.data.is_empty()
+    }
+
     pub fn len(&self) -> usize {
         self.data.len()
     }
 
     pub fn parse<F: FromUtf16Str>(&self) -> Result<F, F::Err> {
         F::from(self)
+    }
+
+    pub fn split<'a, P: Utf16Pattern>(&'a self, pat: P) -> P::Split<'a> {
+        pat.split(self)
     }
 }
 
@@ -337,6 +345,41 @@ impl FromUtf16Str for f64 {
     fn from(s: &Utf16Str) -> Result<Self, Self::Err> {
         // TODO: ECMAScriptと同じアルゴリズムを用いる
         s.to_string().parse()
+    }
+}
+
+pub trait Utf16Pattern {
+    type Split<'a>;
+
+    fn split<'a>(self, target: &'a Utf16Str) -> Self::Split<'a>;
+}
+
+pub struct Utf16SplitIterator<'a> {
+    s: &'a Utf16Str,
+    pat: u16,
+}
+
+impl<'a> Iterator for Utf16SplitIterator<'a> {
+    type Item = &'a Utf16Str;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let s = self.s;
+        let pat = self.pat;
+        match s.into_iter().position(|ch| ch == pat) {
+            Some(pos) => todo!(),
+            None => todo!(),
+        }
+    }
+}
+
+impl Utf16Pattern for u16 {
+    type Split<'a> = Utf16SplitIterator<'a>;
+
+    fn split<'a>(self, target: &'a Utf16Str) -> Self::Split<'a> {
+        Utf16SplitIterator {
+            s: target,
+            pat: self,
+        }
     }
 }
 

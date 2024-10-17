@@ -35,6 +35,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "aiscript-engine-ir"
+version = "0.1.0+1.0.0"
+dependencies = [
+ "aiscript-engine-ast",
+ "aiscript-engine-common",
+ "utf16-literal",
+]
+
+[[package]]
 name = "aiscript-engine-lexer"
 version = "0.1.0+1.0.0"
 dependencies = [

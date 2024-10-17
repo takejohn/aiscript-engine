@@ -2,7 +2,7 @@
 members = [
     "aiscript-engine",
     "aiscript-engine-ast",
-    "aiscript-engine-common",
+    "aiscript-engine-common", "aiscript-engine-ir",
     "aiscript-engine-lexer",
     "aiscript-engine-parser",
     "aiscript-engine-types",
