@@ -5,7 +5,7 @@ use derive_wrapper::Wrapper;
 use indexmap::IndexMap;
 use serde::{de::Visitor, ser::SerializeMap, Deserialize, Serialize};
 
-use aiscript_engine_common::{Position, Utf16Str, Utf16String};
+use aiscript_engine_common::{NamePath, Position, Utf16Str, Utf16String};
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Loc {
@@ -680,12 +680,12 @@ pub struct Identifier {
     pub loc: Loc,
 
     /// 変数名
-    pub name: Utf16String,
+    pub name: NamePath,
 }
 
 impl NamedNode for Identifier {
     fn name(&self) -> &Utf16Str {
-        &self.name
+        self.name.as_utf16_str()
     }
 }
 

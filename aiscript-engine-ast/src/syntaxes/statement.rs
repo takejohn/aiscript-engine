@@ -1,6 +1,6 @@
 use std::vec;
 
-use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16String};
+use aiscript_engine_common::{AiScriptSyntaxError, NamePath, Result, Utf16Str};
 use aiscript_engine_lexer::{expect_token_kind, is_token_kind, ITokenStream, TokenKind};
 use utf16_literal::utf16;
 
@@ -159,7 +159,7 @@ fn parse_fn_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
     let TokenKind::Identifier(name) = s.get_token_kind() else {
         return Err(s.unexpected_token());
     };
-    let name = name.clone();
+    let name = NamePath::from(name.as_utf16_str());
     let name_start_pos = s.get_pos().clone();
     s.next()?;
     let dest = ast::Identifier {
@@ -226,7 +226,7 @@ fn parse_out(s: &mut impl ITokenStream) -> Result<ast::Call> {
                     start: start_pos.clone(),
                     end: start_pos,
                 },
-                name: Utf16String::from_iter(&utf16!("print")),
+                name: NamePath::from(Utf16Str::new(&utf16!("print"))),
             }
             .into(),
         ),

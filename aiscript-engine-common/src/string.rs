@@ -120,6 +120,12 @@ impl Utf16String {
         Utf16String { data: Vec::new() }
     }
 
+    pub fn with_capacity(capacity: usize) -> Self {
+        Utf16String {
+            data: Vec::with_capacity(capacity),
+        }
+    }
+
     pub fn len(&self) -> usize {
         self.data.len()
     }
@@ -132,7 +138,7 @@ impl Utf16String {
         Utf16Str::new_mut(&mut self.data)
     }
 
-    pub fn is_empty(&mut self) -> bool {
+    pub fn is_empty(&self) -> bool {
         self.data.is_empty()
     }
 
@@ -161,6 +167,12 @@ impl Utf16String {
 }
 
 impl Borrow<Utf16Str> for Utf16String {
+    fn borrow(&self) -> &Utf16Str {
+        self.as_utf16_str()
+    }
+}
+
+impl Borrow<Utf16Str> for &Utf16String {
     fn borrow(&self) -> &Utf16Str {
         self.as_utf16_str()
     }

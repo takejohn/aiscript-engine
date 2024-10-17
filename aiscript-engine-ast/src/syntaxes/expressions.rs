@@ -1,10 +1,9 @@
-use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16Str, Utf16String};
+use aiscript_engine_common::{AiScriptSyntaxError, NamePath, Result, Utf16String};
 use aiscript_engine_lexer::{
     expect_token_kind, is_token_kind, ITokenStream, TokenKind, TokenStream,
 };
 use indexmap::IndexMap;
 use pratt::{parse_pratt, BindingPower};
-use utf16_literal::utf16;
 
 use crate::ast::{self, Loc, NodeBase};
 
@@ -645,31 +644,32 @@ fn parse_exists(s: &mut impl ITokenStream) -> Result<ast::Exists> {
 fn parse_reference(s: &mut impl ITokenStream) -> Result<ast::Identifier> {
     let start_pos = s.get_pos().clone();
 
-    let mut segs: Vec<Utf16String> = Vec::new();
+    let TokenKind::Identifier(ident) = s.get_token_kind() else {
+        return Err(s.unexpected_token());
+    };
+    let mut name = NamePath::from(ident);
+    s.next()?;
     loop {
-        if !segs.is_empty() {
-            if is_token_kind!(s, TokenKind::Colon) {
-                if s.get_token().has_left_spacing {
-                    return Err(Box::new(AiScriptSyntaxError::new(
-                        "Cannot use spaces in a reference.",
-                        s.get_pos().to_owned(),
-                    )));
-                }
-                s.next()?;
-                if s.get_token().has_left_spacing {
-                    return Err(Box::new(AiScriptSyntaxError::new(
-                        "Cannot use spaces in a reference.",
-                        s.get_pos().to_owned(),
-                    )));
-                }
-            } else {
-                break;
-            }
+        if !is_token_kind!(s, TokenKind::Colon) {
+            break;
+        }
+        if s.get_token().has_left_spacing {
+            return Err(Box::new(AiScriptSyntaxError::new(
+                "Cannot use spaces in a reference.",
+                s.get_pos().to_owned(),
+            )));
+        }
+        s.next()?;
+        if s.get_token().has_left_spacing {
+            return Err(Box::new(AiScriptSyntaxError::new(
+                "Cannot use spaces in a reference.",
+                s.get_pos().to_owned(),
+            )));
         }
         let TokenKind::Identifier(ident) = s.get_token_kind() else {
             return Err(s.unexpected_token());
         };
-        segs.push(ident.clone());
+        name.append(ident);
         s.next()?;
     }
     return Ok(ast::Identifier {
@@ -677,7 +677,7 @@ fn parse_reference(s: &mut impl ITokenStream) -> Result<ast::Identifier> {
             start: start_pos,
             end: s.get_pos().to_owned(),
         },
-        name: Utf16String::join(&segs, Utf16Str::new(&utf16!(":"))),
+        name,
     });
 }
 

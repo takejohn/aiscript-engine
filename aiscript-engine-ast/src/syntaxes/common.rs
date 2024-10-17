@@ -1,4 +1,4 @@
-use aiscript_engine_common::{AiScriptSyntaxError, Result};
+use aiscript_engine_common::{AiScriptSyntaxError, NamePath, Result};
 use aiscript_engine_lexer::{expect_token_kind, is_token_kind, ITokenStream, TokenKind};
 
 use crate::ast::{self, Loc};
@@ -10,7 +10,7 @@ use super::{expressions::parse_expr, statement::parse_statement};
 /// ```
 pub(super) fn parse_dest(s: &mut impl ITokenStream) -> Result<ast::Expression> {
     if let TokenKind::Identifier(name) = s.get_token_kind() {
-        let name = name.clone();
+        let name = NamePath::from(name.as_utf16_str());
         let name_start_pos = s.get_pos().clone();
         s.next()?;
         return Ok(ast::Identifier {
