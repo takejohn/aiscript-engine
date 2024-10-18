@@ -27,8 +27,7 @@ pub struct Interpreter {
 
 impl Interpreter {
     pub fn new() -> Self {
-        Interpreter {
-        }
+        Interpreter {}
     }
 
     fn run(&self, program: &[ast::Node]) -> Result<Value> {
@@ -78,6 +77,9 @@ mod tests {
     #[test]
     fn empty() {
         let interpreter = Interpreter::new();
-        assert!(matches!(interpreter.run(&[] as &[ast::Node]), Ok(Value::Null)));
+        assert!(matches!(
+            interpreter.run(&[] as &[ast::Node]),
+            Ok(Value::Null)
+        ));
     }
 }

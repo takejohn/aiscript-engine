@@ -1,4 +1,4 @@
-use std::fmt::Debug;
+use std::{borrow::Cow, fmt::Debug};
 
 use crate::position::Position;
 
@@ -19,19 +19,76 @@ pub trait AiScriptError: Debug {
     }
 }
 
-/// Parse-time errors.
-pub struct AiScriptSyntaxError {
-    message: String,
+pub enum AiScriptBasicErrorKind {
+    /// Parse-time errors.
+    Syntax,
 
-    pos: Position,
+    /// Namespace collection errors.
+    Namespace,
 }
 
-impl AiScriptSyntaxError {
-    pub fn new(message: impl Into<String>, pos: Position) -> AiScriptSyntaxError {
-        AiScriptSyntaxError {
+impl AiScriptBasicErrorKind {
+    pub fn name(&self) -> &'static str {
+        match self {
+            AiScriptBasicErrorKind::Syntax => "Syntax",
+            AiScriptBasicErrorKind::Namespace => "Namespace",
+        }
+    }
+}
+
+pub struct AiScriptBasicError {
+    kind: AiScriptBasicErrorKind,
+
+    message: Cow<'static, str>,
+
+    pos: Option<Position>,
+}
+
+impl AiScriptBasicError {
+    pub fn new(
+        kind: AiScriptBasicErrorKind,
+        message: impl Into<Cow<'static, str>>,
+        pos: Option<Position>,
+    ) -> Self {
+        AiScriptBasicError {
+            kind,
             message: message.into(),
             pos,
         }
+    }
+}
+
+impl AiScriptError for AiScriptBasicError {
+    fn name(&self) -> &'static str {
+        self.kind.name()
+    }
+
+    fn message(&self) -> &str {
+        &self.message
+    }
+
+    fn pos(&self) -> Option<Position> {
+        self.pos.clone()
+    }
+}
+
+impl Debug for AiScriptBasicError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        AiScriptError::fmt(self, f)
+    }
+}
+
+/// Parse-time errors.
+/// TODO: このラッパーを廃止
+pub struct AiScriptSyntaxError(AiScriptBasicError);
+
+impl AiScriptSyntaxError {
+    pub fn new(message: impl Into<Cow<'static, str>>, pos: Position) -> AiScriptSyntaxError {
+        AiScriptSyntaxError(AiScriptBasicError::new(
+            AiScriptBasicErrorKind::Syntax,
+            message,
+            Some(pos),
+        ))
     }
 }
 
@@ -47,10 +104,10 @@ impl AiScriptError for AiScriptSyntaxError {
     }
 
     fn message(&self) -> &str {
-        &self.message
+        self.0.message()
     }
 
     fn pos(&self) -> Option<Position> {
-        Some(self.pos.clone())
+        self.0.pos()
     }
 }

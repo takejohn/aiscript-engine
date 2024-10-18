@@ -4,6 +4,7 @@ members = [
     "aiscript-engine-ast",
     "aiscript-engine-common",
     "aiscript-engine-interpreter",
+    "aiscript-engine-ir",
     "aiscript-engine-lexer",
     "aiscript-engine-parser",
     "aiscript-engine-types",
