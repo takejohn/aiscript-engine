@@ -1,33 +1,11 @@
-use crate::token::{Token, TokenKind, EOF};
+use std::collections::VecDeque;
+
+use crate::token::{RawToken, Token, TokenKind, EOF};
 use aiscript_engine_common::{AiScriptError, AiScriptSyntaxError, Position, Result};
-
-/// カーソル位置にあるトークンの種類が指定したトークンの種類と一致するかどうかを示す値を取得します。
-#[macro_export]
-macro_rules! is_token_kind {
-    ($stream: expr, $pattern: pat) => {
-        match $crate::ITokenStream::get_token_kind($stream) {
-            $pattern => true,
-            _ => false,
-        }
-    };
-}
-
-/// カーソル位置にあるトークンが指定したトークンの種類と一致するかを確認します。
-/// 一致しなかった場合には文法エラーを発生させます。
-#[macro_export]
-macro_rules! expect_token_kind {
-    ($stream: expr, $pattern: pat) => {{
-        let s = &$stream;
-        match $crate::ITokenStream::get_token_kind(*s) {
-            $pattern => ::std::result::Result::Ok(()),
-            _ => ::std::result::Result::Err($crate::ITokenStream::unexpected_token(*s)),
-        }
-    }};
-}
 
 /// トークンの読み取りに関するトレイト
 pub trait ITokenStream {
-    /// カーソル位置にあるトークンを取得します。
+    /// カーソル位置にあるトークンの参照を取得します。
     fn get_token(&self) -> &Token;
 
     /// カーソル位置にあるトークンの種類を取得します。
@@ -40,12 +18,67 @@ pub trait ITokenStream {
         &self.get_token().pos
     }
 
-    /// カーソル位置を次のトークンへ進めます。  
-    /// TODO: 呼び出し時のカーソル位置にあるトークンをムーブアウトして返す (`Result<Token>`)
-    fn next(&mut self) -> Result<()>;
+    /// 現在のカーソル位置のトークンを取得し、カーソル位置を次のトークンへ進めます。
+    fn next(&mut self) -> Result<Token>;
 
     /// トークンの先読みを行います。カーソル位置は移動されません。
     fn lookahead(&mut self, offset: usize) -> Result<&Token>;
+
+    /// カーソル位置にあるトークンが与えられたクロージャの条件を満たす間、[`ITokenStream::next`]を繰り返し呼び出します。
+    fn skip_while(&mut self, mut predicate: impl FnMut(&Token) -> bool) -> Result<()> {
+        while predicate(self.get_token()) {
+            self.next()?;
+        }
+        return Ok(());
+    }
+
+    /// カーソル位置にあるトークンが条件を満たすことを確認し、カーソル位置を次のトークンへ進めます。  
+    /// 与えられたクロージャが`true`を返す場合、カーソル位置のトークンを返し、
+    /// `false`を返す場合、文法エラーを発生させます。
+    fn expect_and_next(&mut self, predicate: impl FnOnce(&Token) -> bool) -> Result<Token> {
+        if predicate(self.get_token()) {
+            Ok(self.next()?)
+        } else {
+            Err(self.unexpected_token())
+        }
+    }
+
+    /// カーソル位置にあるトークンが識別子であることを確認し、そのトークンを取得して、カーソル位置を次のトークンへ進めます。
+    /// 識別子でなかった場合は文法エラーを発生させます。
+    fn expect_identifier_and_next(&mut self) -> Result<RawToken> {
+        self.optional_identifer()?
+            .ok_or_else(|| self.unexpected_token())
+    }
+
+    /// カーソル位置に識別子トークンがある場合、それを取得し、カーソル位置を次のトークンへ進めます。
+    fn optional_identifer(&mut self) -> Result<Option<RawToken>> {
+        if let TokenKind::Identifier(_) = self.get_token_kind() {
+            let Token {
+                kind,
+                pos,
+                has_left_spacing,
+            } = self.next()?;
+            if let TokenKind::Identifier(name) = kind {
+                return Ok(Some(RawToken {
+                    raw: name,
+                    pos,
+                    has_left_spacing,
+                }));
+            } else {
+                panic!("not an identifer")
+            }
+        } else {
+            return Ok(None);
+        }
+    }
+
+    fn expect_eof(&self) -> Result<()> {
+        if matches!(self.get_token_kind(), TokenKind::EOF) {
+            Ok(())
+        } else {
+            Err(self.unexpected_token())
+        }
+    }
 
     /// トークンの種類が予期しない場合のエラーを生成します。
     fn unexpected_token(&self) -> Box<dyn AiScriptError> {
@@ -57,56 +90,31 @@ pub trait ITokenStream {
 }
 
 /// トークン列からトークンを読み取る構造体
-pub struct TokenStream<'a> {
-    source: &'a [Token],
-    index: usize,
-    token: &'a Token,
+pub struct TokenStream {
+    source: VecDeque<Token>,
 }
 
-impl TokenStream<'_> {
-    pub fn new(source: &[Token]) -> TokenStream {
-        let result = TokenStream {
-            source,
-            index: 0,
-            token: Self::load_token(source, 0),
-        };
+impl TokenStream {
+    pub fn new(source: VecDeque<Token>) -> TokenStream {
+        let result = TokenStream { source };
         return result;
     }
 
     pub fn eof(&self) -> bool {
-        Self::eof_for_props(self.source, self.index)
-    }
-
-    fn eof_for_props(source: &[Token], index: usize) -> bool {
-        index >= source.len()
-    }
-
-    fn load_token(source: &[Token], index: usize) -> &Token {
-        source.get(index).unwrap_or(&EOF)
-    }
-
-    fn load(&mut self) {
-        self.token = Self::load_token(self.source, self.index);
+        return self.source.is_empty();
     }
 }
 
-impl ITokenStream for TokenStream<'_> {
+impl ITokenStream for TokenStream {
     fn get_token(&self) -> &Token {
-        if self.eof() {
-            return &EOF;
-        }
-        return self.token;
+        self.source.front().unwrap_or(&EOF)
     }
 
-    fn next(&mut self) -> Result<()> {
-        if !self.eof() {
-            self.index += 1;
-        }
-        self.load();
-        return Ok(());
+    fn next(&mut self) -> Result<Token> {
+        return Ok(self.source.pop_front().unwrap_or(EOF.clone()));
     }
 
     fn lookahead(&mut self, offset: usize) -> Result<&Token> {
-        Ok(self.source.get(self.index + offset).unwrap_or(&EOF))
+        Ok(self.source.get(offset).unwrap_or(&EOF))
     }
 }

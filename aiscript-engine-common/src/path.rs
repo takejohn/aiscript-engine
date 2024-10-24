@@ -30,9 +30,9 @@ impl NamePath {
         }
     }
 
-    pub fn append(&mut self, name: &Utf16Str) {
+    pub fn append(&mut self, name: impl Borrow<Utf16Str>) {
         self.inner += SEPARATOR;
-        self.inner += name;
+        self.inner += name.borrow();
     }
 
     pub fn append_path(&mut self, path: &NamePath) {

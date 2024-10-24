@@ -2,7 +2,7 @@
 // この値は演算子が左と右に対してどのくらい結合力があるかを表わしています。詳細はpratt parsingの説明ページを参照してください。
 
 use aiscript_engine_common::Result;
-use aiscript_engine_lexer::{expect_token_kind, is_token_kind, ITokenStream, TokenKind};
+use aiscript_engine_lexer::{ITokenStream, TokenKind};
 
 use crate::ast;
 
@@ -56,10 +56,9 @@ pub(super) fn parse_pratt(
 
     loop {
         // 改行のエスケープ
-        if is_token_kind!(s, TokenKind::BackSlash) {
+        if matches!(s.get_token_kind(), TokenKind::BackSlash) {
             s.next()?;
-            expect_token_kind!(s, TokenKind::NewLine)?;
-            s.next()?;
+            s.expect_and_next(|token| matches!(token.kind, TokenKind::NewLine))?;
         }
 
         let token_kind = s.get_token_kind();
