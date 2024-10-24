@@ -1,7 +1,7 @@
 use std::vec;
 
 use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16String};
-use aiscript_engine_lexer::{expect_token_kind, is_token_kind, ITokenStream, TokenKind};
+use aiscript_engine_lexer::{ITokenStream, TokenKind};
 use utf16_literal::utf16;
 
 use crate::{
@@ -83,7 +83,7 @@ pub(super) fn parse_def_statement(s: &mut impl ITokenStream) -> Result<ast::Defi
 pub(super) fn parse_block_or_statement(
     s: &mut impl ITokenStream,
 ) -> Result<ast::StatementOrExpression> {
-    if is_token_kind!(s, TokenKind::OpenBrace) {
+    if matches!(s.get_token_kind(), TokenKind::OpenBrace) {
         let start_pos = s.get_pos().clone();
         let statements = parse_block(s)?;
         return Ok(StatementOrExpression::from_expr(ast::Block {
@@ -118,19 +118,16 @@ fn parse_var_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
 
     let dest = parse_dest(s)?;
 
-    let ty = if is_token_kind!(s, TokenKind::Colon) {
+    let ty = if matches!(s.get_token_kind(), TokenKind::Colon) {
         s.next()?;
         Some(parse_type(s)?)
     } else {
         None
     };
 
-    expect_token_kind!(s, TokenKind::Eq)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::Eq))?;
 
-    if is_token_kind!(s, TokenKind::NewLine) {
-        s.next()?;
-    }
+    s.skip_while(|token| matches!(token.kind, TokenKind::NewLine))?;
 
     let expr = parse_expr(s, false)?;
 
@@ -153,8 +150,7 @@ fn parse_var_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
 fn parse_fn_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
     let start_pos = s.get_pos().clone();
 
-    expect_token_kind!(s, TokenKind::At)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::At))?;
 
     let TokenKind::Identifier(name) = s.get_token_kind() else {
         return Err(s.unexpected_token());
@@ -172,7 +168,7 @@ fn parse_fn_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
 
     let params = parse_params(s)?;
 
-    let ty = if is_token_kind!(s, TokenKind::Colon) {
+    let ty = if matches!(s.get_token_kind(), TokenKind::Colon) {
         s.next()?;
         Some(parse_type(s)?)
     } else {
@@ -211,8 +207,7 @@ fn parse_fn_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
 fn parse_out(s: &mut impl ITokenStream) -> Result<ast::Call> {
     let start_pos = s.get_pos().clone();
 
-    expect_token_kind!(s, TokenKind::Out)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::Out))?;
     let expr = parse_expr(s, false)?;
 
     return Ok(ast::Call {
@@ -241,20 +236,18 @@ fn parse_out(s: &mut impl ITokenStream) -> Result<ast::Call> {
 fn parse_each(s: &mut impl ITokenStream) -> Result<ast::Each> {
     let start_pos = s.get_pos().clone();
 
-    expect_token_kind!(s, TokenKind::EachKeyword)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::EachKeyword))?;
 
-    let has_paren = is_token_kind!(s, TokenKind::OpenParen);
+    let has_paren = matches!(s.get_token_kind(), TokenKind::OpenParen);
     if has_paren {
         s.next()?;
     }
 
-    expect_token_kind!(s, TokenKind::LetKeyword)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::LetKeyword))?;
 
     let dest = parse_dest(s)?;
 
-    if is_token_kind!(s, TokenKind::Comma) {
+    if matches!(s.get_token_kind(), TokenKind::Comma) {
         s.next()?;
     } else {
         return Err(Box::new(AiScriptSyntaxError::new(
@@ -266,8 +259,7 @@ fn parse_each(s: &mut impl ITokenStream) -> Result<ast::Each> {
     let items = parse_expr(s, false)?;
 
     if has_paren {
-        expect_token_kind!(s, TokenKind::CloseParen)?;
-        s.next()?;
+        s.expect_and_next(|token| matches!(token.kind, TokenKind::CloseParen))?;
     }
 
     let body = parse_block_or_statement(s)?;
@@ -293,15 +285,14 @@ fn parse_each(s: &mut impl ITokenStream) -> Result<ast::Each> {
 fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
     let start_pos = s.get_pos().clone();
 
-    expect_token_kind!(s, TokenKind::ForKeyword)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::ForKeyword))?;
 
-    let has_paren = is_token_kind!(s, TokenKind::OpenParen);
+    let has_paren = matches!(s.get_token_kind(), TokenKind::OpenParen);
     if has_paren {
         s.next()?;
     }
 
-    if is_token_kind!(s, TokenKind::LetKeyword) {
+    if matches!(s.get_token_kind(), TokenKind::LetKeyword) {
         // range syntax
         s.next()?;
 
@@ -313,7 +304,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
         let name = name.clone();
         s.next()?;
 
-        let from: Expression = if is_token_kind!(s, TokenKind::Eq) {
+        let from: Expression = if matches!(s.get_token_kind(), TokenKind::Eq) {
             s.next()?;
             parse_expr(s, false)?
         } else {
@@ -327,7 +318,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
             .into()
         };
 
-        if is_token_kind!(s, TokenKind::Comma) {
+        if matches!(s.get_token_kind(), TokenKind::Comma) {
             s.next()?;
         } else {
             return Err(Box::new(AiScriptSyntaxError::new(
@@ -339,8 +330,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
         let to = parse_expr(s, false)?;
 
         if has_paren {
-            expect_token_kind!(s, TokenKind::CloseParen)?;
-            s.next()?;
+            s.expect_and_next(|token| matches!(token.kind, TokenKind::CloseParen))?;
         }
 
         let body = parse_block_or_statement(s)?;
@@ -363,8 +353,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
         let times = parse_expr(s, false)?;
 
         if has_paren {
-            expect_token_kind!(s, TokenKind::CloseParen)?;
-            s.next()?;
+            s.expect_and_next(|token| matches!(token.kind, TokenKind::CloseParen))?;
         }
 
         let body = parse_block_or_statement(s)?;
@@ -386,8 +375,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
 fn parse_return(s: &mut impl ITokenStream) -> Result<ast::Return> {
     let start_pos = s.get_pos().clone();
 
-    expect_token_kind!(s, TokenKind::ReturnKeyword)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::ReturnKeyword))?;
     let expr = parse_expr(s, false)?;
 
     return Ok(ast::Return {
@@ -404,10 +392,9 @@ fn parse_return(s: &mut impl ITokenStream) -> Result<ast::Return> {
 /// ```
 fn parse_statement_with_attr(s: &mut impl ITokenStream) -> Result<ast::Definition> {
     let mut attrs: Vec<ast::Attribute> = Vec::new();
-    while is_token_kind!(s, TokenKind::OpenSharpBracket) {
+    while matches!(s.get_token_kind(), TokenKind::OpenSharpBracket) {
         attrs.push(parse_attr(s)?);
-        expect_token_kind!(s, TokenKind::NewLine)?;
-        s.next()?;
+        s.expect_and_next(|token| matches!(token.kind, TokenKind::NewLine))?;
     }
 
     let statement = parse_statement(s)?;
@@ -432,8 +419,7 @@ fn parse_statement_with_attr(s: &mut impl ITokenStream) -> Result<ast::Definitio
 fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attribute> {
     let start_pos = s.get_pos().clone();
 
-    expect_token_kind!(s, TokenKind::OpenSharpBracket)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::OpenSharpBracket))?;
 
     let TokenKind::Identifier(name) = s.get_token_kind() else {
         return Err(s.unexpected_token());
@@ -441,7 +427,7 @@ fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attribute> {
     let name = name.clone();
     s.next()?;
 
-    let value = if !is_token_kind!(s, TokenKind::CloseBracket) {
+    let value = if !matches!(s.get_token_kind(), TokenKind::CloseBracket) {
         parse_expr(s, true)?
     } else {
         let close_pos = s.get_pos().clone();
@@ -455,8 +441,7 @@ fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attribute> {
         .into()
     };
 
-    expect_token_kind!(s, TokenKind::CloseBracket)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::CloseBracket))?;
 
     return Ok(ast::Attribute {
         loc: Loc {
@@ -474,8 +459,7 @@ fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attribute> {
 fn parse_loop(s: &mut impl ITokenStream) -> Result<ast::Loop> {
     let start_pos = s.get_pos().clone();
 
-    expect_token_kind!(s, TokenKind::LoopKeyword)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::LoopKeyword))?;
     let statements = parse_block(s)?;
 
     return Ok(ast::Loop {
@@ -492,12 +476,10 @@ fn parse_loop(s: &mut impl ITokenStream) -> Result<ast::Loop> {
 /// ```
 fn parse_do_while(s: &mut impl ITokenStream) -> Result<ast::Loop> {
     let do_start_pos = s.get_pos().clone();
-    expect_token_kind!(s, TokenKind::DoKeyword)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::DoKeyword))?;
     let body = parse_block_or_statement(s)?;
     let while_pos = s.get_pos().clone();
-    expect_token_kind!(s, TokenKind::WhileKeyword)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::WhileKeyword))?;
     let cond = parse_expr(s, false)?;
     let end_pos = s.get_pos().clone();
 
@@ -541,8 +523,7 @@ fn parse_do_while(s: &mut impl ITokenStream) -> Result<ast::Loop> {
 /// ```
 fn parse_while(s: &mut impl ITokenStream) -> Result<ast::Loop> {
     let start_pos = s.get_pos().clone();
-    expect_token_kind!(s, TokenKind::WhileKeyword)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::WhileKeyword))?;
     let cond = parse_expr(s, false)?;
     let cond_end_pos = s.get_pos().clone();
     let body = parse_block_or_statement(s)?;

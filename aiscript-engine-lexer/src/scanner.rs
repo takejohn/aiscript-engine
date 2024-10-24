@@ -567,7 +567,7 @@ impl Scanner<'_> {
 
         let mut elements: Vec<Token> = Vec::new();
         let mut buf = Utf16String::new();
-        let mut token_buf: Vec<Token> = Vec::new();
+        let mut token_buf: VecDeque<Token> = VecDeque::new();
         let mut state = State::String;
 
         let pos = self.stream.get_pos();
@@ -642,7 +642,7 @@ impl Scanner<'_> {
                         // ここから文字列エレメントになるので位置を更新
                         element_pos = self.stream.get_pos();
                         // TemplateExprElementトークンの終了位置をTokenStreamが取得するためのEOFトークンを追加
-                        token_buf.push(Token {
+                        token_buf.push_back(Token {
                             kind: TokenKind::EOF,
                             pos: element_pos.clone(),
                             has_left_spacing: false,
@@ -652,12 +652,12 @@ impl Scanner<'_> {
                             pos: expr_element_pos,
                             has_left_spacing,
                         });
-                        token_buf = Vec::new();
+                        token_buf = VecDeque::new();
                         state = State::String;
                         self.stream.next();
                     } else {
                         let token = self.read_token()?;
-                        token_buf.push(token);
+                        token_buf.push_back(token);
                     }
                 }
             }
@@ -725,8 +725,6 @@ mod tests {
     use std::borrow::Borrow;
 
     use aiscript_engine_common::{Position, Utf16Str};
-
-    use crate::is_token_kind;
 
     use super::*;
 
@@ -1080,18 +1078,21 @@ mod tests {
             Token {
                 kind: TokenKind::Template(vec![
                     Token {
-                        kind: TokenKind::TemplateExprElement(vec![
-                            Token {
-                                kind: TokenKind::TrueKeyword,
-                                pos: Position::At { line: 1, column: 3 },
-                                has_left_spacing: false,
-                            },
-                            Token {
-                                kind: TokenKind::EOF,
-                                pos: Position::At { line: 1, column: 7 },
-                                has_left_spacing: false,
-                            },
-                        ]),
+                        kind: TokenKind::TemplateExprElement(
+                            vec![
+                                Token {
+                                    kind: TokenKind::TrueKeyword,
+                                    pos: Position::At { line: 1, column: 3 },
+                                    has_left_spacing: false,
+                                },
+                                Token {
+                                    kind: TokenKind::EOF,
+                                    pos: Position::At { line: 1, column: 7 },
+                                    has_left_spacing: false,
+                                },
+                            ]
+                            .into(),
+                        ),
                         pos: Position::At { line: 1, column: 3 },
                         has_left_spacing: false,
                     },
@@ -1103,24 +1104,27 @@ mod tests {
                         has_left_spacing: false,
                     },
                     Token {
-                        kind: TokenKind::TemplateExprElement(vec![
-                            Token {
-                                kind: TokenKind::FalseKeyword,
-                                pos: Position::At {
-                                    line: 1,
-                                    column: 10,
+                        kind: TokenKind::TemplateExprElement(
+                            vec![
+                                Token {
+                                    kind: TokenKind::FalseKeyword,
+                                    pos: Position::At {
+                                        line: 1,
+                                        column: 10,
+                                    },
+                                    has_left_spacing: false,
                                 },
-                                has_left_spacing: false,
-                            },
-                            Token {
-                                kind: TokenKind::EOF,
-                                pos: Position::At {
-                                    line: 1,
-                                    column: 16,
+                                Token {
+                                    kind: TokenKind::EOF,
+                                    pos: Position::At {
+                                        line: 1,
+                                        column: 16,
+                                    },
+                                    has_left_spacing: false,
                                 },
-                                has_left_spacing: false,
-                            },
-                        ]),
+                            ]
+                            .into(),
+                        ),
                         pos: Position::At {
                             line: 1,
                             column: 10,
@@ -1339,7 +1343,7 @@ match x {default => 42}
             TokenKind::NewLine,
         ];
         let mut expected_iter = expected.iter();
-        while !is_token_kind!(&stream, TokenKind::EOF) {
+        while !matches!(stream.get_token_kind(), TokenKind::EOF) {
             let kind = stream.get_token_kind();
             assert_eq!(kind, expected_iter.next().unwrap());
             stream.next().unwrap();

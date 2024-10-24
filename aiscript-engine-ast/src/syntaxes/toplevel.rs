@@ -1,5 +1,5 @@
 use aiscript_engine_common::{AiScriptSyntaxError, Result};
-use aiscript_engine_lexer::{expect_token_kind, is_token_kind, ITokenStream, TokenKind};
+use aiscript_engine_lexer::{ITokenStream, TokenKind};
 
 use crate::ast::{self, Loc, Meta, Namespace, NodeBase};
 
@@ -14,11 +14,9 @@ use super::{
 pub fn parse_top_level(s: &mut impl ITokenStream) -> Result<Vec<ast::Node>> {
     let mut nodes: Vec<ast::Node> = Vec::new();
 
-    while is_token_kind!(s, TokenKind::NewLine) {
-        s.next()?;
-    }
+    s.skip_while(|token| matches!(token.kind, TokenKind::NewLine))?;
 
-    while !is_token_kind!(s, TokenKind::EOF) {
+    while !matches!(s.get_token_kind(), TokenKind::EOF) {
         match s.get_token_kind() {
             TokenKind::Colon2 => {
                 nodes.push(parse_namespace(s)?.into());
@@ -34,9 +32,9 @@ pub fn parse_top_level(s: &mut impl ITokenStream) -> Result<Vec<ast::Node>> {
         // terminator
         match s.get_token_kind() {
             TokenKind::NewLine | TokenKind::SemiColon => {
-                while is_token_kind!(s, TokenKind::NewLine | TokenKind::SemiColon) {
-                    s.next()?;
-                }
+                s.skip_while(|token| {
+                    matches!(token.kind, TokenKind::NewLine | TokenKind::SemiColon)
+                })?;
             }
             TokenKind::EOF => {}
             _ => {
@@ -57,8 +55,7 @@ pub fn parse_top_level(s: &mut impl ITokenStream) -> Result<Vec<ast::Node>> {
 pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespace> {
     let start_pos = s.get_pos().to_owned();
 
-    expect_token_kind!(s, TokenKind::Colon2)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::Colon2))?;
 
     let TokenKind::Identifier(name) = s.get_token_kind() else {
         return Err(s.unexpected_token());
@@ -67,14 +64,11 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
     s.next()?;
 
     let mut members: Vec<ast::NamespaceMember> = Vec::new();
-    expect_token_kind!(s, TokenKind::OpenBrace)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::OpenBrace))?;
 
-    while is_token_kind!(s, TokenKind::NewLine) {
-        s.next()?;
-    }
+    s.skip_while(|token| matches!(token.kind, TokenKind::NewLine))?;
 
-    while !is_token_kind!(s, TokenKind::CloseBrace) {
+    while !matches!(s.get_token_kind(), TokenKind::CloseBrace) {
         match s.get_token_kind() {
             TokenKind::VarKeyword | TokenKind::LetKeyword | TokenKind::At => {
                 members.push(parse_def_statement(s)?.into());
@@ -88,9 +82,9 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
         // terminator
         match s.get_token_kind() {
             TokenKind::NewLine | TokenKind::SemiColon => {
-                while is_token_kind!(s, TokenKind::NewLine | TokenKind::SemiColon) {
-                    s.next()?;
-                }
+                s.skip_while(|token| {
+                    matches!(token.kind, TokenKind::NewLine | TokenKind::SemiColon)
+                })?;
             }
             TokenKind::CloseBrace => {}
             _ => {
@@ -101,8 +95,7 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
             }
         }
     }
-    expect_token_kind!(s, TokenKind::CloseBrace)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::CloseBrace))?;
 
     return Ok(Namespace {
         loc: Loc {
@@ -120,8 +113,7 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
 pub(super) fn parse_meta(s: &mut impl ITokenStream) -> Result<ast::Meta> {
     let start_pos = s.get_pos().to_owned();
 
-    expect_token_kind!(s, TokenKind::Sharp3)?;
-    s.next()?;
+    s.expect_and_next(|token| matches!(token.kind, TokenKind::Sharp3))?;
 
     let name = if let TokenKind::Identifier(name) = s.get_token_kind() {
         let name = name.clone();

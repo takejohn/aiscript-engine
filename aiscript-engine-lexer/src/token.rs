@@ -1,3 +1,5 @@
+use std::collections::VecDeque;
+
 use utf16_literal::utf16;
 
 use aiscript_engine_common::{Position, Utf16Str, Utf16String};
@@ -27,7 +29,7 @@ pub enum TokenKind {
     */
     Template(Vec<Token>),
     TemplateStringElement(Utf16String),
-    TemplateExprElement(Vec<Token>),
+    TemplateExprElement(VecDeque<Token>),
 
     // keyword
     NullKeyword,

@@ -3,30 +3,6 @@ use std::collections::VecDeque;
 use crate::token::{Token, TokenKind, EOF};
 use aiscript_engine_common::{AiScriptError, AiScriptSyntaxError, Position, Result};
 
-/// カーソル位置にあるトークンの種類が指定したトークンの種類と一致するかどうかを示す値を取得します。
-#[macro_export]
-macro_rules! is_token_kind {
-    ($stream: expr, $pattern: pat) => {
-        match $crate::ITokenStream::get_token_kind($stream) {
-            $pattern => true,
-            _ => false,
-        }
-    };
-}
-
-/// カーソル位置にあるトークンが指定したトークンの種類と一致するかを確認します。
-/// 一致しなかった場合には文法エラーを発生させます。
-#[macro_export]
-macro_rules! expect_token_kind {
-    ($stream: expr, $pattern: pat) => {{
-        let s = &$stream;
-        match $crate::ITokenStream::get_token_kind(*s) {
-            $pattern => ::std::result::Result::Ok(()),
-            _ => ::std::result::Result::Err($crate::ITokenStream::unexpected_token(*s)),
-        }
-    }};
-}
-
 /// トークンの読み取りに関するトレイト
 pub trait ITokenStream {
     /// カーソル位置にあるトークンの参照を取得します。
@@ -47,6 +23,34 @@ pub trait ITokenStream {
 
     /// トークンの先読みを行います。カーソル位置は移動されません。
     fn lookahead(&mut self, offset: usize) -> Result<&Token>;
+
+    /// カーソル位置にあるトークンが与えられたクロージャの条件を満たす間、[`ITokenStream::next`]を繰り返し呼び出します。
+    fn skip_while(&mut self, mut predicate: impl FnMut(&Token) -> bool) -> Result<()> {
+        while predicate(self.get_token()) {
+            self.next()?;
+        }
+        return Ok(());
+    }
+
+    /// カーソル位置にあるトークンが条件を満たすことを確認し、カーソル位置を次のトークンへ進めます。  
+    /// 与えられたクロージャが`true`を返す場合、`Ok(())`を返し、
+    /// `false`を返す場合、文法エラーを発生させます。
+    fn expect_and_next(&mut self, predicate: impl FnOnce(&Token) -> bool) -> Result<()> {
+        if predicate(self.get_token()) {
+            self.next()?;
+            Ok(())
+        } else {
+            Err(self.unexpected_token())
+        }
+    }
+
+    fn expect_eof(&self) -> Result<()> {
+        if matches!(self.get_token_kind(), TokenKind::EOF) {
+            Ok(())
+        } else {
+            Err(self.unexpected_token())
+        }
+    }
 
     /// トークンの種類が予期しない場合のエラーを生成します。
     fn unexpected_token(&self) -> Box<dyn AiScriptError> {
