@@ -57,11 +57,7 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
 
     s.expect_and_next(|token| matches!(token.kind, TokenKind::Colon2))?;
 
-    let TokenKind::Identifier(name) = s.get_token_kind() else {
-        return Err(s.unexpected_token());
-    };
-    let name = name.to_owned();
-    s.next()?;
+    let name = s.expect_identifier_and_next()?.raw;
 
     let mut members: Vec<ast::NamespaceMember> = Vec::new();
     s.expect_and_next(|token| matches!(token.kind, TokenKind::OpenBrace))?;
@@ -115,13 +111,7 @@ pub(super) fn parse_meta(s: &mut impl ITokenStream) -> Result<ast::Meta> {
 
     s.expect_and_next(|token| matches!(token.kind, TokenKind::Sharp3))?;
 
-    let name = if let TokenKind::Identifier(name) = s.get_token_kind() {
-        let name = name.clone();
-        s.next()?;
-        Some(name)
-    } else {
-        None
-    };
+    let name = s.optional_identifer()?.map(|token| token.raw);
 
     let value = parse_expr(s, true)?;
 

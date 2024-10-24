@@ -1,7 +1,7 @@
 use std::vec;
 
 use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16String};
-use aiscript_engine_lexer::{ITokenStream, TokenKind};
+use aiscript_engine_lexer::{ITokenStream, RawToken, TokenKind};
 use utf16_literal::utf16;
 
 use crate::{
@@ -152,12 +152,11 @@ fn parse_fn_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
 
     s.expect_and_next(|token| matches!(token.kind, TokenKind::At))?;
 
-    let TokenKind::Identifier(name) = s.get_token_kind() else {
-        return Err(s.unexpected_token());
-    };
-    let name = name.clone();
-    let name_start_pos = s.get_pos().clone();
-    s.next()?;
+    let RawToken {
+        raw: name,
+        pos: name_start_pos,
+        ..
+    } = s.expect_identifier_and_next()?;
     let dest = ast::Identifier {
         loc: Loc {
             start: name_start_pos,
@@ -298,11 +297,7 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
 
         let ident_pos = s.get_pos().clone();
 
-        let TokenKind::Identifier(name) = s.get_token_kind() else {
-            return Err(s.unexpected_token());
-        };
-        let name = name.clone();
-        s.next()?;
+        let name = s.expect_identifier_and_next()?.raw;
 
         let from: Expression = if matches!(s.get_token_kind(), TokenKind::Eq) {
             s.next()?;
@@ -421,11 +416,7 @@ fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attribute> {
 
     s.expect_and_next(|token| matches!(token.kind, TokenKind::OpenSharpBracket))?;
 
-    let TokenKind::Identifier(name) = s.get_token_kind() else {
-        return Err(s.unexpected_token());
-    };
-    let name = name.clone();
-    s.next()?;
+    let name = s.expect_identifier_and_next()?.raw;
 
     let value = if !matches!(s.get_token_kind(), TokenKind::CloseBracket) {
         parse_expr(s, true)?

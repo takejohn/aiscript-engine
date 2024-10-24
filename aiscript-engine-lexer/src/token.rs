@@ -199,6 +199,12 @@ pub struct Token {
     pub has_left_spacing: bool,
 }
 
+pub struct RawToken {
+    pub raw: Utf16String,
+    pub pos: Position,
+    pub has_left_spacing: bool,
+}
+
 pub const EOF: Token = Token {
     kind: TokenKind::EOF,
     pos: Position::EOF,

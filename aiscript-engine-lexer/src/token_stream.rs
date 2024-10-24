@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 
-use crate::token::{Token, TokenKind, EOF};
+use crate::token::{RawToken, Token, TokenKind, EOF};
 use aiscript_engine_common::{AiScriptError, AiScriptSyntaxError, Position, Result};
 
 /// トークンの読み取りに関するトレイト
@@ -41,6 +41,35 @@ pub trait ITokenStream {
             Ok(())
         } else {
             Err(self.unexpected_token())
+        }
+    }
+
+    /// カーソル位置にあるトークンが識別子であることを確認し、そのトークンを取得して、カーソル位置を次のトークンへ進めます。
+    /// 識別子でなかった場合は文法エラーを発生させます。
+    fn expect_identifier_and_next(&mut self) -> Result<RawToken> {
+        self.optional_identifer()?
+            .ok_or_else(|| self.unexpected_token())
+    }
+
+    /// カーソル位置に識別子トークンがある場合、それを取得し、カーソル位置を次のトークンへ進めます。
+    fn optional_identifer(&mut self) -> Result<Option<RawToken>> {
+        if let TokenKind::Identifier(_) = self.get_token_kind() {
+            let Token {
+                kind,
+                pos,
+                has_left_spacing,
+            } = self.next()?;
+            if let TokenKind::Identifier(name) = kind {
+                return Ok(Some(RawToken {
+                    raw: name,
+                    pos,
+                    has_left_spacing,
+                }));
+            } else {
+                panic!("not an identifer")
+            }
+        } else {
+            return Ok(None);
         }
     }
 

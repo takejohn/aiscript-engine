@@ -1,5 +1,5 @@
 use aiscript_engine_common::{AiScriptSyntaxError, Result};
-use aiscript_engine_lexer::{ITokenStream, TokenKind};
+use aiscript_engine_lexer::{ITokenStream, RawToken, TokenKind};
 
 use crate::ast::{self, Loc};
 
@@ -9,10 +9,12 @@ use super::{expressions::parse_expr, statement::parse_statement};
 /// Dest = IDENT / Expr
 /// ```
 pub(super) fn parse_dest(s: &mut impl ITokenStream) -> Result<ast::Expression> {
-    if let TokenKind::Identifier(name) = s.get_token_kind() {
-        let name = name.clone();
-        let name_start_pos = s.get_pos().clone();
-        s.next()?;
+    if let Some(token) = s.optional_identifer()? {
+        let RawToken {
+            raw: name,
+            pos: name_start_pos,
+            ..
+        } = token;
         return Ok(ast::Identifier {
             loc: Loc {
                 start: name_start_pos,
@@ -191,11 +193,7 @@ fn parse_fn_type(s: &mut impl ITokenStream) -> Result<ast::TypeSource> {
 fn parse_named_type(s: &mut impl ITokenStream) -> Result<ast::TypeSource> {
     let start_pos = s.get_pos().clone();
 
-    let TokenKind::Identifier(name) = s.get_token_kind() else {
-        return Err(s.unexpected_token());
-    };
-    let name = name.clone();
-    s.next()?;
+    let name = s.expect_identifier_and_next()?.raw;
 
     // inner type
     let inner = if matches!(s.get_token_kind(), TokenKind::Lt) {

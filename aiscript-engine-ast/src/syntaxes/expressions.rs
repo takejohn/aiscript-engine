@@ -110,11 +110,7 @@ fn parse_infix(
     }
 
     if op == TokenKind::Dot {
-        let TokenKind::Identifier(name) = s.get_token_kind() else {
-            return Err(s.unexpected_token());
-        };
-        let name = name.clone();
-        s.next()?;
+        let name = s.expect_identifier_and_next()?.raw;
 
         return Ok(ast::Prop {
             loc: Loc {
@@ -651,11 +647,8 @@ fn parse_reference(s: &mut impl ITokenStream) -> Result<ast::Identifier> {
                 break;
             }
         }
-        let TokenKind::Identifier(ident) = s.get_token_kind() else {
-            return Err(s.unexpected_token());
-        };
-        segs.push(ident.clone());
-        s.next()?;
+        let ident = s.expect_identifier_and_next()?.raw;
+        segs.push(ident);
     }
     return Ok(ast::Identifier {
         loc: Loc {
@@ -680,11 +673,7 @@ fn parse_object(s: &mut impl ITokenStream, is_static: bool) -> Result<ast::Obj> 
 
     let mut map: IndexMap<Utf16String, ast::Expression> = IndexMap::new();
     while !matches!(s.get_token_kind(), TokenKind::CloseBrace) {
-        let TokenKind::Identifier(k) = s.get_token_kind() else {
-            return Err(s.unexpected_token());
-        };
-        let k = k.clone();
-        s.next()?;
+        let k = s.expect_identifier_and_next()?.raw;
 
         s.expect_and_next(|token| matches!(token.kind, TokenKind::Colon))?;
 
