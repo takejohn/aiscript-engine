@@ -258,7 +258,8 @@ fn parse_atom(s: &mut impl ITokenStream, is_static: bool) -> Result<ast::Express
                         }
                         TokenKind::TemplateExprElement(ref expr) => {
                             // スキャナで埋め込み式として事前に読み取っておいたトークン列をパースする
-                            let mut expr_stream = TokenStream::new(&expr);
+                            let mut expr_stream =
+                                TokenStream::new(expr.iter().map(|token| token.clone()).collect());
                             let expr = parse_expr(&mut expr_stream, false)?;
                             expect_token_kind!(&expr_stream, TokenKind::EOF)?;
                             values.push(expr);

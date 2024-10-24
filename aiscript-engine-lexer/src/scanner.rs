@@ -699,20 +699,15 @@ impl ITokenStream for Scanner<'_> {
         self.tokens.get(0).expect("no token found")
     }
 
-    fn next(&mut self) -> Result<()> {
-        // 現在のトークンがEOFだったら次のトークンに進まない
-        if self.get_token().kind == TokenKind::EOF {
-            return Ok(());
-        }
-
-        self.tokens.pop_front();
+    fn next(&mut self) -> Result<Token> {
+        let result = self.tokens.pop_front().expect("no token found");
 
         if self.tokens.is_empty() {
             let token = self.read_token();
             self.tokens.push_back(token?);
         }
 
-        return Ok(());
+        return Ok(result);
     }
 
     fn lookahead(&mut self, offset: usize) -> Result<&Token> {
