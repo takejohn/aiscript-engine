@@ -148,9 +148,9 @@ fn parse_var_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
 /// FnDef = "@" IDENT Params [":" Type] Block
 /// ```
 fn parse_fn_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::At))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::At))?
+        .pos;
 
     let RawToken {
         raw: name,
@@ -204,9 +204,9 @@ fn parse_fn_def(s: &mut impl ITokenStream) -> Result<ast::Definition> {
 /// Out = "<:" Expr
 /// ```
 fn parse_out(s: &mut impl ITokenStream) -> Result<ast::Call> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::Out))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::Out))?
+        .pos;
     let expr = parse_expr(s, false)?;
 
     return Ok(ast::Call {
@@ -233,9 +233,9 @@ fn parse_out(s: &mut impl ITokenStream) -> Result<ast::Call> {
 ///      / "each"     "let" Dest "," Expr     BlockOrStatement
 /// ```
 fn parse_each(s: &mut impl ITokenStream) -> Result<ast::Each> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::EachKeyword))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::EachKeyword))?
+        .pos;
 
     let has_paren = matches!(s.get_token_kind(), TokenKind::OpenParen);
     if has_paren {
@@ -282,9 +282,9 @@ fn parse_each(s: &mut impl ITokenStream) -> Result<ast::Each> {
 ///          / "for"     Expr     BlockOrStatement
 /// ```
 fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::ForKeyword))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::ForKeyword))?
+        .pos;
 
     let has_paren = matches!(s.get_token_kind(), TokenKind::OpenParen);
     if has_paren {
@@ -295,9 +295,11 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
         // range syntax
         s.next()?;
 
-        let ident_pos = s.get_pos().clone();
-
-        let name = s.expect_identifier_and_next()?.raw;
+        let RawToken {
+            raw: name,
+            pos: ident_pos,
+            ..
+        } = s.expect_identifier_and_next()?;
 
         let from: Expression = if matches!(s.get_token_kind(), TokenKind::Eq) {
             s.next()?;
@@ -368,9 +370,9 @@ fn parse_for(s: &mut impl ITokenStream) -> Result<ast::For> {
 /// Return = "return" Expr
 /// ```
 fn parse_return(s: &mut impl ITokenStream) -> Result<ast::Return> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::ReturnKeyword))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::ReturnKeyword))?
+        .pos;
     let expr = parse_expr(s, false)?;
 
     return Ok(ast::Return {
@@ -412,9 +414,9 @@ fn parse_statement_with_attr(s: &mut impl ITokenStream) -> Result<ast::Definitio
 /// Attr = "#[" IDENT [StaticExpr] "]"
 /// ```
 fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attribute> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::OpenSharpBracket))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::OpenSharpBracket))?
+        .pos;
 
     let name = s.expect_identifier_and_next()?.raw;
 
@@ -448,9 +450,9 @@ fn parse_attr(s: &mut impl ITokenStream) -> Result<ast::Attribute> {
 /// Loop = "loop" Block
 /// ```
 fn parse_loop(s: &mut impl ITokenStream) -> Result<ast::Loop> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::LoopKeyword))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::LoopKeyword))?
+        .pos;
     let statements = parse_block(s)?;
 
     return Ok(ast::Loop {
@@ -466,11 +468,13 @@ fn parse_loop(s: &mut impl ITokenStream) -> Result<ast::Loop> {
 /// Loop = "do" BlockOrStatement "while" Expr
 /// ```
 fn parse_do_while(s: &mut impl ITokenStream) -> Result<ast::Loop> {
-    let do_start_pos = s.get_pos().clone();
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::DoKeyword))?;
+    let do_start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::DoKeyword))?
+        .pos;
     let body = parse_block_or_statement(s)?;
-    let while_pos = s.get_pos().clone();
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::WhileKeyword))?;
+    let while_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::WhileKeyword))?
+        .pos;
     let cond = parse_expr(s, false)?;
     let end_pos = s.get_pos().clone();
 
@@ -513,8 +517,9 @@ fn parse_do_while(s: &mut impl ITokenStream) -> Result<ast::Loop> {
 /// Loop = "while" Expr BlockOrStatement
 /// ```
 fn parse_while(s: &mut impl ITokenStream) -> Result<ast::Loop> {
-    let start_pos = s.get_pos().clone();
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::WhileKeyword))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::WhileKeyword))?
+        .pos;
     let cond = parse_expr(s, false)?;
     let cond_end_pos = s.get_pos().clone();
     let body = parse_block_or_statement(s)?;
@@ -571,8 +576,7 @@ fn try_parse_assign(
     };
 
     // Assign
-    let start_pos = s.get_pos().clone();
-    s.next()?;
+    let start_pos = s.next()?.pos;
     let expr = parse_expr(s, false)?;
     return Ok(StatementOrExpression::from_statement(ast::Assign {
         loc: Loc {

@@ -33,12 +33,11 @@ pub trait ITokenStream {
     }
 
     /// カーソル位置にあるトークンが条件を満たすことを確認し、カーソル位置を次のトークンへ進めます。  
-    /// 与えられたクロージャが`true`を返す場合、`Ok(())`を返し、
+    /// 与えられたクロージャが`true`を返す場合、カーソル位置のトークンを返し、
     /// `false`を返す場合、文法エラーを発生させます。
-    fn expect_and_next(&mut self, predicate: impl FnOnce(&Token) -> bool) -> Result<()> {
+    fn expect_and_next(&mut self, predicate: impl FnOnce(&Token) -> bool) -> Result<Token> {
         if predicate(self.get_token()) {
-            self.next()?;
-            Ok(())
+            Ok(self.next()?)
         } else {
             Err(self.unexpected_token())
         }

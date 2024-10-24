@@ -1,5 +1,5 @@
 use aiscript_engine_common::{AiScriptSyntaxError, Result, Utf16Str, Utf16String};
-use aiscript_engine_lexer::{ITokenStream, TokenKind, TokenStream};
+use aiscript_engine_lexer::{ITokenStream, Token, TokenKind, TokenStream};
 use indexmap::IndexMap;
 use pratt::{parse_pratt, BindingPower};
 use utf16_literal::utf16;
@@ -22,9 +22,11 @@ pub(super) fn parse_expr(s: &mut impl ITokenStream, is_static: bool) -> Result<a
 }
 
 fn parse_prefix(s: &mut impl ITokenStream, min_bp: BindingPower) -> Result<ast::Expression> {
-    let start_pos = s.get_pos().clone();
-    let op = s.get_token_kind().clone();
-    s.next()?;
+    let Token {
+        kind: op,
+        pos: start_pos,
+        ..
+    } = s.next()?;
 
     // 改行のエスケープ
     if matches!(s.get_token_kind(), TokenKind::BackSlash) {
@@ -99,9 +101,11 @@ fn parse_infix(
     left: ast::Expression,
     min_bp: BindingPower,
 ) -> Result<ast::Expression> {
-    let start_pos = s.get_pos().clone();
-    let op = s.get_token_kind().clone();
-    s.next()?;
+    let Token {
+        kind: op,
+        pos: start_pos,
+        ..
+    } = s.next()?;
 
     // 改行のエスケープ
     if matches!(s.get_token_kind(), TokenKind::BackSlash) {
@@ -409,9 +413,9 @@ fn parse_call(s: &mut impl ITokenStream, target: ast::Expression) -> Result<ast:
 /// If = "if" Expr BlockOrStatement *("elif" Expr BlockOrStatement) ["else" BlockOrStatement]
 /// ```
 fn parse_if(s: &mut impl ITokenStream) -> Result<ast::If> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::IfKeyword))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::IfKeyword))?
+        .pos;
     let cond = parse_expr(s, false)?;
     let then = parse_block_or_statement(s)?;
 
@@ -498,9 +502,9 @@ fn parse_fn_expr(s: &mut impl ITokenStream) -> Result<ast::Fn> {
 /// DefaultCase = "default" "=>" BlockOrStatement [SEP]
 /// ```
 fn parse_match(s: &mut impl ITokenStream) -> Result<ast::Match> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::MatchKeyword))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::MatchKeyword))?
+        .pos;
     let about = parse_expr(s, false)?;
 
     s.expect_and_next(|token| matches!(token.kind, TokenKind::OpenBrace))?;
@@ -588,9 +592,9 @@ fn parse_match(s: &mut impl ITokenStream) -> Result<ast::Match> {
 /// Eval = "eval" Block
 /// ```
 fn parse_eval(s: &mut impl ITokenStream) -> Result<ast::Block> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::EvalKeyword))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::EvalKeyword))?
+        .pos;
     let statements = parse_block(s)?;
 
     return Ok(ast::Block {
@@ -606,9 +610,9 @@ fn parse_eval(s: &mut impl ITokenStream) -> Result<ast::Block> {
 /// Exists = "exists" Reference
 /// ```
 fn parse_exists(s: &mut impl ITokenStream) -> Result<ast::Exists> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::ExistsKeyword))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::ExistsKeyword))?
+        .pos;
     let identifier = parse_reference(s)?;
 
     return Ok(ast::Exists {
@@ -663,9 +667,9 @@ fn parse_reference(s: &mut impl ITokenStream) -> Result<ast::Identifier> {
 /// Object = "{" [IDENT ":" Expr *(SEP IDENT ":" Expr) [SEP]] "}"
 /// ```
 fn parse_object(s: &mut impl ITokenStream, is_static: bool) -> Result<ast::Obj> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::OpenBrace))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::OpenBrace))?
+        .pos;
 
     while matches!(s.get_token_kind(), TokenKind::NewLine) {
         s.next()?;

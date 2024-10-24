@@ -147,9 +147,9 @@ pub(super) fn parse_type(s: &mut impl ITokenStream) -> Result<ast::TypeSource> {
 /// ParamTypes = [Type *(SEP Type)]
 /// ```
 fn parse_fn_type(s: &mut impl ITokenStream) -> Result<ast::TypeSource> {
-    let start_pos = s.get_pos().clone();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::At))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::At))?
+        .pos;
     s.expect_and_next(|token| matches!(token.kind, TokenKind::OpenParen))?;
 
     let mut params: Vec<ast::TypeSource> = Vec::new();
@@ -191,9 +191,11 @@ fn parse_fn_type(s: &mut impl ITokenStream) -> Result<ast::TypeSource> {
 /// NamedType = IDENT ["<" Type ">"]
 /// ```
 fn parse_named_type(s: &mut impl ITokenStream) -> Result<ast::TypeSource> {
-    let start_pos = s.get_pos().clone();
-
-    let name = s.expect_identifier_and_next()?.raw;
+    let RawToken {
+        raw: name,
+        pos: start_pos,
+        ..
+    } = s.expect_identifier_and_next()?;
 
     // inner type
     let inner = if matches!(s.get_token_kind(), TokenKind::Lt) {

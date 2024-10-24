@@ -53,9 +53,9 @@ pub fn parse_top_level(s: &mut impl ITokenStream) -> Result<Vec<ast::Node>> {
 /// Namespace = "::" IDENT "{" *(VarDef / FnDef / Namespace) "}"
 /// ```
 pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespace> {
-    let start_pos = s.get_pos().to_owned();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::Colon2))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::Colon2))?
+        .pos;
 
     let name = s.expect_identifier_and_next()?.raw;
 
@@ -107,9 +107,9 @@ pub(super) fn parse_namespace(s: &mut impl ITokenStream) -> Result<ast::Namespac
 /// Meta = "###" [IDENT] StaticExpr
 /// ```
 pub(super) fn parse_meta(s: &mut impl ITokenStream) -> Result<ast::Meta> {
-    let start_pos = s.get_pos().to_owned();
-
-    s.expect_and_next(|token| matches!(token.kind, TokenKind::Sharp3))?;
+    let start_pos = s
+        .expect_and_next(|token| matches!(token.kind, TokenKind::Sharp3))?
+        .pos;
 
     let name = s.optional_identifer()?.map(|token| token.raw);
 
