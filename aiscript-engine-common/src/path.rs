@@ -5,19 +5,20 @@ use utf16_literal::utf16;
 
 use crate::{Utf16Str, Utf16String};
 
+const SEPARATOR_CHAR: u16 = utf16!(':');
 const SEPARATOR: &Utf16Str = Utf16Str::new(&utf16!(":"));
 
 /// 変数名のパス
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct NamePath {
     inner: Utf16String,
 }
 
 impl NamePath {
-    pub fn new(s: impl Borrow<Utf16Str>) -> Self {
+    pub fn new() -> Self {
         NamePath {
-            inner: Utf16String::from(s.borrow()),
+            inner: Utf16String::new(),
         }
     }
 
@@ -30,13 +31,33 @@ impl NamePath {
         }
     }
 
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+
+    pub fn segment_count(&self) -> usize {
+        if self.is_empty() {
+            0
+        } else {
+            self.as_utf16_str()
+                .into_iter()
+                .filter(|&ch| ch == SEPARATOR_CHAR)
+                .count()
+                + 1
+        }
+    }
+
     pub fn append(&mut self, name: impl Borrow<Utf16Str>) {
-        self.inner += SEPARATOR;
+        if !self.is_empty() {
+            self.inner += SEPARATOR;
+        }
         self.inner += name.borrow();
     }
 
     pub fn append_path(&mut self, path: &NamePath) {
-        self.inner += SEPARATOR;
+        if !self.is_empty() {
+            self.inner += SEPARATOR;
+        }
         self.inner += path.as_utf16_str();
     }
 

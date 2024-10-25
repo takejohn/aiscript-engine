@@ -1,5 +1,5 @@
 mod ir;
-mod scope;
+mod scopes;
 mod translate;
 
 pub use ir::*;

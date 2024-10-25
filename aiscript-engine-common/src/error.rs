@@ -25,6 +25,9 @@ pub enum AiScriptBasicErrorKind {
 
     /// Namespace collection errors.
     Namespace,
+
+    /// Interpret-time errors.
+    Runtime,
 }
 
 impl AiScriptBasicErrorKind {
@@ -32,6 +35,7 @@ impl AiScriptBasicErrorKind {
         match self {
             AiScriptBasicErrorKind::Syntax => "Syntax",
             AiScriptBasicErrorKind::Namespace => "Namespace",
+            AiScriptBasicErrorKind::Runtime => "Runtime",
         }
     }
 }

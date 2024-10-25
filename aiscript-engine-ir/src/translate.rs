@@ -1,10 +1,7 @@
 use aiscript_engine_ast::{self as ast, Expression, NamespaceMember};
-use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, AiScriptError, Result};
+use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 
-use crate::{
-    scope::{self, Scope},
-    Ir,
-};
+use crate::{scopes::Scopes, Ir};
 
 pub fn translate(ast: &[ast::Node]) -> Ir {
     Ir {
@@ -13,14 +10,13 @@ pub fn translate(ast: &[ast::Node]) -> Ir {
     }
 }
 
-struct Translator;
+struct Translator<'ast> {
+    scopes: Scopes<'ast>,
+}
 
-impl Translator {
-    fn collect_ns_member<'sc, 'ast: 'sc>(
-        scope: &'sc mut Scope<'sc, 'ast>,
-        ns: &'ast ast::Namespace,
-    ) -> Result<()> {
-        let mut ns_scope = scope.create_child_namespace_scope(&ns.name, scope::ANONYMOUS);
+impl<'ast> Translator<'ast> {
+    fn collect_ns_member(&mut self, ns: &'ast ast::Namespace) -> Result<()> {
+        let mut ns_scope = self.scopes.push_namespace_scope(&ns.name);
 
         for node in &ns.members {
             if let NamespaceMember::Ns(def) = node {
