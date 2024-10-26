@@ -19,6 +19,7 @@ pub trait AiScriptError: Debug {
     }
 }
 
+#[derive(PartialEq, Eq)]
 pub enum AiScriptBasicErrorKind {
     /// Parse-time errors.
     Syntax,
@@ -40,6 +41,7 @@ impl AiScriptBasicErrorKind {
     }
 }
 
+#[derive(PartialEq, Eq)]
 pub struct AiScriptBasicError {
     kind: AiScriptBasicErrorKind,
 

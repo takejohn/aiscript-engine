@@ -2,7 +2,8 @@ use std::{borrow::Cow, collections::HashMap};
 
 use aiscript_engine_common::{NamePath, Utf16Str};
 use utf16_literal::utf16;
-use variable::Variable;
+
+pub(crate) use variable::Variable;
 
 mod variable;
 
@@ -67,7 +68,7 @@ impl<'ast> Scopes<'ast> {
 
     /// スタックのトップからローカルスコープを1つ破棄します。
     /// ローカルスコープがない場合はパニックします。
-    fn drop_local_scope(&mut self) {
+    pub(crate) fn drop_local_scope(&mut self) {
         if let None = self.blocks.pop() {
             if let None = self.namespaces.pop() {
                 panic!("No local scopes");
@@ -106,7 +107,7 @@ impl<'ast> Scopes<'ast> {
         self.get(name).is_some()
     }
 
-    fn add(&mut self, name: &'ast NamePath, variable: Variable) {
+    pub(crate) fn add(&mut self, name: &'ast NamePath, variable: Variable) {
         if let Some(block) = self.blocks.last_mut() {
             // ブロック
             block.variables.insert(name, variable);

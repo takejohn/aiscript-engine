@@ -8,3 +8,7 @@ edition.workspace = true
 aiscript-engine-ast.workspace = true
 aiscript-engine-common.workspace = true
 utf16-literal.workspace = true
+
+[dev-dependencies]
+aiscript-engine-parser.workspace = true
+pretty_assertions.workspace = true

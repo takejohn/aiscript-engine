@@ -53,6 +53,8 @@ version = "0.1.0+1.0.0"
 dependencies = [
  "aiscript-engine-ast",
  "aiscript-engine-common",
+ "aiscript-engine-parser",
+ "pretty_assertions",
  "utf16-literal",
 ]
 
