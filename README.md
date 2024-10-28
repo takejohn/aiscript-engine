@@ -1,5 +1,8 @@
 # AiScript Engine **(開発中)**
 
+AiScript EngineはAiScriptの**公式プロジェクトではありません**  
+公式のAiScriptリポジトリは[こちら](https://github.com/aiscript-dev/aiscript)
+
 Rustで書かれたAiScriptエンジンです。
 [AiScript](https://github.com/aiscript-dev/aiscript)リポジトリの`master`ブランチを参照しています。
 
