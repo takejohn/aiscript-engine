@@ -40,7 +40,9 @@ version = "0.1.0+1.0.0"
 dependencies = [
  "aiscript-engine-ast",
  "aiscript-engine-common",
+ "aiscript-engine-ir",
  "aiscript-engine-types",
+ "aiscript-engine-vm",
  "gc-arena",
  "gc-arena-derive",
  "indexmap",
@@ -85,6 +87,18 @@ dependencies = [
  "aiscript-engine-common",
  "derive-wrapper",
  "utf16-literal",
+]
+
+[[package]]
+name = "aiscript-engine-vm"
+version = "0.1.0+1.0.0"
+dependencies = [
+ "aiscript-engine-common",
+ "aiscript-engine-ir",
+ "aiscript-engine-types",
+ "gc-arena",
+ "gc-arena-derive",
+ "indexmap",
 ]
 
 [[package]]

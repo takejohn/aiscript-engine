@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
-use aiscript_engine_ast::{Expression, Node};
 use aiscript_engine_common::Utf16String;
+use aiscript_engine_ir::FnIndex;
 use aiscript_engine_types::Type;
 use gc_arena::Gc;
 use indexmap::IndexMap;
@@ -30,18 +30,13 @@ pub enum VFn<'gc> {
 }
 
 pub struct VUserFn<'gc> {
-    args: VFnArg,
-    statements: &'gc Vec<Node>,
-    scope: (), // TODO
+    args: Vec<Option<Type>>,
+    index: FnIndex,
+    capture: Vec<Value<'gc>>,
 }
 
 pub trait VNativeFn {
     fn native(&self, args: Vec<Option<Value>>) -> Value;
-}
-
-pub struct VFnArg {
-    dest: Expression,
-    ty: Option<Type>,
 }
 
 pub struct VError<'gc> {

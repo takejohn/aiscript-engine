@@ -1,16 +1,13 @@
 [package]
-name = "aiscript-engine-interpreter"
+name = "aiscript-engine-vm"
 version.workspace = true
 license.workspace = true
 edition.workspace = true
 
 [dependencies]
-aiscript-engine-ast.workspace = true
 aiscript-engine-common.workspace = true
 aiscript-engine-ir.workspace = true
 aiscript-engine-types.workspace = true
-aiscript-engine-vm.workspace = true
 gc-arena.workspace = true
 gc-arena-derive.workspace = true
 indexmap.workspace = true
-utf16-literal.workspace = true
