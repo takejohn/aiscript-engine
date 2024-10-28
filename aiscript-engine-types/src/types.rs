@@ -50,8 +50,8 @@ pub enum TGeneric {
 }
 
 pub struct TFn {
-    args: Vec<Type>,
-    result: Box<Type>,
+    pub args: Vec<Type>,
+    pub result: Box<Type>,
 }
 
 fn get_type_name_by_source(type_source: &ast::TypeSource) -> Utf16String {
