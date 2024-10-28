@@ -30,9 +30,9 @@ pub enum VFn<'gc> {
 }
 
 pub struct VUserFn<'gc> {
-    args: Vec<Option<Type>>,
-    index: FnIndex,
-    capture: Vec<Value<'gc>>,
+    pub args: Vec<Option<Type>>,
+    pub index: FnIndex,
+    pub capture: Vec<Value<'gc>>,
 }
 
 pub trait VNativeFn {
@@ -40,11 +40,11 @@ pub trait VNativeFn {
 }
 
 pub struct VError<'gc> {
-    value: Utf16String,
-    info: Option<Value<'gc>>,
+    pub value: Utf16String,
+    pub info: Option<Value<'gc>>,
 }
 
 pub struct AttrElement<'gc> {
-    name: Utf16String,
-    value: Value<'gc>,
+    pub name: Utf16String,
+    pub value: Value<'gc>,
 }
