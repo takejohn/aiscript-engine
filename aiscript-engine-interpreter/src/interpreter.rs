@@ -14,7 +14,7 @@ impl Interpreter {
 
     pub fn run(&mut self, program: &[ast::Node]) -> Result<Value> {
         let ir = translate(program);
-        let mut vm = Vm::new(ir);
+        let mut vm = Vm::new(&ir);
         while let VmState::Continue = vm.step()? {
             // nop
         }

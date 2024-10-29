@@ -8,14 +8,14 @@ pub enum VmState {
     Continue,
 }
 
-pub struct Vm<'gc> {
-    program: Ir,
+pub struct Vm<'gc, 'ir: 'gc> {
+    program: &'ir Ir,
     pc: ProgramCounter,
     stack: Vec<StackFrame<'gc>>,
 }
 
-impl<'gc> Vm<'gc> {
-    pub fn new(ir: Ir) -> Self {
+impl<'gc, 'ir: 'gc> Vm<'gc, 'ir> {
+    pub fn new(ir: &'ir Ir) -> Self {
         Vm {
             program: ir,
             pc: ProgramCounter {
