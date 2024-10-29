@@ -34,11 +34,12 @@ impl<'gc, 'ir: 'gc> Vm<'gc, 'ir> {
             return Ok(VmState::Exit);
         };
 
-        match instruction {
+        match instruction.to_owned() {
             aiscript_engine_ir::Instruction::Nop => Ok(VmState::Continue),
             aiscript_engine_ir::Instruction::Panic(ai_script_basic_error) => {
-                Err(Box::new(ai_script_basic_error.clone()))
+                Err(Box::new(ai_script_basic_error))
             }
+            _ => todo!(),
         }
     }
 }

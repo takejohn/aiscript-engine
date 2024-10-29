@@ -3,8 +3,7 @@ use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind};
 
 use crate::{
     scopes::{Scopes, Variable},
-    value::Value,
-    Block, Instruction, Ir,
+    Block, Instruction, Ir, Register,
 };
 
 pub fn translate(ast: &[ast::Node]) -> Ir {
@@ -85,18 +84,62 @@ impl<'ast> Translator<'ast> {
                 }
 
                 // TODO: node.exprの解析
-                self.define_identifier(dest, Value, node.is_mut);
+                self.define_identifier(dest, &node.expr, node.is_mut);
             }
         }
 
         self.scopes.drop_local_scope();
     }
 
-    fn define(&mut self, dest: &'ast ast::Expression, value: Value, is_mutable: bool) {
+    fn eval(&mut self, register: Register, node: &'ast ast::Node) {
+        match node {
+            ast::Node::Ns(_) | ast::Node::Meta(_) => {
+                self.append_instruction(Instruction::Null(register))
+            }
+            ast::Node::Attr(node) => todo!(),
+            ast::Node::Statement(node) => todo!(),
+            ast::Node::Expr(node) => self.eval_expr(register, node),
+            ast::Node::TypeSource(_) => panic!("invalid node type"),
+        }
+    }
+
+    fn eval_expr(&mut self, register: Register, node: &'ast ast::Expression) {
+        match node {
+            ast::Expression::If(node) => todo!(),
+            ast::Expression::Fn(node) => todo!(),
+            ast::Expression::Match(node) => todo!(),
+            ast::Expression::Block(node) => todo!(),
+            ast::Expression::Exists(node) => todo!(),
+            ast::Expression::Tmpl(node) => todo!(),
+            ast::Expression::Str(node) => todo!(),
+            ast::Expression::Num(node) => {
+                self.append_instruction(Instruction::Num(register, node.value));
+            }
+            ast::Expression::Bool(node) => todo!(),
+            ast::Expression::Null(node) => {
+                self.append_instruction(Instruction::Null(register));
+            }
+            ast::Expression::Obj(node) => todo!(),
+            ast::Expression::Arr(node) => todo!(),
+            ast::Expression::Not(node) => todo!(),
+            ast::Expression::Identifier(node) => todo!(),
+            ast::Expression::Call(node) => todo!(),
+            ast::Expression::Index(node) => todo!(),
+            ast::Expression::Prop(node) => todo!(),
+            ast::Expression::Binary(node) => todo!(),
+        }
+    }
+
+    fn define(
+        &mut self,
+        dest: &'ast ast::Expression,
+        expr: &'ast ast::Expression,
+        is_mutable: bool,
+    ) {
         match dest {
-            ast::Expression::Identifier(dest) => self.define_identifier(dest, value, is_mutable),
-            ast::Expression::Arr(dest) => self.define_arr(dest, value, is_mutable),
-            ast::Expression::Obj(dest) => self.define_obj(dest, value, is_mutable),
+            ast::Expression::Identifier(dest) => self.define_identifier(dest, expr, is_mutable),
+            ast::Expression::Arr(dest) => self.define_arr(dest, expr, is_mutable),
+            ast::Expression::Obj(dest) => self.define_obj(dest, expr, is_mutable),
             _ => {
                 self.block
                     .instructions
@@ -109,23 +152,39 @@ impl<'ast> Translator<'ast> {
         }
     }
 
-    fn define_identifier(&mut self, dest: &'ast ast::Identifier, value: Value, is_mutable: bool) {
-        self.block.register_length += 1;
-        self.scopes.add(&dest.name, Variable { is_mutable, value });
+    fn define_identifier(
+        &mut self,
+        dest: &'ast ast::Identifier,
+        expr: &'ast ast::Expression,
+        is_mutable: bool,
+    ) {
+        let register = self.block.new_register();
+        self.eval_expr(register, expr);
+        self.scopes.add(
+            &dest.name,
+            Variable {
+                is_mutable,
+                register,
+            },
+        );
     }
 
-    fn define_arr(&mut self, dest: &'ast ast::Arr, value: Value, is_mutable: bool) {
-        // TODO: valueが配列になり得るか解析
-        for item in &dest.value {
-            self.define(item, Value, is_mutable);
+    fn define_arr(&mut self, dest: &'ast ast::Arr, expr: &'ast ast::Expression, is_mutable: bool) {
+        // TODO: exprが配列になり得るか解析
+        for (_i, item) in dest.value.iter().enumerate() {
+            self.define(item, todo!("expr[i]"), is_mutable);
         }
     }
 
-    fn define_obj(&mut self, dest: &'ast ast::Obj, value: Value, is_mutable: bool) {
-        // TODO: valueがオブジェクトになり得るか解析
+    fn define_obj(&mut self, dest: &'ast ast::Obj, expr: &'ast ast::Expression, is_mutable: bool) {
+        // TODO: exprがオブジェクトになり得るか解析
         for (_key, item) in &dest.value {
-            self.define(item, Value, is_mutable);
+            self.define(item, todo!("expr[key]"), is_mutable);
         }
+    }
+
+    fn append_instruction(&mut self, instruction: Instruction) {
+        self.block.instructions.push(instruction);
     }
 }
 
@@ -149,10 +208,10 @@ mod tests {
     fn namespace() {
         let ir = to_ir(
             r#"
-            :: Ns {
-                let a = 0
-            }
-        "#,
+                :: Ns {
+                    let a = 0
+                }
+            "#,
         );
         assert_eq!(
             ir,
@@ -161,7 +220,7 @@ mod tests {
                 functions: Vec::new(),
                 entry_point: Block {
                     register_length: 1,
-                    instructions: Vec::new()
+                    instructions: vec![Instruction::Num(0, 0.0),]
                 },
             }
         )

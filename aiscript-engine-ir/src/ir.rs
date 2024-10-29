@@ -1,6 +1,6 @@
 use aiscript_engine_common::{AiScriptBasicError, Utf16String};
 
-/// スタックマシン?の中間表現
+/// 中間表現
 #[derive(Debug, PartialEq)]
 pub struct Ir {
     pub data: Vec<DataItem>,
@@ -46,6 +46,12 @@ impl Block {
             instructions: Vec::new(),
         }
     }
+
+    pub(crate) fn new_register(&mut self) -> Register {
+        let index = self.register_length;
+        self.register_length += 1;
+        return index;
+    }
 }
 
 pub type DataIndex = usize;
@@ -58,11 +64,17 @@ pub type Argument = usize;
 
 pub type InstructionAddress = usize;
 
-#[derive(Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum Instruction {
     /// 何もしない
     Nop,
 
     /// エラーによる強制終了
     Panic(AiScriptBasicError),
+
+    /// nullを格納
+    Null(Register),
+
+    // numを格納
+    Num(Register, f64),
 }
