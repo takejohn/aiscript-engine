@@ -1,13 +1,13 @@
 use std::vec;
 
+use aiscript_engine_ast::{
+    self as ast, Expression, Identifier, Loc, NodeBase, Statement, StatementOrExpression,
+};
 use aiscript_engine_common::{AiScriptSyntaxError, NamePath, Result, Utf16Str};
 use aiscript_engine_lexer::{ITokenStream, RawToken, TokenKind};
 use utf16_literal::utf16;
 
-use crate::{
-    ast::{self, Expression, Identifier, Loc, NodeBase, Statement, StatementOrExpression},
-    syntaxes::expressions::parse_expr,
-};
+use crate::syntaxes::expressions::parse_expr;
 
 use super::common::{parse_block, parse_dest, parse_params, parse_type};
 

@@ -1,7 +1,6 @@
+use aiscript_engine_ast::{self as ast, Loc};
 use aiscript_engine_common::{AiScriptSyntaxError, Result};
 use aiscript_engine_lexer::{ITokenStream, RawToken, TokenKind};
-
-use crate::ast::{self, Loc};
 
 use super::{expressions::parse_expr, statement::parse_statement};
 

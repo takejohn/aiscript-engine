@@ -1,5 +1,8 @@
-use crate::plugins::{validate_keyword, validate_type};
-use aiscript_engine_ast::{self as ast, parse_top_level};
+use crate::{
+    plugins::{validate_keyword, validate_type},
+    syntaxes::toplevel::parse_top_level,
+};
+use aiscript_engine_ast::{self as ast};
 use aiscript_engine_common::{Result, Utf16Str};
 use aiscript_engine_lexer::Scanner;
 

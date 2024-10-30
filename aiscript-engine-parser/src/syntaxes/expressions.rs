@@ -1,9 +1,8 @@
 use aiscript_engine_common::{AiScriptSyntaxError, NamePath, Result, Utf16String};
 use aiscript_engine_lexer::{ITokenStream, Token, TokenKind, TokenStream};
-use indexmap::IndexMap;
 use pratt::{parse_pratt, BindingPower};
 
-use crate::ast::{self, Loc, NodeBase};
+use aiscript_engine_ast::{self as ast, IndexMap, Loc, NodeBase};
 
 use super::{
     common::{parse_block, parse_params, parse_type},
