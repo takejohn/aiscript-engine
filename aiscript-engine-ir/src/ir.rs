@@ -5,15 +5,15 @@ use aiscript_engine_common::{AiScriptBasicError, Utf16String};
 pub struct Ir {
     pub data: Vec<DataItem>,
     pub functions: Vec<Procedure>,
-    pub entry_point: Procedure,
+    pub entry_point: FnIndex,
 }
 
 impl Default for Ir {
     fn default() -> Self {
         Self {
             data: Vec::new(),
-            functions: Vec::new(),
-            entry_point: Procedure::new(),
+            functions: vec![Procedure::new()],
+            entry_point: 0,
         }
     }
 }

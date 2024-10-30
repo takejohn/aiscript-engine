@@ -40,8 +40,8 @@ impl<'ast> Translator<'ast> {
     fn build(self) -> Ir {
         Ir {
             data: self.data,
-            functions: Vec::new(),
-            entry_point: self.block,
+            functions: vec![self.block],
+            entry_point: 0,
         }
     }
 

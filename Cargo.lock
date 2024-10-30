@@ -99,6 +99,7 @@ dependencies = [
  "gc-arena",
  "gc-arena-derive",
  "indexmap",
+ "utf16-literal",
 ]
 
 [[package]]

@@ -15,8 +15,7 @@ fn assign() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: Vec::new(),
-            entry_point: Procedure {
+            functions: vec![Procedure {
                 register_length: 4,
                 instructions: vec![
                     Instruction::Num(1, 0.0),
@@ -25,7 +24,8 @@ fn assign() {
                     Instruction::Move(1, 3),
                     Instruction::Null(2),
                 ]
-            }
+            }],
+            entry_point: 0,
         }
     )
 }

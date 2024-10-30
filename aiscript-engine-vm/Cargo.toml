@@ -11,3 +11,4 @@ aiscript-engine-types.workspace = true
 gc-arena.workspace = true
 gc-arena-derive.workspace = true
 indexmap.workspace = true
+utf16-literal.workspace = true

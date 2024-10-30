@@ -16,11 +16,11 @@ fn namespace() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: Vec::new(),
-            entry_point: Procedure {
+            functions: vec![Procedure {
                 register_length: 2,
                 instructions: vec![Instruction::Num(0, 0.0), Instruction::Null(1)]
-            },
+            }],
+            entry_point: 0,
         }
     )
 }
