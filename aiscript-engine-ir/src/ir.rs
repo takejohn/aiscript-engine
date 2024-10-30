@@ -83,4 +83,13 @@ pub enum Instruction {
 
     /// [`DataItem`]の参照を格納
     Data(Register, DataIndex),
+
+    /// レジスタ0にレジスタ1の値をコピー
+    Move(Register, Register),
+
+    /// レジスタ0にレジスタ1の値を加える
+    Add(Register, Register),
+
+    /// レジスタ0からレジスタ1の値を減じる
+    Sub(Register, Register),
 }

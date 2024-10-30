@@ -1,9 +1,11 @@
 use std::{borrow::Cow, collections::HashMap};
 
-use aiscript_engine_common::{NamePath, Utf16Str};
+use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, NamePath, Utf16Str};
 use utf16_literal::utf16;
 
 pub(crate) use variable::Variable;
+
+use crate::Register;
 
 mod variable;
 
@@ -122,6 +124,29 @@ impl<'ast> Scopes<'ast> {
                     .insert(Cow::Owned(self.resolve(name)), variable);
             }
         }
+    }
+
+    pub(crate) fn assign(&mut self, name: &'ast NamePath) -> Result<Register, AiScriptBasicError> {
+        if let Some(variable) = self.get(name) {
+            if !variable.is_mutable {
+                return Err(AiScriptBasicError::new(
+                    AiScriptBasicErrorKind::Runtime,
+                    format!("Cannot assign to an immutable variable {}.", name),
+                    None,
+                ));
+            }
+            return Ok(variable.register);
+        }
+
+        return Err(AiScriptBasicError::new(
+            AiScriptBasicErrorKind::Runtime,
+            format!(
+                "No such variable '{}' in scope '{}'",
+                name,
+                self.current_scope_name()
+            ),
+            None,
+        ));
     }
 }
 

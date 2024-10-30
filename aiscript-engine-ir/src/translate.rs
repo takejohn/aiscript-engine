@@ -103,29 +103,36 @@ impl<'ast> Translator<'ast> {
             ast::Node::Ns(_) | ast::Node::Meta(_) => {
                 self.append_instruction(Instruction::Null(register))
             }
-            ast::Node::Attr(_node) => todo!(),
-            ast::Node::Statement(node) => {
-                self.eval_statement(register, node);
-            }
+            ast::Node::Statement(node) => self.eval_statement(register, node),
             ast::Node::Expr(node) => self.eval_expr(register, node),
-            ast::Node::TypeSource(_node) => panic!("invalid node type"),
+            ast::Node::Attr(_) | ast::Node::TypeSource(_) => panic!("invalid node type"),
         }
     }
 
     fn eval_statement(&mut self, register: Register, node: &'ast ast::Statement) {
         match node {
-            aiscript_engine_ast::Statement::Def(node) => {
+            ast::Statement::Def(node) => {
                 let register = self.block.new_register();
                 self.eval_expr(register, &node.expr);
                 self.define(&node.dest, register, node.is_mut);
             }
-            aiscript_engine_ast::Statement::Return(_node) => todo!(),
-            aiscript_engine_ast::Statement::Each(_node) => todo!(),
-            aiscript_engine_ast::Statement::For(_node) => todo!(),
-            aiscript_engine_ast::Statement::Loop(_node) => todo!(),
-            aiscript_engine_ast::Statement::Break(_node) => todo!(),
-            aiscript_engine_ast::Statement::Continue(_node) => todo!(),
-            aiscript_engine_ast::Statement::Assign(_node) => todo!(),
+            ast::Statement::Return(_node) => todo!(),
+            ast::Statement::Each(_node) => todo!(),
+            ast::Statement::For(_node) => todo!(),
+            ast::Statement::Loop(_node) => todo!(),
+            ast::Statement::Break(_node) => todo!(),
+            ast::Statement::Continue(_node) => todo!(),
+            ast::Statement::Assign(node) => {
+                let register = self.block.new_register();
+                self.eval_expr(register, &node.expr);
+                match node.op {
+                    aiscript_engine_ast::AssignOperator::Assign => {
+                        self.assign(&node.dest, register)
+                    }
+                    aiscript_engine_ast::AssignOperator::AddAssign => todo!(),
+                    aiscript_engine_ast::AssignOperator::SubAssign => todo!(),
+                }
+            }
         }
         self.append_instruction(Instruction::Null(register));
     }
@@ -205,6 +212,28 @@ impl<'ast> Translator<'ast> {
         // TODO: exprがオブジェクトになり得るか解析
         for (_key, item) in &dest.value {
             self.define(item, todo!("expr[key]"), is_mutable);
+        }
+    }
+
+    fn assign(&mut self, dest: &'ast ast::Expression, expr_register: Register) {
+        match dest {
+            ast::Expression::Identifier(dest) => match self.scopes.assign(&dest.name) {
+                Ok(dest_register) => {
+                    self.append_instruction(Instruction::Move(dest_register, expr_register))
+                }
+                Err(error) => self.append_instruction(Instruction::Panic(error)),
+            },
+            ast::Expression::Index(_dest) => todo!(),
+            ast::Expression::Prop(_dest) => todo!(),
+            ast::Expression::Arr(_dest) => todo!(),
+            ast::Expression::Obj(_dest) => todo!(),
+            _ => {
+                self.append_instruction(Instruction::Panic(AiScriptBasicError::new(
+                    AiScriptBasicErrorKind::Runtime,
+                    "The left-hand side of an assignment expression must be a variable or a property/index access.",
+                    None,
+                )));
+            }
         }
     }
 
@@ -327,6 +356,31 @@ mod tests {
                 entry_point: Block {
                     register_length: 2,
                     instructions: vec![Instruction::Data(1, 0), Instruction::Null(0)]
+                }
+            }
+        )
+    }
+
+    #[test]
+    fn assign() {
+        let ir = to_ir("
+            var a = 0
+            a = 1
+        ");
+        assert_eq!(
+            ir,
+            Ir {
+                data: Vec::new(),
+                functions: Vec::new(),
+                entry_point: Block {
+                    register_length: 4,
+                    instructions: vec![
+                        Instruction::Num(1, 0.0),
+                        Instruction::Null(0),
+                        Instruction::Num(3, 1.0),
+                        Instruction::Move(1, 3),
+                        Instruction::Null(2),
+                    ]
                 }
             }
         )
