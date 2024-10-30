@@ -3,7 +3,7 @@ use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Utf16St
 
 use crate::{
     scopes::{Scopes, Variable},
-    Block, DataIndex, DataItem, Instruction, Ir, Register,
+    DataIndex, DataItem, Instruction, Ir, Procedure, Register,
 };
 
 pub fn translate(ast: &[ast::Node]) -> Ir {
@@ -13,7 +13,7 @@ pub fn translate(ast: &[ast::Node]) -> Ir {
 struct Translator<'ast> {
     scopes: Scopes<'ast>,
     data: Vec<DataItem>,
-    block: Block,
+    block: Procedure,
 }
 
 impl<'ast> Translator<'ast> {
@@ -21,7 +21,7 @@ impl<'ast> Translator<'ast> {
         Translator {
             scopes: Scopes::new(),
             data: Vec::new(),
-            block: Block::new(),
+            block: Procedure::new(),
         }
     }
 
@@ -83,7 +83,6 @@ impl<'ast> Translator<'ast> {
                     return;
                 }
 
-                // TODO: node.exprの解析
                 let register = self.block.new_register();
                 self.eval_expr(register, &node.expr);
                 self.define_identifier(dest, register, node.is_mut);

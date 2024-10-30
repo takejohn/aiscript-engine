@@ -1,4 +1,4 @@
-use aiscript_engine_ir::{Block, Instruction, Ir};
+use aiscript_engine_ir::{Instruction, Ir, Procedure};
 use common::to_ir;
 
 mod common;
@@ -16,7 +16,7 @@ fn assign() {
         Ir {
             data: Vec::new(),
             functions: Vec::new(),
-            entry_point: Block {
+            entry_point: Procedure {
                 register_length: 4,
                 instructions: vec![
                     Instruction::Num(1, 0.0),

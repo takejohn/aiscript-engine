@@ -1,5 +1,5 @@
 use aiscript_engine_common::Utf16String;
-use aiscript_engine_ir::{Block, DataItem, Instruction, Ir};
+use aiscript_engine_ir::{DataItem, Instruction, Ir, Procedure};
 use common::to_ir;
 
 mod common;
@@ -12,7 +12,7 @@ fn const_null() {
         Ir {
             data: Vec::new(),
             functions: Vec::new(),
-            entry_point: Block {
+            entry_point: Procedure {
                 register_length: 2,
                 instructions: vec![Instruction::Null(1), Instruction::Null(0)]
             }
@@ -28,7 +28,7 @@ fn const_num() {
         Ir {
             data: Vec::new(),
             functions: Vec::new(),
-            entry_point: Block {
+            entry_point: Procedure {
                 register_length: 2,
                 instructions: vec![Instruction::Num(1, 42.0), Instruction::Null(0)]
             }
@@ -44,7 +44,7 @@ fn const_bool() {
         Ir {
             data: Vec::new(),
             functions: Vec::new(),
-            entry_point: Block {
+            entry_point: Procedure {
                 register_length: 2,
                 instructions: vec![Instruction::Bool(1, true), Instruction::Null(0)]
             }
@@ -60,7 +60,7 @@ fn const_str() {
         Ir {
             data: vec![DataItem::Str(Utf16String::from("Hello"))],
             functions: Vec::new(),
-            entry_point: Block {
+            entry_point: Procedure {
                 register_length: 2,
                 instructions: vec![Instruction::Data(1, 0), Instruction::Null(0)]
             }

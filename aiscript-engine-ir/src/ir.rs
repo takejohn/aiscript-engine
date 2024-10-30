@@ -4,8 +4,8 @@ use aiscript_engine_common::{AiScriptBasicError, Utf16String};
 #[derive(Debug, PartialEq)]
 pub struct Ir {
     pub data: Vec<DataItem>,
-    pub functions: Vec<Block>,
-    pub entry_point: Block,
+    pub functions: Vec<Procedure>,
+    pub entry_point: Procedure,
 }
 
 impl Default for Ir {
@@ -13,7 +13,7 @@ impl Default for Ir {
         Self {
             data: Vec::new(),
             functions: Vec::new(),
-            entry_point: Block::new(),
+            entry_point: Procedure::new(),
         }
     }
 }
@@ -30,18 +30,18 @@ pub struct IrFn {
 
 #[derive(Debug, PartialEq)]
 pub enum IrFnCode {
-    User(Block),
+    User(Procedure),
 }
 
-#[derive(Debug, PartialEq)]
-pub struct Block {
+#[derive(Clone, Debug, PartialEq)]
+pub struct Procedure {
     pub register_length: usize,
     pub instructions: Vec<Instruction>,
 }
 
-impl Block {
+impl Procedure {
     pub fn new() -> Self {
-        Block {
+        Procedure {
             register_length: 0,
             instructions: Vec::new(),
         }
