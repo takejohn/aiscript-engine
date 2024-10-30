@@ -75,6 +75,12 @@ pub enum Instruction {
     /// nullを格納
     Null(Register),
 
-    // numを格納
+    /// numを格納
     Num(Register, f64),
+
+    /// boolを格納
+    Bool(Register, bool),
+
+    /// [`DataItem`]の参照を格納
+    Data(Register, DataIndex),
 }
