@@ -13,7 +13,7 @@ pub fn translate(ast: &[ast::Node]) -> Ir {
 struct Translator<'ast> {
     scopes: Scopes<'ast>,
     data: Vec<DataItem>,
-    block: Procedure,
+    procedure: Procedure,
 }
 
 impl<'ast> Translator<'ast> {
@@ -21,7 +21,7 @@ impl<'ast> Translator<'ast> {
         Translator {
             scopes: Scopes::new(),
             data: Vec::new(),
-            block: Procedure::new(),
+            procedure: Procedure::new(),
         }
     }
 
@@ -33,7 +33,7 @@ impl<'ast> Translator<'ast> {
             aiscript_engine_ast::Node::Ns(node) => Some(node),
             _ => None,
         }));
-        let register = self.block.new_register();
+        let register = self.procedure.new_register();
         self.run(register, ast);
         return self.build();
     }
@@ -41,7 +41,7 @@ impl<'ast> Translator<'ast> {
     fn build(self) -> Ir {
         Ir {
             data: self.data,
-            functions: vec![self.block],
+            functions: vec![self.procedure],
             entry_point: 0,
         }
     }
@@ -63,7 +63,7 @@ impl<'ast> Translator<'ast> {
         for node in &ns.members {
             if let NamespaceMember::Def(node) = node {
                 let ast::Expression::Identifier(dest) = &node.dest else {
-                    self.block
+                    self.procedure
                         .instructions
                         .push(Instruction::Panic(AiScriptBasicError::new(
                             AiScriptBasicErrorKind::Namespace,
@@ -73,7 +73,7 @@ impl<'ast> Translator<'ast> {
                     return;
                 };
                 if node.is_mut {
-                    self.block
+                    self.procedure
                         .instructions
                         .push(Instruction::Panic(AiScriptBasicError::new(
                             AiScriptBasicErrorKind::Namespace,
@@ -84,7 +84,7 @@ impl<'ast> Translator<'ast> {
                     return;
                 }
 
-                let register = self.block.new_register();
+                let register = self.procedure.new_register();
                 self.eval_expr(register, &node.expr);
                 self.define_identifier(dest, register, node.is_mut);
             }
@@ -111,7 +111,7 @@ impl<'ast> Translator<'ast> {
     fn eval_statement(&mut self, register: Register, node: &'ast ast::Statement) {
         match node {
             ast::Statement::Def(node) => {
-                let register = self.block.new_register();
+                let register = self.procedure.new_register();
                 self.eval_expr(register, &node.expr);
                 self.define(&node.dest, register, node.is_mut);
             }
@@ -122,7 +122,7 @@ impl<'ast> Translator<'ast> {
             ast::Statement::Break(_node) => todo!(),
             ast::Statement::Continue(_node) => todo!(),
             ast::Statement::Assign(node) => {
-                let register = self.block.new_register();
+                let register = self.procedure.new_register();
                 self.eval_expr(register, &node.expr);
                 match node.op {
                     aiscript_engine_ast::AssignOperator::Assign => {
@@ -179,7 +179,7 @@ impl<'ast> Translator<'ast> {
             ast::Expression::Arr(dest) => self.define_arr(dest, register, is_mutable),
             ast::Expression::Obj(dest) => self.define_obj(dest, register, is_mutable),
             _ => {
-                self.block
+                self.procedure
                     .instructions
                     .push(Instruction::Panic(AiScriptBasicError::new(
                         AiScriptBasicErrorKind::Runtime,
@@ -242,7 +242,7 @@ impl<'ast> Translator<'ast> {
     }
 
     fn append_instruction(&mut self, instruction: Instruction) {
-        self.block.instructions.push(instruction);
+        self.procedure.instructions.push(instruction);
     }
 
     fn str_literal(&mut self, s: &Utf16Str) -> DataIndex {
