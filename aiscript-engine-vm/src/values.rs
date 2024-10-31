@@ -16,7 +16,7 @@ pub enum Value {
     Num(f64),
     Str(Rc<Utf16String>),
     Obj(Gc<GcCell<VObj>>),
-    Arr(Gc<GcCell<Vec<Value>>>),
+    Arr(Gc<GcCell<VArr>>),
     Fn(Gc<VFn>),
 
     /// Return文で値が返されたことを示すためのラッパー
@@ -68,7 +68,7 @@ impl PartialEq for Value {
 impl Value {
     pub fn type_name(&self) -> &'static Utf16Str {
         match self {
-            Value::Uninitialized => panic!("Reading uninitialized value"),
+            Value::Uninitialized => Utf16Str::new(&utf16!("nothing")),
             Value::Null => Utf16Str::new(&utf16!("null")),
             Value::Bool(_) => Utf16Str::new(&utf16!("bool")),
             Value::Num(_) => Utf16Str::new(&utf16!("num")),
@@ -94,6 +94,8 @@ unsafe impl Trace for VObj {
         }
     });
 }
+
+pub type VArr = Vec<Value>;
 
 #[derive(Clone, Debug, Trace, Finalize)]
 pub struct VFn {

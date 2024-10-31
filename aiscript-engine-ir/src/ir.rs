@@ -84,6 +84,9 @@ pub enum Instruction {
     /// [`DataItem`]の参照を格納
     Data(Register, DataIndex),
 
+    /// 指定された長さの未初期化のarrの参照を格納
+    Arr(Register, usize),
+
     /// レジスタ0にレジスタ1の値をコピー
     Move(Register, Register),
 
@@ -95,4 +98,7 @@ pub enum Instruction {
 
     /// レジスタ1[レジスタ2]からレジスタ0にコピー
     Load(Register, Register, Register),
+
+    /// レジスタ0からレジスタ1[即値2]にコピー
+    StoreImmediate(Register, Register, usize),
 }

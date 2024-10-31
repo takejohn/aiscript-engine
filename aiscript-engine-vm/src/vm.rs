@@ -2,8 +2,12 @@ use std::rc::Rc;
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 use aiscript_engine_ir::{DataItem, FnIndex, Instruction, InstructionAddress, Ir, Register};
+use gc::{Gc, GcCell};
 
-use crate::{utils::GetByF64, values::Value};
+use crate::{
+    utils::{require_array, GetByF64},
+    values::Value,
+};
 
 pub enum VmState {
     Exit,
@@ -69,6 +73,11 @@ impl<'ir> Vm<'ir> {
                 self.registers[register] = Value::Str(Rc::new(value.to_owned()));
                 self.pc.instruction += 1;
             }
+            Instruction::Arr(register, len) => {
+                self.registers[register] =
+                    Value::Arr(Gc::new(GcCell::new(vec![Value::Uninitialized; len])));
+                self.pc.instruction += 1;
+            }
             Instruction::Move(dest, src) => {
                 self.registers[dest] = self.registers[src].clone();
                 self.pc.instruction += 1;
@@ -107,6 +116,23 @@ impl<'ir> Vm<'ir> {
                     }
                     Value::Obj(_) => todo!(),
                     _ => todo!(),
+                }
+                self.pc.instruction += 1;
+            }
+            Instruction::StoreImmediate(register, target, index) => {
+                let target = require_array(self.registers[target].clone())?;
+                if let Some(ptr) = target.borrow_mut().get_mut(index) {
+                    *ptr = self.registers[register].clone();
+                } else {
+                    return Err(Box::new(AiScriptBasicError::new(
+                        AiScriptBasicErrorKind::Runtime,
+                        format!(
+                            "Index out of range. index: {} max: {}",
+                            index,
+                            target.as_ref().borrow().len() - 1
+                        ),
+                        None,
+                    )));
                 }
                 self.pc.instruction += 1;
             }
