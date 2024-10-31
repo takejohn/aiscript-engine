@@ -1,4 +1,4 @@
-use std::{rc::Rc, str};
+use std::rc::Rc;
 
 use aiscript_engine_common::{Utf16Str, Utf16String};
 use aiscript_engine_ir::FnIndex;
@@ -8,6 +8,9 @@ use utf16_literal::utf16;
 
 #[derive(Clone, Debug, Finalize)]
 pub enum Value {
+    /// 未初期化値
+    Uninitialized,
+
     Null,
     Bool(bool),
     Num(f64),
@@ -27,6 +30,7 @@ pub enum Value {
 unsafe impl Trace for Value {
     custom_trace!(this, {
         match this {
+            Value::Uninitialized => {}
             Value::Null => {}
             Value::Bool(_) => {}
             Value::Num(_) => {}
@@ -40,12 +44,6 @@ unsafe impl Trace for Value {
             Value::Error(gc) => mark(gc),
         }
     });
-}
-
-impl Value {
-    pub fn new() -> Self {
-        Self::Null
-    }
 }
 
 impl PartialEq for Value {
@@ -70,6 +68,7 @@ impl PartialEq for Value {
 impl Value {
     pub fn type_name(&self) -> &'static Utf16Str {
         match self {
+            Value::Uninitialized => panic!("Reading uninitialized value"),
             Value::Null => Utf16Str::new(&utf16!("null")),
             Value::Bool(_) => Utf16Str::new(&utf16!("bool")),
             Value::Num(_) => Utf16Str::new(&utf16!("num")),

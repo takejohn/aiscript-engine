@@ -1,8 +1,7 @@
-use std::{borrow::Borrow, rc::Rc};
+use std::rc::Rc;
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 use aiscript_engine_ir::{DataItem, FnIndex, Instruction, InstructionAddress, Ir, Register};
-use gc::{Gc, GcCell};
 
 use crate::{utils::GetByF64, values::Value};
 
@@ -27,7 +26,7 @@ impl<'ir> Vm<'ir> {
                 function: 0,
                 instruction: 0,
             },
-            registers: vec![Value::Null; register_length],
+            registers: vec![Value::Uninitialized; register_length],
             stack: Vec::new(),
         }
     }
