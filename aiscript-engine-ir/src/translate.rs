@@ -163,7 +163,18 @@ impl<'ast> Translator<'ast> {
                 self.append_instruction(Instruction::Null(register));
             }
             ast::Expression::Obj(_node) => todo!(),
-            ast::Expression::Arr(_node) => todo!(),
+            ast::Expression::Arr(node) => {
+                self.append_instruction(Instruction::Arr(register, node.value.len()));
+                let value_register = self.procedure.new_register();
+                for (index, value) in node.value.iter().enumerate() {
+                    self.eval_expr(value_register, value);
+                    self.append_instruction(Instruction::StoreImmediate(
+                        value_register,
+                        register,
+                        index,
+                    ));
+                }
+            }
             ast::Expression::Not(_node) => todo!(),
             ast::Expression::Identifier(_node) => todo!(),
             ast::Expression::Call(_node) => todo!(),
