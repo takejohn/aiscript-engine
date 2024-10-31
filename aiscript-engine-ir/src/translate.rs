@@ -142,7 +142,12 @@ impl<'ast> Translator<'ast> {
             ast::Expression::Fn(_node) => todo!(),
             ast::Expression::Match(_node) => todo!(),
             ast::Expression::Block(_node) => todo!(),
-            ast::Expression::Exists(_node) => todo!(),
+            ast::Expression::Exists(node) => {
+                self.append_instruction(Instruction::Bool(
+                    register,
+                    self.scopes.exists(&node.identifier.name),
+                ));
+            }
             ast::Expression::Tmpl(_node) => todo!(),
             ast::Expression::Str(node) => {
                 let index = self.str_literal(&node.value);

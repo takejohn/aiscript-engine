@@ -105,7 +105,7 @@ impl<'ast> Scopes<'ast> {
         return self.root.variables.get(name);
     }
 
-    fn exists(&self, name: &NamePath) -> bool {
+    pub(crate) fn exists(&self, name: &NamePath) -> bool {
         self.get(name).is_some()
     }
 
