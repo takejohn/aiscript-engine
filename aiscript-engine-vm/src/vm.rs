@@ -1,7 +1,8 @@
-use std::rc::Rc;
+use std::{borrow::Borrow, rc::Rc};
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 use aiscript_engine_ir::{DataItem, FnIndex, Instruction, InstructionAddress, Ir, Register};
+use gc::{Gc, GcCell};
 
 use crate::{utils::GetByF64, values::Value};
 
@@ -86,20 +87,20 @@ impl<'ir> Vm<'ir> {
                 self.pc.instruction += 1;
             }
             Instruction::Load(register, target, index) => {
-                let dest = &self.registers[target];
+                let dest = self.registers[target].clone();
                 match dest {
                     Value::Arr(target) => {
-                        let target = target;
                         let index_float = self.require_num(index)?;
-                        if let Some(value) = target.get_by_f64(index_float) {
-                            self.registers[register] = value.clone();
+                        if let Some(value) = target.as_ref().borrow().get_by_f64(index_float) {
+                            let value = value.clone();
+                            self.registers[register] = value;
                         } else {
                             return Err(Box::new(AiScriptBasicError::new(
                                 AiScriptBasicErrorKind::Runtime,
                                 format!(
                                     "Index out of range. index: {} max: {}",
                                     index_float,
-                                    target.len() - 1
+                                    target.as_ref().borrow().len() - 1
                                 ),
                                 None,
                             )));
