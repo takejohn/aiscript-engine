@@ -33,8 +33,9 @@ impl<'ast> Translator<'ast> {
             aiscript_engine_ast::Node::Ns(node) => Some(node),
             _ => None,
         }));
-        self.run(ast);
-        self.build()
+        let register = self.block.new_register();
+        self.run(register, ast);
+        return self.build();
     }
 
     fn build(self) -> Ir {
@@ -90,9 +91,8 @@ impl<'ast> Translator<'ast> {
         }
     }
 
-    fn run(&mut self, nodes: &'ast [ast::Node]) {
+    fn run(&mut self, register: Register, nodes: &'ast [ast::Node]) {
         for node in nodes {
-            let register = self.block.new_register();
             self.eval(register, node);
         }
     }

@@ -33,11 +33,11 @@ fn exists_true() {
         Ir {
             data: Vec::new(),
             functions: vec![Procedure {
-                register_length: 3,
+                register_length: 2,
                 instructions: vec![
                     Instruction::Num(1, 42.0),
                     Instruction::Null(0),
-                    Instruction::Bool(2, true),
+                    Instruction::Bool(0, true),
                 ]
             }],
             entry_point: 0,
