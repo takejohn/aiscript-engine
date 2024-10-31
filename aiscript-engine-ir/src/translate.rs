@@ -175,7 +175,11 @@ impl<'ast> Translator<'ast> {
                     ));
                 }
             }
-            ast::Expression::Not(_node) => todo!(),
+            ast::Expression::Not(node) => {
+                let src = self.procedure.new_register();
+                self.eval_expr(src, &node.expr);
+                self.append_instruction(Instruction::Not(register, src));
+            }
             ast::Expression::Identifier(_node) => todo!(),
             ast::Expression::Call(_node) => todo!(),
             ast::Expression::Index(_node) => todo!(),

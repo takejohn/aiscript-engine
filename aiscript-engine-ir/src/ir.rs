@@ -96,6 +96,9 @@ pub enum Instruction {
     /// レジスタ0からレジスタ1の値を減じる
     Sub(Register, Register),
 
+    /// レジスタ0にレジスタ1の論理否定を代入
+    Not(Register, Register),
+
     /// レジスタ1[レジスタ2]からレジスタ0にコピー
     Load(Register, Register, Register),
 

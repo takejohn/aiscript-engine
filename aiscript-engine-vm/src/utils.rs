@@ -18,6 +18,18 @@ impl<T> GetByF64<T> for [T] {
     }
 }
 
+pub(crate) fn require_bool(val: Value) -> Result<bool> {
+    if let Value::Bool(val) = val {
+        Ok(val)
+    } else {
+        Err(Box::new(AiScriptBasicError::new(
+            AiScriptBasicErrorKind::Runtime,
+            format!("Expect array, but got {}.", val.type_name()),
+            None,
+        )))
+    }
+}
+
 pub(crate) fn require_array(val: Value) -> Result<Gc<GcCell<VArr>>> {
     if let Value::Arr(val) = val {
         Ok(val)

@@ -1,11 +1,11 @@
-use std::rc::Rc;
+use std::{fmt::DebugStruct, rc::Rc};
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 use aiscript_engine_ir::{DataItem, FnIndex, Instruction, InstructionAddress, Ir, Register};
 use gc::{Gc, GcCell};
 
 use crate::{
-    utils::{require_array, GetByF64},
+    utils::{require_array, require_bool, GetByF64},
     values::Value,
 };
 
@@ -92,6 +92,11 @@ impl<'ir> Vm<'ir> {
                 let left = self.require_num(dest)?;
                 let right = self.require_num(src)?;
                 self.registers[dest] = Value::Num(left - right);
+                self.pc.instruction += 1;
+            }
+            Instruction::Not(dest, src) => {
+                let src = require_bool(self.registers[src].clone())?;
+                self.registers[dest] = Value::Bool(!src);
                 self.pc.instruction += 1;
             }
             Instruction::Load(register, target, index) => {
