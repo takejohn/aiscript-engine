@@ -1,30 +1,30 @@
-use std::borrow::Cow;
+use std::rc::Rc;
 
 use aiscript_engine_common::{Utf16Str, Utf16String};
 use aiscript_engine_ir::FnIndex;
-use gc_arena::Gc;
+use gc::Gc;
 use indexmap::IndexMap;
 use utf16_literal::utf16;
 
 #[derive(Clone, Debug)]
-pub enum Value<'gc> {
+pub enum Value {
     Null,
     Bool(bool),
     Num(f64),
-    Str(Cow<'gc, Utf16Str>),
-    Obj(Gc<'gc, IndexMap<Utf16String, Value<'gc>>>),
-    Arr(Gc<'gc, Vec<Value<'gc>>>),
-    Fn(Gc<'gc, VFn<'gc>>),
+    Str(Rc<Utf16String>),
+    Obj(Gc<IndexMap<Utf16String, Value>>),
+    Arr(Gc<Vec<Value>>),
+    Fn(Gc<VFn>),
 
     /// Return文で値が返されたことを示すためのラッパー
-    Return(Box<Value<'gc>>),
+    Return(Box<Value>),
 
     Break,
     Continue,
-    Error(Gc<'gc, VError<'gc>>),
+    Error(Gc<VError>),
 }
 
-impl<'gc> PartialEq for Value<'gc> {
+impl PartialEq for Value {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Null, Self::Null) => true,
@@ -43,7 +43,7 @@ impl<'gc> PartialEq for Value<'gc> {
     }
 }
 
-impl Value<'_> {
+impl Value {
     pub fn type_name(&self) -> &'static Utf16Str {
         match self {
             Value::Null => Utf16Str::new(&utf16!("null")),
@@ -62,13 +62,13 @@ impl Value<'_> {
 }
 
 #[derive(Clone, Debug)]
-pub struct VFn<'gc> {
+pub struct VFn {
     pub index: FnIndex,
-    pub capture: Vec<Value<'gc>>,
+    pub capture: Vec<Value>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct VError<'gc> {
+pub struct VError {
     pub value: Utf16String,
-    pub info: Option<Value<'gc>>,
+    pub info: Option<Value>,
 }

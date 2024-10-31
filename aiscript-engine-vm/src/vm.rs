@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use std::rc::Rc;
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 use aiscript_engine_ir::{DataItem, FnIndex, Instruction, InstructionAddress, Ir, Register};
@@ -10,14 +10,14 @@ pub enum VmState {
     Continue,
 }
 
-pub struct Vm<'gc, 'ir: 'gc> {
+pub struct Vm<'ir> {
     program: &'ir Ir,
     pc: ProgramCounter,
-    registers: Vec<Value<'gc>>,
-    stack: Vec<StackFrame<'gc>>,
+    registers: Vec<Value>,
+    stack: Vec<StackFrame>,
 }
 
-impl<'gc, 'ir: 'gc> Vm<'gc, 'ir> {
+impl<'ir> Vm<'ir> {
     pub fn new(ir: &'ir Ir) -> Self {
         let register_length = ir.functions[ir.entry_point].register_length;
         Vm {
@@ -66,7 +66,7 @@ impl<'gc, 'ir: 'gc> Vm<'gc, 'ir> {
             }
             Instruction::Data(register, index) => {
                 let DataItem::Str(value) = &self.program.data[index];
-                self.registers[register] = Value::Str(Cow::Borrowed(value));
+                self.registers[register] = Value::Str(Rc::new(value.to_owned()));
                 self.pc.instruction += 1;
             }
             Instruction::Move(dest, src) => {
@@ -89,7 +89,7 @@ impl<'gc, 'ir: 'gc> Vm<'gc, 'ir> {
                 let dest = &self.registers[target];
                 match dest {
                     Value::Arr(target) => {
-                        let target = *target;
+                        let target = target;
                         let index_float = self.require_num(index)?;
                         if let Some(value) = target.get_by_f64(index_float) {
                             self.registers[register] = value.clone();
@@ -133,16 +133,15 @@ struct ProgramCounter {
     instruction: InstructionAddress,
 }
 
-struct StackFrame<'gc> {
+struct StackFrame {
     pub(super) return_address: FnIndex,
-    pub(super) values: Vec<Value<'gc>>,
+    pub(super) values: Vec<Value>,
 }
 
 #[cfg(test)]
 mod tests {
-    use aiscript_engine_common::{Utf16Str, Utf16String};
+    use aiscript_engine_common::Utf16String;
     use aiscript_engine_ir::Procedure;
-    use utf16_literal::utf16;
 
     use super::*;
 
@@ -245,7 +244,7 @@ mod tests {
         vm.exec().unwrap();
         assert_eq!(
             vm.registers[0],
-            Value::Str(Cow::Borrowed(Utf16Str::new(&utf16!("Hello, world!"))))
+            Value::Str(Rc::new(Utf16String::from("Hello, world!")))
         );
     }
 

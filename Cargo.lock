@@ -43,8 +43,6 @@ dependencies = [
  "aiscript-engine-ir",
  "aiscript-engine-types",
  "aiscript-engine-vm",
- "gc-arena",
- "gc-arena-derive",
  "indexmap",
  "utf16-literal",
 ]
@@ -96,8 +94,7 @@ dependencies = [
  "aiscript-engine-common",
  "aiscript-engine-ir",
  "aiscript-engine-types",
- "gc-arena",
- "gc-arena-derive",
+ "gc",
  "indexmap",
  "utf16-literal",
 ]
@@ -144,26 +141,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
-name = "gc-arena"
-version = "0.5.3"
+name = "gc"
+version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3cd70cf88a32937834aae9614ff2569b5d9467fa0c42c5d7762fd94a8de88266"
-dependencies = [
- "gc-arena-derive",
- "sptr",
-]
-
-[[package]]
-name = "gc-arena-derive"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c612a69f5557a11046b77a7408d2836fe77077f842171cd211c5ef504bd3cddd"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
- "synstructure",
-]
+checksum = "f73a03797d58caede765f4b19522d1a63d737088bbef81de06d2dd117d7bc8c3"
 
 [[package]]
 name = "hashbrown"
@@ -267,12 +248,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "sptr"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3b9b39299b249ad65f3b7e96443bad61c02ca5cd3589f46cb6d610a0fd6c0d6a"
-
-[[package]]
 name = "syn"
 version = "2.0.79"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -281,17 +256,6 @@ dependencies = [
  "proc-macro2",
  "quote",
  "unicode-ident",
-]
-
-[[package]]
-name = "synstructure"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8af7666ab7b6390ab78131fb5b0fce11d6b7a6951602017c35fa82800708971"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]
