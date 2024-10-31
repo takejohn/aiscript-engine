@@ -3,7 +3,7 @@ use std::borrow::Cow;
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 use aiscript_engine_ir::{DataItem, FnIndex, Instruction, InstructionAddress, Ir, Register};
 
-use crate::values::Value;
+use crate::{utils::GetByF64, values::Value};
 
 pub enum VmState {
     Exit,
@@ -83,6 +83,31 @@ impl<'gc, 'ir: 'gc> Vm<'gc, 'ir> {
                 let left = self.require_num(dest)?;
                 let right = self.require_num(src)?;
                 self.registers[dest] = Value::Num(left - right);
+                self.pc.instruction += 1;
+            }
+            Instruction::Load(register, target, index) => {
+                let dest = &self.registers[target];
+                match dest {
+                    Value::Arr(target) => {
+                        let target = *target;
+                        let index_float = self.require_num(index)?;
+                        if let Some(value) = target.get_by_f64(index_float) {
+                            self.registers[register] = value.clone();
+                        } else {
+                            return Err(Box::new(AiScriptBasicError::new(
+                                AiScriptBasicErrorKind::Runtime,
+                                format!(
+                                    "Index out of range. index: {} max: {}",
+                                    index_float,
+                                    target.len() - 1
+                                ),
+                                None,
+                            )));
+                        }
+                    }
+                    Value::Obj(_) => todo!(),
+                    _ => todo!(),
+                }
                 self.pc.instruction += 1;
             }
         }
