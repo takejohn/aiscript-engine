@@ -134,8 +134,8 @@ impl<'ir> Vm<'ir> {
                 self.pc.index += 1;
             }
             Instruction::Load(register, target, index) => {
-                let dest = self.registers[*target].clone();
-                match dest {
+                let target = self.registers[*target].clone();
+                match target {
                     Value::Arr(target) => {
                         let index_float = self.require_num(*index)?;
                         if let Some(value) = target.as_ref().borrow().get_by_f64(index_float) {
@@ -180,6 +180,30 @@ impl<'ir> Vm<'ir> {
                 let name = &self.data[*name];
                 let value = target.borrow().0.get(name).map(|value| value.clone());
                 self.registers[*register] = value.unwrap_or(Value::Null);
+                self.pc.index += 1;
+            }
+            Instruction::Store(register, target, index) => {
+                let target = self.registers[*target].clone();
+                match target {
+                    Value::Arr(target) => {
+                        let index_float = self.require_num(*index)?;
+                        if let Some(value) = target.borrow_mut().get_mut_by_f64(index_float) {
+                            *value = self.registers[*register].clone();
+                        } else {
+                            return Err(Box::new(AiScriptBasicError::new(
+                                AiScriptBasicErrorKind::Runtime,
+                                format!(
+                                    "Index out of range. index: {} max: {}",
+                                    index_float,
+                                    target.as_ref().borrow().len() - 1
+                                ),
+                                None,
+                            )));
+                        }
+                    }
+                    Value::Obj(_) => todo!(),
+                    _ => todo!(),
+                }
                 self.pc.index += 1;
             }
             Instruction::StoreIndex(register, target, index) => {

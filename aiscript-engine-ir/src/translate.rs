@@ -216,24 +216,34 @@ impl<'ast> Translator<'ast> {
                 self.append_instruction(Instruction::Null(register));
             }
             ast::Expression::Obj(node) => {
-                self.append_instruction(Instruction::Obj(register, node.value.len()));
-                let value_register = self.use_register();
-                for (key, value) in &node.value {
-                    self.eval_expr(value_register, value);
-                    let key = self.str_literal(key);
-                    self.append_instruction(Instruction::StoreProp(value_register, register, key));
+                let len = node.value.len();
+                self.append_instruction(Instruction::Obj(register, len));
+                if len > 0 {
+                    let value_register = self.use_register();
+                    for (key, value) in &node.value {
+                        self.eval_expr(value_register, value);
+                        let key = self.str_literal(key);
+                        self.append_instruction(Instruction::StoreProp(
+                            value_register,
+                            register,
+                            key,
+                        ));
+                    }
                 }
             }
             ast::Expression::Arr(node) => {
-                self.append_instruction(Instruction::Arr(register, node.value.len()));
-                let value_register = self.use_register();
-                for (index, value) in node.value.iter().enumerate() {
-                    self.eval_expr(value_register, value);
-                    self.append_instruction(Instruction::StoreIndex(
-                        value_register,
-                        register,
-                        index,
-                    ));
+                let len = node.value.len();
+                self.append_instruction(Instruction::Arr(register, len));
+                if len > 0 {
+                    let value_register = self.use_register();
+                    for (index, value) in node.value.iter().enumerate() {
+                        self.eval_expr(value_register, value);
+                        self.append_instruction(Instruction::StoreIndex(
+                            value_register,
+                            register,
+                            index,
+                        ));
+                    }
                 }
             }
             ast::Expression::Not(node) => {
@@ -304,7 +314,6 @@ impl<'ast> Translator<'ast> {
     }
 
     fn define_obj(&mut self, dest: &'ast ast::Obj, register: Register, is_mutable: bool) {
-        // TODO: exprがオブジェクトになり得るか解析
         for (key, item) in &dest.value {
             let key_str = self.str_literal(&key);
             let dest_register = self.use_register();
@@ -313,18 +322,40 @@ impl<'ast> Translator<'ast> {
         }
     }
 
-    fn assign(&mut self, dest: &'ast ast::Expression, expr_register: Register) {
+    fn assign(&mut self, dest: &'ast ast::Expression, src: Register) {
         match dest {
             ast::Expression::Identifier(dest) => match self.scopes.assign(&dest.name) {
-                Ok(dest_register) => {
-                    self.append_instruction(Instruction::Move(dest_register, expr_register))
-                }
+                Ok(dest) => self.append_instruction(Instruction::Move(dest, src)),
                 Err(error) => self.append_instruction(Instruction::Panic(error)),
             },
-            ast::Expression::Index(_dest) => todo!(),
-            ast::Expression::Prop(_dest) => todo!(),
-            ast::Expression::Arr(_dest) => todo!(),
-            ast::Expression::Obj(_dest) => todo!(),
+            ast::Expression::Index(dest) => {
+                let target = self.use_register();
+                self.eval_expr(target, &dest.target);
+                let index = self.use_register();
+                self.eval_expr(index, &dest.index);
+                self.append_instruction(Instruction::Store(src, target, index));
+            }
+            ast::Expression::Prop(dest) => {
+                let target = self.use_register();
+                self.eval_expr(target, &dest.target);
+                let name = self.str_literal(&dest.name);
+                self.append_instruction(Instruction::StoreProp(src, target, name));
+            }
+            ast::Expression::Arr(dest) => {
+                let temp = self.use_register();
+                for (index, item) in dest.value.iter().enumerate() {
+                    self.append_instruction(Instruction::LoadIndex(temp, src, index));
+                    self.assign(item, temp);
+                }
+            }
+            ast::Expression::Obj(dest) => {
+                let temp = self.use_register();
+                for (key, item) in &dest.value {
+                    let key = self.str_literal(&key);
+                    self.append_instruction(Instruction::LoadProp(temp, src, key));
+                    self.assign(item, temp);
+                }
+            }
             _ => {
                 self.append_instruction(Instruction::Panic(AiScriptBasicError::new(
                     AiScriptBasicErrorKind::Runtime,

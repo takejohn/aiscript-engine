@@ -108,6 +108,9 @@ pub enum Instruction {
     /// レジスタ1.即値2からレジスタ0にコピー
     LoadProp(Register, Register, DataIndex),
 
+    /// レジスタ0からレジスタ1[レジスタ2]にコピー
+    Store(Register, Register, Register),
+
     /// レジスタ0からレジスタ1[即値2]にコピー
     StoreIndex(Register, Register, usize),
 

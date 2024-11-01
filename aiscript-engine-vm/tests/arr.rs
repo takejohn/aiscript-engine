@@ -49,3 +49,24 @@ fn store_and_load_index() {
     vm.exec().unwrap();
     assert_eq!(vm.registers()[0], Value::Num(42.0));
 }
+
+#[test]
+fn store_and_load() {
+    let ir = Ir {
+        data: Vec::new(),
+        functions: vec![Procedure {
+            register_length: 3,
+            instructions: vec![
+                Instruction::Arr(0, 1),
+                Instruction::Num(1, 42.0),
+                Instruction::Num(2, 0.0),
+                Instruction::Store(1, 0, 2),
+                Instruction::Load(0, 0, 2),
+            ],
+        }],
+        entry_point: 0,
+    };
+    let mut vm = Vm::new(&ir);
+    vm.exec().unwrap();
+    assert_eq!(vm.registers()[0], Value::Num(42.0));
+}
