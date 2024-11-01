@@ -13,7 +13,9 @@ pub fn translate(ast: &[ast::Node]) -> Ir {
 struct Translator<'ast> {
     scopes: Scopes<'ast>,
     data: Vec<DataItem>,
-    procedure: Procedure,
+    register_length: usize,
+    block: Vec<Instruction>,
+    blocks: Vec<Vec<Instruction>>,
 }
 
 impl<'ast> Translator<'ast> {
@@ -21,7 +23,9 @@ impl<'ast> Translator<'ast> {
         Translator {
             scopes: Scopes::new(),
             data: Vec::new(),
-            procedure: Procedure::new(),
+            register_length: 0,
+            block: Vec::new(),
+            blocks: Vec::new(),
         }
     }
 
@@ -33,7 +37,7 @@ impl<'ast> Translator<'ast> {
             aiscript_engine_ast::Node::Ns(node) => Some(node),
             _ => None,
         }));
-        let register = self.procedure.new_register();
+        let register = self.use_register();
         self.run(register, ast);
         return self.build();
     }
@@ -41,7 +45,10 @@ impl<'ast> Translator<'ast> {
     fn build(self) -> Ir {
         Ir {
             data: self.data,
-            functions: vec![self.procedure],
+            functions: vec![Procedure {
+                register_length: self.register_length,
+                instructions: self.block,
+            }],
             entry_point: 0,
         }
     }
@@ -63,28 +70,24 @@ impl<'ast> Translator<'ast> {
         for node in &ns.members {
             if let NamespaceMember::Def(node) = node {
                 let ast::Expression::Identifier(dest) = &node.dest else {
-                    self.procedure
-                        .instructions
-                        .push(Instruction::Panic(AiScriptBasicError::new(
-                            AiScriptBasicErrorKind::Namespace,
-                            "Destructuring assignment is invalid in namespace declarations.",
-                            Some(node.loc.start.clone()),
-                        )));
+                    self.append_instruction(Instruction::Panic(AiScriptBasicError::new(
+                        AiScriptBasicErrorKind::Namespace,
+                        "Destructuring assignment is invalid in namespace declarations.",
+                        Some(node.loc.start.clone()),
+                    )));
                     return;
                 };
                 if node.is_mut {
-                    self.procedure
-                        .instructions
-                        .push(Instruction::Panic(AiScriptBasicError::new(
-                            AiScriptBasicErrorKind::Namespace,
-                            String::from("No \"var\" in namespace declaration: ")
-                                + &dest.name.to_string(),
-                            Some(node.loc.start.clone()),
-                        )));
+                    self.append_instruction(Instruction::Panic(AiScriptBasicError::new(
+                        AiScriptBasicErrorKind::Namespace,
+                        String::from("No \"var\" in namespace declaration: ")
+                            + &dest.name.to_string(),
+                        Some(node.loc.start.clone()),
+                    )));
                     return;
                 }
 
-                let register = self.procedure.new_register();
+                let register = self.use_register();
                 self.eval_expr(register, &node.expr);
                 self.define_identifier(dest, register, node.is_mut);
             }
@@ -108,10 +111,21 @@ impl<'ast> Translator<'ast> {
         }
     }
 
+    fn eval_statement_or_expr(
+        &mut self,
+        register: Register,
+        node: &'ast ast::StatementOrExpression,
+    ) {
+        match node {
+            ast::StatementOrExpression::Statement(node) => self.eval_statement(register, node),
+            ast::StatementOrExpression::Expression(node) => self.eval_expr(register, node),
+        }
+    }
+
     fn eval_statement(&mut self, register: Register, node: &'ast ast::Statement) {
         match node {
             ast::Statement::Def(node) => {
-                let register = self.procedure.new_register();
+                let register = self.use_register();
                 self.eval_expr(register, &node.expr);
                 self.define(&node.dest, register, node.is_mut);
             }
@@ -122,7 +136,7 @@ impl<'ast> Translator<'ast> {
             ast::Statement::Break(_node) => todo!(),
             ast::Statement::Continue(_node) => todo!(),
             ast::Statement::Assign(node) => {
-                let register = self.procedure.new_register();
+                let register = self.use_register();
                 self.eval_expr(register, &node.expr);
                 match node.op {
                     aiscript_engine_ast::AssignOperator::Assign => {
@@ -138,7 +152,42 @@ impl<'ast> Translator<'ast> {
 
     fn eval_expr(&mut self, register: Register, node: &'ast ast::Expression) {
         match node {
-            ast::Expression::If(_node) => todo!(),
+            ast::Expression::If(node) => {
+                self.eval_expr(register, &node.cond);
+
+                // then節
+                self.enter_block();
+                self.eval_statement_or_expr(register, &node.then);
+                let then_code = self.exit_block();
+
+                for _ in &node.elseif {
+                    self.enter_block();
+                }
+
+                // else節
+                let mut else_code = match &node.else_statement {
+                    Some(else_statement) => {
+                        self.enter_block();
+                        self.eval_statement_or_expr(register, else_statement);
+                        self.exit_block()
+                    }
+                    None => vec![Instruction::Null(register)],
+                };
+
+                // elif節
+                for elif in node.elseif.iter().rev() {
+                    self.eval_expr(register, &elif.cond);
+
+                    self.enter_block();
+                    self.eval_statement_or_expr(register, &elif.then);
+                    let elif_code = self.exit_block();
+
+                    self.append_instruction(Instruction::If(register, elif_code, else_code));
+                    else_code = self.exit_block();
+                }
+
+                self.append_instruction(Instruction::If(register, then_code, else_code));
+            }
             ast::Expression::Fn(_node) => todo!(),
             ast::Expression::Match(_node) => todo!(),
             ast::Expression::Block(_node) => todo!(),
@@ -165,7 +214,7 @@ impl<'ast> Translator<'ast> {
             ast::Expression::Obj(_node) => todo!(),
             ast::Expression::Arr(node) => {
                 self.append_instruction(Instruction::Arr(register, node.value.len()));
-                let value_register = self.procedure.new_register();
+                let value_register = self.use_register();
                 for (index, value) in node.value.iter().enumerate() {
                     self.eval_expr(value_register, value);
                     self.append_instruction(Instruction::StoreImmediate(
@@ -176,7 +225,7 @@ impl<'ast> Translator<'ast> {
                 }
             }
             ast::Expression::Not(node) => {
-                let src = self.procedure.new_register();
+                let src = self.use_register();
                 self.eval_expr(src, &node.expr);
                 self.append_instruction(Instruction::Not(register, src));
             }
@@ -194,13 +243,11 @@ impl<'ast> Translator<'ast> {
             ast::Expression::Arr(dest) => self.define_arr(dest, register, is_mutable),
             ast::Expression::Obj(dest) => self.define_obj(dest, register, is_mutable),
             _ => {
-                self.procedure
-                    .instructions
-                    .push(Instruction::Panic(AiScriptBasicError::new(
-                        AiScriptBasicErrorKind::Runtime,
-                        "The left-hand side of an definition expression must be a variable.",
-                        None,
-                    )));
+                self.append_instruction(Instruction::Panic(AiScriptBasicError::new(
+                    AiScriptBasicErrorKind::Runtime,
+                    "The left-hand side of an definition expression must be a variable.",
+                    None,
+                )));
             }
         }
     }
@@ -256,8 +303,25 @@ impl<'ast> Translator<'ast> {
         }
     }
 
+    fn use_register(&mut self) -> Register {
+        let index = self.register_length;
+        self.register_length += 1;
+        return index;
+    }
+
+    fn enter_block(&mut self) {
+        self.blocks
+            .push(std::mem::replace(&mut self.block, Vec::new()));
+        self.scopes.push_block_scope();
+    }
+
+    fn exit_block(&mut self) -> Vec<Instruction> {
+        self.scopes.drop_local_scope();
+        std::mem::replace(&mut self.block, self.blocks.pop().expect("no outer blocks"))
+    }
+
     fn append_instruction(&mut self, instruction: Instruction) {
-        self.procedure.instructions.push(instruction);
+        self.block.push(instruction);
     }
 
     fn str_literal(&mut self, s: &Utf16Str) -> DataIndex {

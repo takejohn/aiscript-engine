@@ -46,12 +46,6 @@ impl Procedure {
             instructions: Vec::new(),
         }
     }
-
-    pub(crate) fn new_register(&mut self) -> Register {
-        let index = self.register_length;
-        self.register_length += 1;
-        return index;
-    }
 }
 
 pub type DataIndex = usize;
