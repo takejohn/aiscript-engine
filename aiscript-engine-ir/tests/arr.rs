@@ -16,11 +16,11 @@ fn arr_literal() {
                 instructions: vec![
                     Instruction::Arr(0, 3),
                     Instruction::Num(1, 1.0),
-                    Instruction::StoreImmediate(1, 0, 0),
+                    Instruction::StoreIndex(1, 0, 0),
                     Instruction::Num(1, 2.0),
-                    Instruction::StoreImmediate(1, 0, 1),
+                    Instruction::StoreIndex(1, 0, 1),
                     Instruction::Num(1, 3.0),
-                    Instruction::StoreImmediate(1, 0, 2),
+                    Instruction::StoreIndex(1, 0, 2),
                 ]
             }],
             entry_point: 0,

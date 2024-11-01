@@ -12,9 +12,9 @@ fn arr_literal() {
                 Instruction::Bool(2, true),
                 Instruction::Null(3),
                 Instruction::Arr(0, 3),
-                Instruction::StoreImmediate(1, 0, 0),
-                Instruction::StoreImmediate(2, 0, 1),
-                Instruction::StoreImmediate(3, 0, 2),
+                Instruction::StoreIndex(1, 0, 0),
+                Instruction::StoreIndex(2, 0, 1),
+                Instruction::StoreIndex(3, 0, 2),
             ],
         }],
         entry_point: 0,
@@ -31,16 +31,16 @@ fn arr_literal() {
 }
 
 #[test]
-fn load_immediate() {
+fn store_and_load_index() {
     let ir = Ir {
         data: Vec::new(),
         functions: vec![Procedure {
             register_length: 2,
             instructions: vec![
-                Instruction::Arr(0, 3),
+                Instruction::Arr(0, 1),
                 Instruction::Num(1, 42.0),
-                Instruction::StoreImmediate(1, 0, 0),
-                Instruction::LoadImmediate(0, 0, 0),
+                Instruction::StoreIndex(1, 0, 0),
+                Instruction::LoadIndex(0, 0, 0),
             ],
         }],
         entry_point: 0,

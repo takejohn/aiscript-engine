@@ -3,10 +3,12 @@ use std::rc::Rc;
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 use aiscript_engine_ir::{DataItem, Instruction, InstructionAddress, Ir, Register};
 use gc::{Gc, GcCell};
+use indexmap::IndexMap;
 
 use crate::{
-    utils::{require_array, require_bool, GetByF64},
+    utils::{require_array, require_bool, require_object, GetByF64},
     values::Value,
+    VObj,
 };
 
 pub enum VmState {
@@ -99,6 +101,11 @@ impl<'ir> Vm<'ir> {
                     Value::Arr(Gc::new(GcCell::new(vec![Value::Uninitialized; *len])));
                 self.pc.index += 1;
             }
+            Instruction::Obj(register, n) => {
+                self.registers[*register] =
+                    Value::Obj(Gc::new(GcCell::new(VObj(IndexMap::with_capacity(*n)))));
+                self.pc.index += 1;
+            }
             Instruction::Move(dest, src) => {
                 self.registers[*dest] = self.registers[*src].clone();
                 self.pc.index += 1;
@@ -147,7 +154,7 @@ impl<'ir> Vm<'ir> {
                 }
                 self.pc.index += 1;
             }
-            Instruction::LoadImmediate(register, target, index) => {
+            Instruction::LoadIndex(register, target, index) => {
                 let target = require_array(&self.registers[*target])?;
                 if let Some(value) = target.borrow().get(*index) {
                     self.registers[*register] = value.clone();
@@ -164,7 +171,14 @@ impl<'ir> Vm<'ir> {
                 }
                 self.pc.index += 1;
             }
-            Instruction::StoreImmediate(register, target, index) => {
+            Instruction::LoadProp(register, target, name) => {
+                let target = require_object(&self.registers[*target])?;
+                let DataItem::Str(name) = &self.program.data[*name];
+                let value = target.borrow().0.get(name).map(|value| value.clone());
+                self.registers[*register] = value.unwrap_or(Value::Null);
+                self.pc.index += 1;
+            }
+            Instruction::StoreIndex(register, target, index) => {
                 let target = require_array(&self.registers[*target])?;
                 if let Some(ptr) = target.borrow_mut().get_mut(*index) {
                     *ptr = self.registers[*register].clone();
@@ -179,6 +193,15 @@ impl<'ir> Vm<'ir> {
                         None,
                     )));
                 }
+                self.pc.index += 1;
+            }
+            Instruction::StoreProp(register, target, name) => {
+                let target = require_object(&self.registers[*target])?;
+                let DataItem::Str(name) = &self.program.data[*name];
+                target
+                    .borrow_mut()
+                    .0
+                    .insert(name.clone(), self.registers[*register].clone());
                 self.pc.index += 1;
             }
         }

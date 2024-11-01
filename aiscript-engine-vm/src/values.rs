@@ -84,8 +84,9 @@ impl Value {
     }
 }
 
+// TODO: キーをRc<Utf16String>にする
 #[derive(Clone, Debug, Finalize)]
-pub struct VObj(IndexMap<Utf16String, Value>);
+pub struct VObj(pub IndexMap<Utf16String, Value>);
 
 unsafe impl Trace for VObj {
     custom_trace!(this, {

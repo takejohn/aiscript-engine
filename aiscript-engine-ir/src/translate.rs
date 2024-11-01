@@ -211,13 +211,21 @@ impl<'ast> Translator<'ast> {
             ast::Expression::Null(_) => {
                 self.append_instruction(Instruction::Null(register));
             }
-            ast::Expression::Obj(_node) => todo!(),
+            ast::Expression::Obj(node) => {
+                self.append_instruction(Instruction::Obj(register, node.value.len()));
+                let value_register = self.use_register();
+                for (key, value) in &node.value {
+                    self.eval_expr(value_register, value);
+                    let key = self.str_literal(key);
+                    self.append_instruction(Instruction::StoreProp(value_register, register, key));
+                }
+            }
             ast::Expression::Arr(node) => {
                 self.append_instruction(Instruction::Arr(register, node.value.len()));
                 let value_register = self.use_register();
                 for (index, value) in node.value.iter().enumerate() {
                     self.eval_expr(value_register, value);
-                    self.append_instruction(Instruction::StoreImmediate(
+                    self.append_instruction(Instruction::StoreIndex(
                         value_register,
                         register,
                         index,
@@ -270,15 +278,18 @@ impl<'ast> Translator<'ast> {
     fn define_arr(&mut self, dest: &'ast ast::Arr, register: Register, is_mutable: bool) {
         for (i, item) in dest.value.iter().enumerate() {
             let dest_register = self.use_register();
-            self.append_instruction(Instruction::LoadImmediate(dest_register, register, i));
+            self.append_instruction(Instruction::LoadIndex(dest_register, register, i));
             self.define(item, dest_register, is_mutable);
         }
     }
 
     fn define_obj(&mut self, dest: &'ast ast::Obj, register: Register, is_mutable: bool) {
         // TODO: exprがオブジェクトになり得るか解析
-        for (_key, item) in &dest.value {
-            self.define(item, todo!("expr[key]"), is_mutable);
+        for (key, item) in &dest.value {
+            let key_str = self.str_literal(&key);
+            let dest_register = self.use_register();
+            self.append_instruction(Instruction::LoadProp(dest_register, register, key_str));
+            self.define(item, dest_register, is_mutable);
         }
     }
 

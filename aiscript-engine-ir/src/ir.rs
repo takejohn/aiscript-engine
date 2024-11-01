@@ -84,6 +84,9 @@ pub enum Instruction {
     /// 指定された長さの未初期化のarrの参照を格納
     Arr(Register, usize),
 
+    /// 指定された初期容量をもつobjの参照を格納
+    Obj(Register, usize),
+
     /// レジスタ0にレジスタ1の値をコピー
     Move(Register, Register),
 
@@ -100,8 +103,14 @@ pub enum Instruction {
     Load(Register, Register, Register),
 
     /// レジスタ1[即値2]からレジスタ0にコピー
-    LoadImmediate(Register, Register, usize),
+    LoadIndex(Register, Register, usize),
+
+    /// レジスタ1.即値2からレジスタ0にコピー
+    LoadProp(Register, Register, DataIndex),
 
     /// レジスタ0からレジスタ1[即値2]にコピー
-    StoreImmediate(Register, Register, usize),
+    StoreIndex(Register, Register, usize),
+
+    /// レジスタ0からレジスタ1.即値2にコピー
+    StoreProp(Register, Register, DataIndex),
 }

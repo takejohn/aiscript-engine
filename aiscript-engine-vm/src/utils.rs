@@ -1,7 +1,7 @@
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 use gc::{Gc, GcCell};
 
-use crate::{VArr, Value};
+use crate::{VArr, VObj, Value};
 
 pub(crate) trait GetByF64<T> {
     fn get_by_f64(&self, index: f64) -> Option<&T>;
@@ -24,7 +24,19 @@ pub(crate) fn require_bool(val: &Value) -> Result<bool> {
     } else {
         Err(Box::new(AiScriptBasicError::new(
             AiScriptBasicErrorKind::Runtime,
-            format!("Expect array, but got {}.", val.type_name()),
+            format!("Expect bool, but got {}.", val.type_name()),
+            None,
+        )))
+    }
+}
+
+pub(crate) fn require_object(val: &Value) -> Result<Gc<GcCell<VObj>>> {
+    if let Value::Obj(val) = val {
+        Ok(val.clone())
+    } else {
+        Err(Box::new(AiScriptBasicError::new(
+            AiScriptBasicErrorKind::Runtime,
+            format!("Expect object, but got {}.", val.type_name()),
             None,
         )))
     }
