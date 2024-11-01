@@ -32,3 +32,46 @@ fn obj_literal() {
         }
     );
 }
+
+#[test]
+fn prop() {
+    let ir = to_ir(r#"{ a: 1 }.a"#);
+    assert_eq!(
+        ir,
+        Ir {
+            data: vec![DataItem::Str(Utf16String::from("a"))],
+            functions: vec![Procedure {
+                register_length: 3,
+                instructions: vec![
+                    Instruction::Obj(1, 1),
+                    Instruction::Num(2, 1.0),
+                    Instruction::StoreProp(2, 1, 0),
+                    Instruction::LoadProp(0, 1, 0),
+                ],
+            }],
+            entry_point: 0,
+        },
+    );
+}
+
+#[test]
+fn index() {
+    let ir = to_ir(r#"{ a: 1 }["a"]"#);
+    assert_eq!(
+        ir,
+        Ir {
+            data: vec![DataItem::Str(Utf16String::from("a"))],
+            functions: vec![Procedure {
+                register_length: 4,
+                instructions: vec![
+                    Instruction::Obj(1, 1),
+                    Instruction::Num(2, 1.0),
+                    Instruction::StoreProp(2, 1, 0),
+                    Instruction::Data(3, 0),
+                    Instruction::Load(0, 1, 3),
+                ],
+            }],
+            entry_point: 0,
+        },
+    );
+}

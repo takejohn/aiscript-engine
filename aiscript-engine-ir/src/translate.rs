@@ -269,8 +269,19 @@ impl<'ast> Translator<'ast> {
                 }
             }
             ast::Expression::Call(_node) => todo!(),
-            ast::Expression::Index(_node) => todo!(),
-            ast::Expression::Prop(_node) => todo!(),
+            ast::Expression::Index(node) => {
+                let target = self.use_register();
+                self.eval_expr(target, &node.target);
+                let index = self.use_register();
+                self.eval_expr(index, &node.index);
+                self.append_instruction(Instruction::Load(register, target, index));
+            }
+            ast::Expression::Prop(node) => {
+                let target = self.use_register();
+                self.eval_expr(target, &node.target);
+                let name = self.str_literal(&node.name);
+                self.append_instruction(Instruction::LoadProp(register, target, name));
+            }
             ast::Expression::Binary(_node) => todo!(),
         }
     }

@@ -27,3 +27,25 @@ fn arr_literal() {
         }
     );
 }
+
+#[test]
+fn index() {
+    let ir = to_ir("[1][0]");
+    assert_eq!(
+        ir,
+        Ir {
+            data: Vec::new(),
+            functions: vec![Procedure {
+                register_length: 4,
+                instructions: vec![
+                    Instruction::Arr(1, 1),
+                    Instruction::Num(2, 1.0),
+                    Instruction::StoreIndex(2, 1, 0),
+                    Instruction::Num(3, 0.0),
+                    Instruction::Load(0, 1, 3),
+                ]
+            }],
+            entry_point: 0,
+        },
+    );
+}
