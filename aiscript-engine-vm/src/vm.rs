@@ -17,7 +17,7 @@ pub enum VmState {
 }
 
 pub struct Vm<'ir> {
-    program: &'ir Ir,
+    data: Vec<Rc<[u16]>>,
     pc: ProgramCounter<'ir>,
     pc_stack: Vec<ProgramCounter<'ir>>,
     registers: Vec<Value>,
@@ -27,8 +27,13 @@ impl<'ir> Vm<'ir> {
     pub fn new(ir: &'ir Ir) -> Self {
         let entry_point = &ir.functions[ir.entry_point];
         let register_length = entry_point.register_length;
+        let data: Vec<Rc<[u16]>> = ir
+            .data
+            .iter()
+            .map(|DataItem::Str(item)| Rc::from(item.as_u16s()))
+            .collect();
         Vm {
-            program: ir,
+            data,
             pc: ProgramCounter {
                 instructions: &entry_point.instructions,
                 index: 0,
@@ -92,8 +97,7 @@ impl<'ir> Vm<'ir> {
                 self.pc.index += 1;
             }
             Instruction::Data(register, index) => {
-                let DataItem::Str(value) = &self.program.data[*index];
-                self.registers[*register] = Value::Str(Rc::new(value.to_owned()));
+                self.registers[*register] = Value::Str(Rc::clone(&self.data[*index]));
                 self.pc.index += 1;
             }
             Instruction::Arr(register, len) => {
@@ -173,7 +177,7 @@ impl<'ir> Vm<'ir> {
             }
             Instruction::LoadProp(register, target, name) => {
                 let target = require_object(&self.registers[*target])?;
-                let DataItem::Str(name) = &self.program.data[*name];
+                let name = &self.data[*name];
                 let value = target.borrow().0.get(name).map(|value| value.clone());
                 self.registers[*register] = value.unwrap_or(Value::Null);
                 self.pc.index += 1;
@@ -197,11 +201,11 @@ impl<'ir> Vm<'ir> {
             }
             Instruction::StoreProp(register, target, name) => {
                 let target = require_object(&self.registers[*target])?;
-                let DataItem::Str(name) = &self.program.data[*name];
+                let name = Rc::clone(&self.data[*name]);
                 target
                     .borrow_mut()
                     .0
-                    .insert(name.clone(), self.registers[*register].clone());
+                    .insert(name, self.registers[*register].clone());
                 self.pc.index += 1;
             }
         }

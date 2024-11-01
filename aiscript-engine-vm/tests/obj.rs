@@ -1,4 +1,4 @@
-use aiscript_engine_common::{Utf16Str, Utf16String};
+use aiscript_engine_common::Utf16String;
 use aiscript_engine_ir::{DataItem, Instruction, Ir, Procedure};
 use aiscript_engine_vm::{Value, Vm};
 use utf16_literal::utf16;
@@ -31,15 +31,9 @@ fn obj_literal() {
         panic!();
     };
     let obj = &obj.borrow().0;
-    assert_eq!(
-        obj.get(Utf16Str::new(&utf16!("a"))),
-        Some(&Value::Num(42.0))
-    );
-    assert_eq!(
-        obj.get(Utf16Str::new(&utf16!("b"))),
-        Some(&Value::Bool(true))
-    );
-    assert_eq!(obj.get(Utf16Str::new(&utf16!("c"))), Some(&Value::Null));
+    assert_eq!(obj.get(&utf16!("a") as &[_]), Some(&Value::Num(42.0)));
+    assert_eq!(obj.get(&utf16!("b") as &[_]), Some(&Value::Bool(true)));
+    assert_eq!(obj.get(&utf16!("c") as &[_]), Some(&Value::Null));
 }
 
 #[test]

@@ -3,6 +3,7 @@ use std::rc::Rc;
 use aiscript_engine_common::Utf16String;
 use aiscript_engine_ir::{DataItem, Instruction, Ir, Procedure};
 use aiscript_engine_vm::{Value, Vm};
+use utf16_literal::utf16;
 
 #[test]
 fn const_null() {
@@ -63,6 +64,6 @@ fn const_str() {
     vm.exec().unwrap();
     assert_eq!(
         vm.registers()[0],
-        Value::Str(Rc::new(Utf16String::from("Hello, world!")))
+        Value::Str(Rc::from(&utf16!("Hello, world!") as &[_]))
     );
 }

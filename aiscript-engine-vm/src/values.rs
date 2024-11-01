@@ -14,7 +14,7 @@ pub enum Value {
     Null,
     Bool(bool),
     Num(f64),
-    Str(Rc<Utf16String>),
+    Str(Rc<[u16]>),
     Obj(Gc<GcCell<VObj>>),
     Arr(Gc<GcCell<VArr>>),
     Fn(Gc<VFn>),
@@ -84,9 +84,8 @@ impl Value {
     }
 }
 
-// TODO: キーをRc<Utf16String>にする
 #[derive(Clone, Debug, Finalize)]
-pub struct VObj(pub IndexMap<Utf16String, Value>);
+pub struct VObj(pub IndexMap<Rc<[u16]>, Value>);
 
 unsafe impl Trace for VObj {
     custom_trace!(this, {
