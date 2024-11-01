@@ -147,6 +147,23 @@ impl<'ir> Vm<'ir> {
                 }
                 self.pc.index += 1;
             }
+            Instruction::LoadImmediate(register, target, index) => {
+                let target = require_array(&self.registers[*target])?;
+                if let Some(value) = target.borrow().get(*index) {
+                    self.registers[*register] = value.clone();
+                } else {
+                    return Err(Box::new(AiScriptBasicError::new(
+                        AiScriptBasicErrorKind::Runtime,
+                        format!(
+                            "Index out of range. index: {} max: {}",
+                            index,
+                            target.as_ref().borrow().len() - 1
+                        ),
+                        None,
+                    )));
+                }
+                self.pc.index += 1;
+            }
             Instruction::StoreImmediate(register, target, index) => {
                 let target = require_array(&self.registers[*target])?;
                 if let Some(ptr) = target.borrow_mut().get_mut(*index) {

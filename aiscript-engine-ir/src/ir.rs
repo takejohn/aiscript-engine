@@ -99,6 +99,9 @@ pub enum Instruction {
     /// レジスタ1[レジスタ2]からレジスタ0にコピー
     Load(Register, Register, Register),
 
+    /// レジスタ1[即値2]からレジスタ0にコピー
+    LoadImmediate(Register, Register, usize),
+
     /// レジスタ0からレジスタ1[即値2]にコピー
     StoreImmediate(Register, Register, usize),
 }

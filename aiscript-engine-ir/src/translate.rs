@@ -268,9 +268,10 @@ impl<'ast> Translator<'ast> {
     }
 
     fn define_arr(&mut self, dest: &'ast ast::Arr, register: Register, is_mutable: bool) {
-        // TODO: exprが配列になり得るか解析
-        for (_i, item) in dest.value.iter().enumerate() {
-            self.define(item, todo!("expr[i]"), is_mutable);
+        for (i, item) in dest.value.iter().enumerate() {
+            let dest_register = self.use_register();
+            self.append_instruction(Instruction::LoadImmediate(dest_register, register, i));
+            self.define(item, dest_register, is_mutable);
         }
     }
 

@@ -29,3 +29,23 @@ fn arr_literal() {
     assert_eq!(arr[1], Value::Bool(true));
     assert_eq!(arr[2], Value::Null);
 }
+
+#[test]
+fn load_immediate() {
+    let ir = Ir {
+        data: Vec::new(),
+        functions: vec![Procedure {
+            register_length: 2,
+            instructions: vec![
+                Instruction::Arr(0, 3),
+                Instruction::Num(1, 42.0),
+                Instruction::StoreImmediate(1, 0, 0),
+                Instruction::LoadImmediate(0, 0, 0),
+            ],
+        }],
+        entry_point: 0,
+    };
+    let mut vm = Vm::new(&ir);
+    vm.exec().unwrap();
+    assert_eq!(vm.registers()[0], Value::Num(42.0));
+}
