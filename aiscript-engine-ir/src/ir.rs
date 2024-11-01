@@ -72,6 +72,9 @@ pub enum Instruction {
     /// エラーによる強制終了
     Panic(AiScriptBasicError),
 
+    /// レジスタの値が真なら前のコード、偽なら後のコードを実行
+    If(Register, Vec<Instruction>, Vec<Instruction>),
+
     /// nullを格納
     Null(Register),
 

@@ -18,9 +18,9 @@ impl<T> GetByF64<T> for [T] {
     }
 }
 
-pub(crate) fn require_bool(val: Value) -> Result<bool> {
+pub(crate) fn require_bool(val: &Value) -> Result<bool> {
     if let Value::Bool(val) = val {
-        Ok(val)
+        Ok(val.clone())
     } else {
         Err(Box::new(AiScriptBasicError::new(
             AiScriptBasicErrorKind::Runtime,
@@ -30,9 +30,9 @@ pub(crate) fn require_bool(val: Value) -> Result<bool> {
     }
 }
 
-pub(crate) fn require_array(val: Value) -> Result<Gc<GcCell<VArr>>> {
+pub(crate) fn require_array(val: &Value) -> Result<Gc<GcCell<VArr>>> {
     if let Value::Arr(val) = val {
-        Ok(val)
+        Ok(val.clone())
     } else {
         Err(Box::new(AiScriptBasicError::new(
             AiScriptBasicErrorKind::Runtime,
