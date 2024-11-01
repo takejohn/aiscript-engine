@@ -50,7 +50,7 @@ impl<'ast> Scopes<'ast> {
         !self.namespaces.is_empty()
     }
 
-    fn current_scope_name(&self) -> &Utf16Str {
+    pub(crate) fn current_scope_name(&self) -> &Utf16Str {
         if self.is_root() {
             Utf16Str::new(&utf16!("<root>"))
         } else {
@@ -89,7 +89,7 @@ impl<'ast> Scopes<'ast> {
         return result;
     }
 
-    fn get(&self, name: &NamePath) -> Option<&Variable> {
+    pub(crate) fn get(&self, name: &NamePath) -> Option<&Variable> {
         for block in &self.blocks {
             if let Some(variable) = block.variables.get(name) {
                 return Some(variable);

@@ -190,7 +190,11 @@ impl<'ast> Translator<'ast> {
             }
             ast::Expression::Fn(_node) => todo!(),
             ast::Expression::Match(_node) => todo!(),
-            ast::Expression::Block(_node) => todo!(),
+            ast::Expression::Block(node) => {
+                for statement in &node.statements {
+                    self.eval_statement_or_expr(register, statement);
+                }
+            }
             ast::Expression::Exists(node) => {
                 self.append_instruction(Instruction::Bool(
                     register,
@@ -237,7 +241,23 @@ impl<'ast> Translator<'ast> {
                 self.eval_expr(src, &node.expr);
                 self.append_instruction(Instruction::Not(register, src));
             }
-            ast::Expression::Identifier(_node) => todo!(),
+            ast::Expression::Identifier(node) => {
+                let name = &node.name;
+                if let Some(variable) = self.scopes.get(name) {
+                    let src = variable.register;
+                    self.append_instruction(Instruction::Move(register, src));
+                } else {
+                    self.append_instruction(Instruction::Panic(AiScriptBasicError::new(
+                        AiScriptBasicErrorKind::Runtime,
+                        format!(
+                            "No such variable '{}' in scope '{}'",
+                            name,
+                            self.scopes.current_scope_name()
+                        ),
+                        None,
+                    )));
+                }
+            }
             ast::Expression::Call(_node) => todo!(),
             ast::Expression::Index(_node) => todo!(),
             ast::Expression::Prop(_node) => todo!(),
