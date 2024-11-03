@@ -1,9 +1,9 @@
 use std::rc::Rc;
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
-use aiscript_engine_ir::{DataItem, Function, Instruction, InstructionAddress, Ir, Register};
-use aiscript_engine_library::Context;
-use aiscript_engine_values::{VFn, VObj, Value};
+use aiscript_engine_ir::{DataItem, Instruction, InstructionAddress, Ir, Register, UserFn};
+use aiscript_engine_library::NativeFn;
+use aiscript_engine_values::{FnIndex, VFn, VObj, Value};
 use gc::{Gc, GcCell};
 use indexmap::IndexMap;
 
@@ -14,37 +14,34 @@ pub enum VmState {
     Continue,
 }
 
-pub struct Vm<'ir> {
+pub struct Vm<'ir, 'lib: 'ir> {
     data: Vec<Rc<[u16]>>,
-    functions: &'ir [Function<'ir>],
+    native_functions: &'ir mut [NativeFn<'lib>],
+    user_functions: &'ir [UserFn],
     pc: ProgramCounter<'ir>,
     pc_stack: Vec<ProgramCounter<'ir>>,
     registers: Vec<Value>,
 }
 
-impl<'ir> Vm<'ir> {
-    pub fn new(ir: &'ir Ir) -> Self {
-        let entry_point = &ir.functions[ir.entry_point];
-        match entry_point {
-            Function::User(entry_point) => {
-                let register_length = entry_point.register_length;
-                let data: Vec<Rc<[u16]>> = ir
-                    .data
-                    .iter()
-                    .map(|DataItem::Str(item)| Rc::from(item.as_u16s()))
-                    .collect();
-                Vm {
-                    data,
-                    functions: &ir.functions,
-                    pc: ProgramCounter {
-                        instructions: &entry_point.instructions,
-                        index: 0,
-                    },
-                    pc_stack: Vec::new(),
-                    registers: vec![Value::Uninitialized; register_length],
-                }
-            }
-            Function::Native(_) => todo!(),
+impl<'ir, 'lib: 'ir> Vm<'ir, 'lib> {
+    pub fn new(ir: &'ir mut Ir<'lib>) -> Self {
+        let entry_point = &ir.user_functions[ir.entry_point];
+        let register_length = entry_point.register_length;
+        let data: Vec<Rc<[u16]>> = ir
+            .data
+            .iter()
+            .map(|DataItem::Str(item)| Rc::from(item.as_u16s()))
+            .collect();
+        Vm {
+            data,
+            native_functions: &mut ir.native_functions,
+            user_functions: &ir.user_functions,
+            pc: ProgramCounter {
+                instructions: &entry_point.instructions,
+                index: 0,
+            },
+            pc_stack: Vec::new(),
+            registers: vec![Value::Uninitialized; register_length],
         }
     }
 
@@ -115,9 +112,9 @@ impl<'ir> Vm<'ir> {
                     Value::Obj(Gc::new(GcCell::new(VObj(IndexMap::with_capacity(*n)))));
                 self.pc.index += 1;
             }
-            Instruction::Fn(register, index) => {
+            Instruction::NativeFn(register, index) => {
                 self.registers[*register] = Value::Fn(Gc::new(GcCell::new(VFn {
-                    index: *index,
+                    index: FnIndex::Native(*index),
                     capture: Vec::new(),
                 })));
                 self.pc.index += 1;
@@ -247,13 +244,22 @@ impl<'ir> Vm<'ir> {
             Instruction::Call(register, f, args) => {
                 let closure = require_function(&self.registers[*f])?;
                 let args = require_array(&self.registers[*args])?;
-                let function = &self.functions[closure.borrow().index];
                 let capture = closure.borrow().capture.clone();
-                match function {
-                    Function::User(_function) => todo!(),
-                    Function::Native(function) => {
-                        self.registers[*register] = function(args.borrow().clone(), capture, self)?;
+                match closure.borrow().index {
+                    FnIndex::Native(index) => {
+                        let function = &mut self.native_functions[index];
+                        match function {
+                            NativeFn::Static(function) => {
+                                self.registers[*register] =
+                                    function(args.borrow().clone(), capture)?;
+                            }
+                            NativeFn::Dynamic(function) => {
+                                self.registers[*register] =
+                                    function(args.borrow().clone(), capture)?;
+                            }
+                        };
                     }
+                    FnIndex::User(index) => todo!(),
                 }
                 self.pc.index += 1;
             }
@@ -289,8 +295,6 @@ impl<'ir> Vm<'ir> {
         }
     }
 }
-
-impl Context for Vm<'_> {}
 
 struct ProgramCounter<'ir> {
     instructions: &'ir [Instruction],

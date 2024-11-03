@@ -1,4 +1,4 @@
-use aiscript_engine_ir::{Function, Instruction, Ir, UserFn};
+use aiscript_engine_ir::{Instruction, Ir, UserFn};
 use common::to_ir;
 use pretty_assertions::assert_eq;
 
@@ -11,7 +11,8 @@ fn if_only() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 1,
                 instructions: vec![
                     Instruction::Bool(0, false),
@@ -21,7 +22,7 @@ fn if_only() {
                         vec![Instruction::Null(0)],
                     ),
                 ],
-            })],
+            }],
             entry_point: 0,
         }
     );
@@ -34,7 +35,8 @@ fn if_else() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 1,
                 instructions: vec![
                     Instruction::Bool(0, true),
@@ -44,7 +46,7 @@ fn if_else() {
                         vec![Instruction::Num(0, 2.0)],
                     ),
                 ],
-            })],
+            }],
             entry_point: 0,
         }
     );
@@ -57,7 +59,8 @@ fn if_elif_else() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 1,
                 instructions: vec![
                     Instruction::Bool(0, false),
@@ -74,7 +77,7 @@ fn if_elif_else() {
                         ],
                     ),
                 ],
-            })],
+            }],
             entry_point: 0,
         },
     );

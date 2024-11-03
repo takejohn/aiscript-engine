@@ -1,4 +1,4 @@
-use std::{collections::HashMap, sync::LazyLock};
+use std::collections::HashMap;
 
 use utf16_literal::utf16;
 
@@ -17,28 +17,25 @@ macro_rules! str {
 
 macro_rules! func {
     ($name: expr , $value: expr) => {
-        (&$name as &'static [u16], $crate::LibraryValue::Fn(&$value))
+        (
+            &$name as &'static [u16],
+            $crate::LibraryValue::Fn($crate::NativeFn::Static(&$value)),
+        )
     };
 }
 
-pub const STD: LazyLock<Library> = LazyLock::new(|| {
+pub fn std_library<'lib>() -> Library<'lib> {
     HashMap::from([
         str!(utf16!("Core:ai"), utf16!("kawaii")),
         func!(utf16!("Core:not"), core::not),
     ])
-});
+}
 
 mod core {
     use aiscript_engine_common::Result;
     use aiscript_engine_values::Value;
 
-    use crate::Context;
-
-    pub(super) fn not(
-        args: Vec<Value>,
-        captures: Vec<Value>,
-        context: &mut dyn Context,
-    ) -> Result<Value> {
+    pub(super) fn not(args: Vec<Value>, captures: Vec<Value>) -> Result<Value> {
         // todo
         Ok(Value::Bool(true))
     }

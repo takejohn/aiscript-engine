@@ -1,5 +1,5 @@
 use aiscript_engine_common::Utf16String;
-use aiscript_engine_ir::{DataItem, Function, Instruction, Ir, UserFn};
+use aiscript_engine_ir::{DataItem, Instruction, Ir, UserFn};
 use common::to_ir;
 
 mod common;
@@ -11,10 +11,11 @@ fn const_null() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 2,
                 instructions: vec![Instruction::Null(1), Instruction::Null(0)]
-            })],
+            }],
             entry_point: 0,
         }
     )
@@ -27,10 +28,11 @@ fn const_num() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 2,
                 instructions: vec![Instruction::Num(1, 42.0), Instruction::Null(0)]
-            })],
+            }],
             entry_point: 0,
         }
     )
@@ -43,10 +45,11 @@ fn const_bool() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 2,
                 instructions: vec![Instruction::Bool(1, true), Instruction::Null(0)]
-            })],
+            }],
             entry_point: 0,
         }
     )
@@ -59,10 +62,11 @@ fn const_str() {
         ir,
         Ir {
             data: vec![DataItem::Str(Utf16String::from("Hello"))],
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 2,
                 instructions: vec![Instruction::Data(1, 0), Instruction::Null(0)]
-            })],
+            }],
             entry_point: 0,
         }
     )

@@ -1,5 +1,5 @@
 use aiscript_engine_common::Utf16String;
-use aiscript_engine_ir::{DataItem, Function, Instruction, Ir, UserFn};
+use aiscript_engine_ir::{DataItem, Instruction, Ir, UserFn};
 use common::to_ir;
 use pretty_assertions::assert_eq;
 
@@ -16,7 +16,8 @@ fn obj_literal() {
                 DataItem::Str(Utf16String::from("b")),
                 DataItem::Str(Utf16String::from("c")),
             ],
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 2,
                 instructions: vec![
                     Instruction::Obj(0, 3),
@@ -27,7 +28,7 @@ fn obj_literal() {
                     Instruction::Num(1, 3.0),
                     Instruction::StoreProp(1, 0, 2),
                 ]
-            })],
+            }],
             entry_point: 0,
         }
     );
@@ -40,7 +41,8 @@ fn prop() {
         ir,
         Ir {
             data: vec![DataItem::Str(Utf16String::from("a"))],
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 3,
                 instructions: vec![
                     Instruction::Obj(1, 1),
@@ -48,7 +50,7 @@ fn prop() {
                     Instruction::StoreProp(2, 1, 0),
                     Instruction::LoadProp(0, 1, 0),
                 ],
-            })],
+            }],
             entry_point: 0,
         },
     );
@@ -61,7 +63,8 @@ fn index() {
         ir,
         Ir {
             data: vec![DataItem::Str(Utf16String::from("a"))],
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 4,
                 instructions: vec![
                     Instruction::Obj(1, 1),
@@ -70,7 +73,7 @@ fn index() {
                     Instruction::Data(3, 0),
                     Instruction::Load(0, 1, 3),
                 ],
-            })],
+            }],
             entry_point: 0,
         },
     );

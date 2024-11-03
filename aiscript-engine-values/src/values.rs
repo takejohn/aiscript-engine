@@ -5,8 +5,6 @@ use gc::{custom_trace, Finalize, Gc, GcCell, Trace};
 use indexmap::IndexMap;
 use utf16_literal::utf16;
 
-type FnIndex = usize;
-
 #[derive(Clone, Debug, Finalize)]
 pub enum Value {
     /// 未初期化値
@@ -102,6 +100,12 @@ pub type VArr = Vec<Value>;
 pub struct VFn {
     pub index: FnIndex,
     pub capture: Vec<Value>,
+}
+
+#[derive(Clone, Debug, Trace, Finalize)]
+pub enum FnIndex {
+    Native(usize),
+    User(usize),
 }
 
 #[derive(Clone, Debug, PartialEq, Finalize)]

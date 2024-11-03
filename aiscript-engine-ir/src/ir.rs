@@ -7,15 +7,17 @@ use aiscript_engine_library::NativeFn;
 #[derive(Debug, PartialEq)]
 pub struct Ir<'lib> {
     pub data: Vec<DataItem>,
-    pub functions: Vec<Function<'lib>>,
-    pub entry_point: FnIndex,
+    pub native_functions: Vec<NativeFn<'lib>>,
+    pub user_functions: Vec<UserFn>,
+    pub entry_point: UserFnIndex,
 }
 
 impl Default for Ir<'_> {
     fn default() -> Self {
         Self {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn::new())],
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn::new()],
             entry_point: 0,
         }
     }
@@ -24,30 +26,6 @@ impl Default for Ir<'_> {
 #[derive(Debug, PartialEq)]
 pub enum DataItem {
     Str(Utf16String),
-}
-
-pub enum Function<'lib> {
-    User(UserFn),
-    Native(&'lib NativeFn),
-}
-
-impl Debug for Function<'_> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::User(proc) => Debug::fmt(proc, f),
-            Self::Native(_) => write!(f, "<native code>"),
-        }
-    }
-}
-
-impl PartialEq for Function<'_> {
-    fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::User(a), Self::User(b)) => a == b,
-            (Self::Native(a), Self::Native(b)) => std::ptr::eq(a, b),
-            _ => false,
-        }
-    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -67,7 +45,9 @@ impl UserFn {
 
 pub type DataIndex = usize;
 
-pub type FnIndex = usize;
+pub type NativeFnIndex = usize;
+
+pub type UserFnIndex = usize;
 
 pub type Register = usize;
 
@@ -104,8 +84,8 @@ pub enum Instruction {
     /// 指定された初期容量をもつobjの参照を格納
     Obj(Register, usize),
 
-    /// クロージャを格納
-    Fn(Register, FnIndex),
+    /// ネイティブ関数のクロージャを格納
+    NativeFn(Register, NativeFnIndex),
 
     /// レジスタ0にレジスタ1の値をコピー
     Move(Register, Register),

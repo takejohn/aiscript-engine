@@ -1,4 +1,4 @@
-use aiscript_engine_ir::{Function, Instruction, Ir, UserFn};
+use aiscript_engine_ir::{Instruction, Ir, UserFn};
 use common::to_ir;
 
 mod common;
@@ -16,10 +16,11 @@ fn namespace() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 2,
                 instructions: vec![Instruction::Num(0, 0.0), Instruction::Null(1)]
-            })],
+            }],
             entry_point: 0,
         }
     )

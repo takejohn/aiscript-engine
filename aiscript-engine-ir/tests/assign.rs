@@ -1,5 +1,5 @@
 use aiscript_engine_common::Utf16String;
-use aiscript_engine_ir::{DataItem, Function, Instruction, Ir, UserFn};
+use aiscript_engine_ir::{DataItem, Instruction, Ir, UserFn};
 use common::to_ir;
 use pretty_assertions::assert_eq;
 
@@ -17,7 +17,8 @@ fn assign() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 3,
                 instructions: vec![
                     Instruction::Num(1, 0.0),
@@ -26,7 +27,7 @@ fn assign() {
                     Instruction::Move(1, 2),
                     Instruction::Null(0),
                 ]
-            })],
+            }],
             entry_point: 0,
         }
     )
@@ -39,7 +40,8 @@ fn assign_index() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 6,
                 instructions: vec![
                     Instruction::Arr(1, 1),
@@ -52,7 +54,7 @@ fn assign_index() {
                     Instruction::Store(3, 4, 5),
                     Instruction::Null(0),
                 ]
-            })],
+            }],
             entry_point: 0,
         }
     )
@@ -65,7 +67,8 @@ fn assign_prop() {
         ir,
         Ir {
             data: vec![DataItem::Str(Utf16String::from("a"))],
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 4,
                 instructions: vec![
                     Instruction::Obj(1, 0),
@@ -75,7 +78,7 @@ fn assign_prop() {
                     Instruction::StoreProp(2, 3, 0),
                     Instruction::Null(0),
                 ]
-            })],
+            }],
             entry_point: 0,
         }
     );
@@ -88,7 +91,8 @@ fn assign_arr() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 6,
                 instructions: vec![
                     Instruction::Null(1),
@@ -106,7 +110,7 @@ fn assign_arr() {
                     Instruction::Move(2, 5),
                     Instruction::Null(0),
                 ]
-            })],
+            }],
             entry_point: 0,
         },
     );
@@ -122,7 +126,8 @@ fn assign_obj() {
                 DataItem::Str(Utf16String::from("a")),
                 DataItem::Str(Utf16String::from("b")),
             ],
-            functions: vec![Function::User(UserFn {
+            native_functions: Vec::new(),
+            user_functions: vec![UserFn {
                 register_length: 6,
                 instructions: vec![
                     Instruction::Null(1),
@@ -140,7 +145,7 @@ fn assign_obj() {
                     Instruction::Move(2, 5),
                     Instruction::Null(0),
                 ]
-            })],
+            }],
             entry_point: 0,
         }
     )

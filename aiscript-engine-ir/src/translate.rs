@@ -4,11 +4,11 @@ use aiscript_engine_ast::{self as ast, NamespaceMember};
 use aiscript_engine_common::{
     AiScriptBasicError, AiScriptBasicErrorKind, NamePath, Utf16Str, Utf16String,
 };
-use aiscript_engine_library::{Library, LibraryValue};
+use aiscript_engine_library::{Library, LibraryValue, NativeFn};
 
 use crate::{
     scopes::{Scopes, Variable},
-    DataIndex, DataItem, FnIndex, Function, Instruction, Ir, Register, UserFn,
+    DataIndex, DataItem, Instruction, Ir, Register, UserFn, UserFnIndex,
 };
 
 pub fn translate(ast: &[ast::Node]) -> Ir<'static> {
@@ -22,7 +22,7 @@ pub fn translate(ast: &[ast::Node]) -> Ir<'static> {
 
 pub struct Translator<'ast, 'lib> {
     scopes: Scopes<'ast>,
-    functions: Vec<Function<'lib>>,
+    native_functions: Vec<NativeFn<'lib>>,
     data: Vec<DataItem>,
     register_length: usize,
     block: Vec<Instruction>,
@@ -33,7 +33,7 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
     pub fn new() -> Self {
         Translator {
             scopes: Scopes::new(),
-            functions: Vec::new(),
+            native_functions: Vec::new(),
             data: Vec::new(),
             register_length: 0,
             block: Vec::new(),
@@ -41,16 +41,16 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
         }
     }
 
-    pub fn link_library(&mut self, library: &'lib Library) {
+    pub fn link_library(&mut self, library: Library<'lib>) {
         for (name, value) in library {
             let register = self.use_register();
             match value {
                 LibraryValue::Null => self.append_instruction(Instruction::Null(register)),
                 LibraryValue::Bool(value) => {
-                    self.append_instruction(Instruction::Bool(register, *value))
+                    self.append_instruction(Instruction::Bool(register, value))
                 }
                 LibraryValue::Num(value) => {
-                    self.append_instruction(Instruction::Num(register, *value))
+                    self.append_instruction(Instruction::Num(register, value))
                 }
                 LibraryValue::Str(value) => {
                     let index = self.str_literal(&value);
@@ -59,12 +59,12 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
                 LibraryValue::Obj(_value) => todo!(),
                 LibraryValue::Arr(_value) => todo!(),
                 LibraryValue::Fn(value) => {
-                    let index = self.add_function(Function::Native(*value));
-                    self.append_instruction(Instruction::Fn(register, index));
+                    let index = self.add_native_function(value);
+                    self.append_instruction(Instruction::NativeFn(register, index));
                 }
             }
             self.scopes.root.add(
-                Cow::Owned(NamePath::from(Utf16String::from(*name))),
+                Cow::Owned(NamePath::from(Utf16String::from(name))),
                 Variable {
                     register,
                     is_mutable: false,
@@ -86,15 +86,16 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
     }
 
     pub fn build(self) -> Ir<'lib> {
-        let mut functions = self.functions;
-        let entry_point = functions.len();
-        functions.push(Function::User(UserFn {
+        let mut user_functions: Vec<UserFn> = Vec::new();
+        let entry_point = user_functions.len();
+        user_functions.push(UserFn {
             register_length: self.register_length,
             instructions: self.block,
-        }));
+        });
         Ir {
             data: self.data,
-            functions,
+            native_functions: self.native_functions,
+            user_functions,
             entry_point,
         }
     }
@@ -278,19 +279,7 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
                 }
             }
             ast::Expression::Arr(node) => {
-                let len = node.value.len();
-                self.append_instruction(Instruction::Arr(register, len));
-                if len > 0 {
-                    let value_register = self.use_register();
-                    for (index, value) in node.value.iter().enumerate() {
-                        self.eval_expr(value_register, value);
-                        self.append_instruction(Instruction::StoreIndex(
-                            value_register,
-                            register,
-                            index,
-                        ));
-                    }
-                }
+                self.eval_arr(register, &node.value);
             }
             ast::Expression::Not(node) => {
                 let src = self.use_register();
@@ -314,7 +303,13 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
                     )));
                 }
             }
-            ast::Expression::Call(_node) => todo!(),
+            ast::Expression::Call(node) => {
+                let target = self.use_register();
+                self.eval_expr(target, &node.target);
+                let args = self.use_register();
+                self.eval_arr(args, &node.args);
+                self.append_instruction(Instruction::Call(register, target, args));
+            }
             ast::Expression::Index(node) => {
                 let target = self.use_register();
                 self.eval_expr(target, &node.target);
@@ -329,6 +324,18 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
                 self.append_instruction(Instruction::LoadProp(register, target, name));
             }
             ast::Expression::Binary(_node) => todo!(),
+        }
+    }
+
+    fn eval_arr(&mut self, register: Register, exprs: &'ast [ast::Expression]) {
+        let len = exprs.len();
+        self.append_instruction(Instruction::Arr(register, len));
+        if len > 0 {
+            let value_register = self.use_register();
+            for (index, value) in exprs.iter().enumerate() {
+                self.eval_expr(value_register, value);
+                self.append_instruction(Instruction::StoreIndex(value_register, register, index));
+            }
         }
     }
 
@@ -444,9 +451,9 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
         self.block.push(instruction);
     }
 
-    fn add_function(&mut self, f: Function<'lib>) -> FnIndex {
-        let index = self.functions.len();
-        self.functions.push(f);
+    fn add_native_function(&mut self, f: NativeFn<'lib>) -> UserFnIndex {
+        let index = self.native_functions.len();
+        self.native_functions.push(f);
         return index;
     }
 

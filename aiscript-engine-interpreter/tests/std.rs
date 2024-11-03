@@ -1,15 +1,23 @@
 mod common;
 
 mod core {
+    use std::rc::Rc;
+
+    use aiscript_engine_vm::Value;
+    use utf16_literal::utf16;
+
     use super::common::exe;
 
     #[test]
     fn ai() {
-        assert!(exe("Core:ai").is_ok());
+        assert_eq!(
+            exe("<: Core:ai").unwrap(),
+            Value::Str(Rc::from(&utf16!("kawaii") as &[_]))
+        );
     }
 
     #[test]
     fn not() {
-        assert!(exe("Core:not").is_ok())
+        assert_eq!(exe("<: Core:not(false)").unwrap(), Value::Bool(true))
     }
 }
