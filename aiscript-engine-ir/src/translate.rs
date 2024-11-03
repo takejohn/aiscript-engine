@@ -1,9 +1,10 @@
 use std::borrow::Cow;
 
 use aiscript_engine_ast::{self as ast, NamespaceMember};
-use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, NamePath, Utf16Str, Utf16String};
-use aiscript_engine_library::Library;
-use aiscript_engine_values::Value;
+use aiscript_engine_common::{
+    AiScriptBasicError, AiScriptBasicErrorKind, NamePath, Utf16Str, Utf16String,
+};
+use aiscript_engine_library::{Library, LibraryValue};
 
 use crate::{
     scopes::{Scopes, Variable},
@@ -39,26 +40,28 @@ impl<'ast> Translator<'ast> {
         for (name, value) in library {
             let register = self.use_register();
             match value {
-                Value::Uninitialized => {}
-                Value::Null => self.append_instruction(Instruction::Null(register)),
-                Value::Bool(value) => self.append_instruction(Instruction::Bool(register, *value)),
-                Value::Num(value) => self.append_instruction(Instruction::Num(register, *value)),
-                Value::Str(value) => {
-                    let index = self.str_literal(Utf16Str::new(&value));
+                LibraryValue::Null => self.append_instruction(Instruction::Null(register)),
+                LibraryValue::Bool(value) => {
+                    self.append_instruction(Instruction::Bool(register, *value))
+                }
+                LibraryValue::Num(value) => {
+                    self.append_instruction(Instruction::Num(register, *value))
+                }
+                LibraryValue::Str(value) => {
+                    let index = self.str_literal(&value);
                     self.append_instruction(Instruction::Data(register, index));
-                },
-                Value::Obj(_value) => todo!(),
-                Value::Arr(_value) => todo!(),
-                Value::Fn(_value) => todo!(),
-                Value::Return(_value) => todo!(),
-                Value::Break => todo!(),
-                Value::Continue => todo!(),
-                Value::Error(_value) => todo!(),
+                }
+                LibraryValue::Obj(_value) => todo!(),
+                LibraryValue::Arr(_value) => todo!(),
+                LibraryValue::Fn(_value) => todo!(),
             }
-            self.scopes.root.add(Cow::Owned(NamePath::from(Utf16String::from(*name))), Variable {
-                register,
-                is_mutable: false,
-            });
+            self.scopes.root.add(
+                Cow::Owned(NamePath::from(Utf16String::from(*name))),
+                Variable {
+                    register,
+                    is_mutable: false,
+                },
+            );
         }
     }
 

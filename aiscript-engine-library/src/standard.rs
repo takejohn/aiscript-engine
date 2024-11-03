@@ -7,8 +7,10 @@ use crate::Library;
 macro_rules! str {
     ($name: expr , $value: expr) => {
         (
-            &$name as &[u16],
-            aiscript_engine_values::Value::Str(::std::rc::Rc::from(&$value as &[u16])),
+            &$name as &'static [u16],
+            $crate::LibraryValue::Str(::aiscript_engine_common::Utf16String::from(
+                &$value as &'static [u16],
+            )),
         )
     };
 }

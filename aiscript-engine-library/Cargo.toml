@@ -5,6 +5,8 @@ license.workspace = true
 edition.workspace = true
 
 [dependencies]
+aiscript-engine-common.workspace = true
 aiscript-engine-values.workspace = true
+gc.workspace = true
 indexmap.workspace = true
 utf16-literal.workspace = true
