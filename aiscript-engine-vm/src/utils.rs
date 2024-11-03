@@ -1,7 +1,6 @@
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
+use aiscript_engine_values::{VArr, VObj, Value};
 use gc::{Gc, GcCell};
-
-use crate::{VArr, VObj, Value};
 
 pub(crate) trait GetByF64<T> {
     fn get_by_f64(&self, index: f64) -> Option<&T>;

@@ -7,7 +7,9 @@ members = [
     "aiscript-engine-ir",
     "aiscript-engine-lexer",
     "aiscript-engine-parser",
-    "aiscript-engine-types", "aiscript-engine-vm",
+    "aiscript-engine-types",
+    "aiscript-engine-values",
+    "aiscript-engine-vm",
     "aiscript-js-build-tests",
     "derive-node",
     "derive-wrapper",
@@ -29,6 +31,7 @@ aiscript-engine-ir.path = "aiscript-engine-ir"
 aiscript-engine-lexer.path = "aiscript-engine-lexer"
 aiscript-engine-parser.path = "aiscript-engine-parser"
 aiscript-engine-types.path = "aiscript-engine-types"
+aiscript-engine-values.path = "aiscript-engine-values"
 aiscript-engine-vm.path = "aiscript-engine-vm"
 derive-node.path = "derive-node"
 derive-wrapper.path = "derive-wrapper"

@@ -1,10 +1,11 @@
 use std::rc::Rc;
 
 use aiscript_engine_common::{Utf16Str, Utf16String};
-use aiscript_engine_ir::FnIndex;
 use gc::{custom_trace, Finalize, Gc, GcCell, Trace};
 use indexmap::IndexMap;
 use utf16_literal::utf16;
+
+type FnIndex = usize;
 
 #[derive(Clone, Debug, Finalize)]
 pub enum Value {

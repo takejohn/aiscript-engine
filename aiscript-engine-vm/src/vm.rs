@@ -2,14 +2,11 @@ use std::rc::Rc;
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
 use aiscript_engine_ir::{DataItem, Instruction, InstructionAddress, Ir, Register};
+use aiscript_engine_values::{VObj, Value};
 use gc::{Gc, GcCell};
 use indexmap::IndexMap;
 
-use crate::{
-    utils::{require_array, require_bool, require_object, GetByF64},
-    values::Value,
-    VObj,
-};
+use crate::utils::{require_array, require_bool, require_object, GetByF64};
 
 pub enum VmState {
     Exit,

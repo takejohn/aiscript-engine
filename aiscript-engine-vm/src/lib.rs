@@ -1,6 +1,6 @@
 mod utils;
-mod values;
 mod vm;
 
-pub use values::*;
+pub use aiscript_engine_values::*;
+
 pub use vm::*;
