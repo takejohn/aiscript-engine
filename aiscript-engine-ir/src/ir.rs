@@ -1,18 +1,21 @@
+use std::fmt::Debug;
+
 use aiscript_engine_common::{AiScriptBasicError, Utf16String};
+use aiscript_engine_library::NativeFn;
 
 /// 中間表現
 #[derive(Debug, PartialEq)]
-pub struct Ir {
+pub struct Ir<'lib> {
     pub data: Vec<DataItem>,
-    pub functions: Vec<Procedure>,
+    pub functions: Vec<Function<'lib>>,
     pub entry_point: FnIndex,
 }
 
-impl Default for Ir {
+impl Default for Ir<'_> {
     fn default() -> Self {
         Self {
             data: Vec::new(),
-            functions: vec![Procedure::new()],
+            functions: vec![Function::User(UserFn::new())],
             entry_point: 0,
         }
     }
@@ -23,25 +26,39 @@ pub enum DataItem {
     Str(Utf16String),
 }
 
-#[derive(Debug, PartialEq)]
-pub struct IrFn {
-    pub code: IrFnCode,
+pub enum Function<'lib> {
+    User(UserFn),
+    Native(&'lib NativeFn),
 }
 
-#[derive(Debug, PartialEq)]
-pub enum IrFnCode {
-    User(Procedure),
+impl Debug for Function<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::User(proc) => Debug::fmt(proc, f),
+            Self::Native(_) => write!(f, "<native code>"),
+        }
+    }
+}
+
+impl PartialEq for Function<'_> {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::User(a), Self::User(b)) => a == b,
+            (Self::Native(a), Self::Native(b)) => std::ptr::eq(a, b),
+            _ => false,
+        }
+    }
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct Procedure {
+pub struct UserFn {
     pub register_length: usize,
     pub instructions: Vec<Instruction>,
 }
 
-impl Procedure {
+impl UserFn {
     pub fn new() -> Self {
-        Procedure {
+        UserFn {
             register_length: 0,
             instructions: Vec::new(),
         }
@@ -87,6 +104,9 @@ pub enum Instruction {
     /// 指定された初期容量をもつobjの参照を格納
     Obj(Register, usize),
 
+    /// クロージャを格納
+    Fn(Register, FnIndex),
+
     /// レジスタ0にレジスタ1の値をコピー
     Move(Register, Register),
 
@@ -116,4 +136,7 @@ pub enum Instruction {
 
     /// レジスタ0からレジスタ1.即値2にコピー
     StoreProp(Register, Register, DataIndex),
+
+    /// レジスタ1の関数をレジスタ2の配列の引数で呼び出し、返値をレジスタ0に格納
+    Call(Register, Register, Register),
 }

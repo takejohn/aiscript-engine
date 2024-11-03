@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use aiscript_engine_common::Utf16String;
-use aiscript_engine_ir::{DataItem, Instruction, Ir, Procedure};
+use aiscript_engine_ir::{DataItem, Function, Instruction, Ir, UserFn};
 use aiscript_engine_vm::{Value, Vm};
 use utf16_literal::utf16;
 
@@ -9,10 +9,10 @@ use utf16_literal::utf16;
 fn const_null() {
     let ir = Ir {
         data: Vec::new(),
-        functions: vec![Procedure {
+        functions: vec![Function::User(UserFn {
             register_length: 1,
             instructions: vec![Instruction::Null(0)],
-        }],
+        })],
         entry_point: 0,
     };
     let mut vm = Vm::new(&ir);
@@ -24,10 +24,10 @@ fn const_null() {
 fn const_num() {
     let ir = Ir {
         data: Vec::new(),
-        functions: vec![Procedure {
+        functions: vec![Function::User(UserFn {
             register_length: 1,
             instructions: vec![Instruction::Num(0, 42.0)],
-        }],
+        })],
         entry_point: 0,
     };
     let mut vm = Vm::new(&ir);
@@ -39,10 +39,10 @@ fn const_num() {
 fn const_bool() {
     let ir = Ir {
         data: Vec::new(),
-        functions: vec![Procedure {
+        functions: vec![Function::User(UserFn {
             register_length: 1,
             instructions: vec![Instruction::Bool(0, true)],
-        }],
+        })],
         entry_point: 0,
     };
     let mut vm = Vm::new(&ir);
@@ -54,10 +54,10 @@ fn const_bool() {
 fn const_str() {
     let ir = Ir {
         data: vec![DataItem::Str(Utf16String::from("Hello, world!"))],
-        functions: vec![Procedure {
+        functions: vec![Function::User(UserFn {
             register_length: 1,
             instructions: vec![Instruction::Data(0, 0)],
-        }],
+        })],
         entry_point: 0,
     };
     let mut vm = Vm::new(&ir);

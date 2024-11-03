@@ -8,27 +8,32 @@ use aiscript_engine_library::{Library, LibraryValue};
 
 use crate::{
     scopes::{Scopes, Variable},
-    DataIndex, DataItem, Instruction, Ir, Procedure, Register,
+    DataIndex, DataItem, FnIndex, Function, Instruction, Ir, Register, UserFn,
 };
 
-pub fn translate(ast: &[ast::Node]) -> Ir {
+pub fn translate(ast: &[ast::Node]) -> Ir<'static> {
+    if ast.is_empty() {
+        return Ir::default();
+    }
     let mut translator = Translator::new();
     translator.translate(ast);
     return translator.build();
 }
 
-pub struct Translator<'ast> {
+pub struct Translator<'ast, 'lib> {
     scopes: Scopes<'ast>,
+    functions: Vec<Function<'lib>>,
     data: Vec<DataItem>,
     register_length: usize,
     block: Vec<Instruction>,
     blocks: Vec<Vec<Instruction>>,
 }
 
-impl<'ast> Translator<'ast> {
+impl<'ast, 'lib> Translator<'ast, 'lib> {
     pub fn new() -> Self {
         Translator {
             scopes: Scopes::new(),
+            functions: Vec::new(),
             data: Vec::new(),
             register_length: 0,
             block: Vec::new(),
@@ -36,7 +41,7 @@ impl<'ast> Translator<'ast> {
         }
     }
 
-    pub fn link_library(&mut self, library: &Library) {
+    pub fn link_library(&mut self, library: &'lib Library) {
         for (name, value) in library {
             let register = self.use_register();
             match value {
@@ -53,7 +58,10 @@ impl<'ast> Translator<'ast> {
                 }
                 LibraryValue::Obj(_value) => todo!(),
                 LibraryValue::Arr(_value) => todo!(),
-                LibraryValue::Fn(_value) => todo!(),
+                LibraryValue::Fn(value) => {
+                    let index = self.add_function(Function::Native(*value));
+                    self.append_instruction(Instruction::Fn(register, index));
+                }
             }
             self.scopes.root.add(
                 Cow::Owned(NamePath::from(Utf16String::from(*name))),
@@ -77,14 +85,17 @@ impl<'ast> Translator<'ast> {
         self.run(register, ast);
     }
 
-    pub fn build(self) -> Ir {
+    pub fn build(self) -> Ir<'lib> {
+        let mut functions = self.functions;
+        let entry_point = functions.len();
+        functions.push(Function::User(UserFn {
+            register_length: self.register_length,
+            instructions: self.block,
+        }));
         Ir {
             data: self.data,
-            functions: vec![Procedure {
-                register_length: self.register_length,
-                instructions: self.block,
-            }],
-            entry_point: 0,
+            functions,
+            entry_point,
         }
     }
 
@@ -431,6 +442,12 @@ impl<'ast> Translator<'ast> {
 
     fn append_instruction(&mut self, instruction: Instruction) {
         self.block.push(instruction);
+    }
+
+    fn add_function(&mut self, f: Function<'lib>) -> FnIndex {
+        let index = self.functions.len();
+        self.functions.push(f);
+        return index;
     }
 
     fn str_literal(&mut self, s: &Utf16Str) -> DataIndex {

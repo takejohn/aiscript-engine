@@ -18,7 +18,7 @@ pub enum Value {
     Str(Rc<[u16]>),
     Obj(Gc<GcCell<VObj>>),
     Arr(Gc<GcCell<VArr>>),
-    Fn(Gc<VFn>),
+    Fn(Gc<GcCell<VFn>>),
 
     /// Return文で値が返されたことを示すためのラッパー
     Return(Box<Value>),

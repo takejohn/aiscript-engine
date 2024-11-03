@@ -1,6 +1,6 @@
 mod common;
 
-use aiscript_engine_ir::{Instruction, Ir, Procedure};
+use aiscript_engine_ir::{Function, Instruction, Ir, UserFn};
 use common::to_ir;
 use pretty_assertions::assert_eq;
 
@@ -11,10 +11,10 @@ fn exists_false() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Procedure {
+            functions: vec![Function::User(UserFn {
                 register_length: 1,
                 instructions: vec![Instruction::Bool(0, false),]
-            }],
+            })],
             entry_point: 0,
         }
     );
@@ -32,14 +32,14 @@ fn exists_true() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Procedure {
+            functions: vec![Function::User(UserFn {
                 register_length: 2,
                 instructions: vec![
                     Instruction::Num(1, 42.0),
                     Instruction::Null(0),
                     Instruction::Bool(0, true),
                 ]
-            }],
+            })],
             entry_point: 0,
         }
     );

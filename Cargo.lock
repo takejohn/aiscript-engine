@@ -117,6 +117,7 @@ version = "0.1.0+1.0.0"
 dependencies = [
  "aiscript-engine-common",
  "aiscript-engine-ir",
+ "aiscript-engine-library",
  "aiscript-engine-types",
  "aiscript-engine-values",
  "gc",

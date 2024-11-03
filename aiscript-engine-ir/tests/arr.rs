@@ -1,4 +1,4 @@
-use aiscript_engine_ir::{Instruction, Ir, Procedure};
+use aiscript_engine_ir::{Function, Instruction, Ir, UserFn};
 use common::to_ir;
 use pretty_assertions::assert_eq;
 
@@ -11,7 +11,7 @@ fn arr_literal() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Procedure {
+            functions: vec![Function::User(UserFn {
                 register_length: 2,
                 instructions: vec![
                     Instruction::Arr(0, 3),
@@ -22,7 +22,7 @@ fn arr_literal() {
                     Instruction::Num(1, 3.0),
                     Instruction::StoreIndex(1, 0, 2),
                 ]
-            }],
+            })],
             entry_point: 0,
         }
     );
@@ -35,7 +35,7 @@ fn index() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Procedure {
+            functions: vec![Function::User(UserFn {
                 register_length: 4,
                 instructions: vec![
                     Instruction::Arr(1, 1),
@@ -44,7 +44,7 @@ fn index() {
                     Instruction::Num(3, 0.0),
                     Instruction::Load(0, 1, 3),
                 ]
-            }],
+            })],
             entry_point: 0,
         },
     );

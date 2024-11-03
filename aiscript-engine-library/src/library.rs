@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use aiscript_engine_common::Utf16String;
+use aiscript_engine_common::{Result, Utf16String};
 use aiscript_engine_values::{VArr, VObj, Value};
 use gc::{Gc, GcCell};
 
@@ -15,10 +15,8 @@ pub enum LibraryValue<'lib> {
     Str(Utf16String),
     Obj(Gc<GcCell<VObj>>),
     Arr(Gc<GcCell<VArr>>),
-    Fn(&'lib mut dyn NativeFn),
+    Fn(&'lib NativeFn),
     // TODO: Error
 }
 
-pub trait NativeFn {
-    fn call(&mut self, values: Vec<Value>, context: &mut dyn Context) -> LibraryValue;
-}
+pub type NativeFn = dyn Fn(Vec<Value>, Vec<Value>, &mut dyn Context) -> Result<Value>;

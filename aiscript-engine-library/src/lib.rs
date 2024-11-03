@@ -2,5 +2,6 @@ mod context;
 mod library;
 mod standard;
 
-pub use library::{Library, LibraryValue};
+pub use context::Context;
+pub use library::*;
 pub use standard::STD;

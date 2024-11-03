@@ -1,12 +1,13 @@
 use std::rc::Rc;
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
-use aiscript_engine_ir::{DataItem, Instruction, InstructionAddress, Ir, Register};
-use aiscript_engine_values::{VObj, Value};
+use aiscript_engine_ir::{DataItem, Function, Instruction, InstructionAddress, Ir, Register};
+use aiscript_engine_library::Context;
+use aiscript_engine_values::{VFn, VObj, Value};
 use gc::{Gc, GcCell};
 use indexmap::IndexMap;
 
-use crate::utils::{require_array, require_bool, require_object, GetByF64};
+use crate::utils::{require_array, require_bool, require_function, require_object, GetByF64};
 
 pub enum VmState {
     Exit,
@@ -15,6 +16,7 @@ pub enum VmState {
 
 pub struct Vm<'ir> {
     data: Vec<Rc<[u16]>>,
+    functions: &'ir [Function<'ir>],
     pc: ProgramCounter<'ir>,
     pc_stack: Vec<ProgramCounter<'ir>>,
     registers: Vec<Value>,
@@ -23,20 +25,26 @@ pub struct Vm<'ir> {
 impl<'ir> Vm<'ir> {
     pub fn new(ir: &'ir Ir) -> Self {
         let entry_point = &ir.functions[ir.entry_point];
-        let register_length = entry_point.register_length;
-        let data: Vec<Rc<[u16]>> = ir
-            .data
-            .iter()
-            .map(|DataItem::Str(item)| Rc::from(item.as_u16s()))
-            .collect();
-        Vm {
-            data,
-            pc: ProgramCounter {
-                instructions: &entry_point.instructions,
-                index: 0,
-            },
-            pc_stack: Vec::new(),
-            registers: vec![Value::Uninitialized; register_length],
+        match entry_point {
+            Function::User(entry_point) => {
+                let register_length = entry_point.register_length;
+                let data: Vec<Rc<[u16]>> = ir
+                    .data
+                    .iter()
+                    .map(|DataItem::Str(item)| Rc::from(item.as_u16s()))
+                    .collect();
+                Vm {
+                    data,
+                    functions: &ir.functions,
+                    pc: ProgramCounter {
+                        instructions: &entry_point.instructions,
+                        index: 0,
+                    },
+                    pc_stack: Vec::new(),
+                    registers: vec![Value::Uninitialized; register_length],
+                }
+            }
+            Function::Native(_) => todo!(),
         }
     }
 
@@ -105,6 +113,13 @@ impl<'ir> Vm<'ir> {
             Instruction::Obj(register, n) => {
                 self.registers[*register] =
                     Value::Obj(Gc::new(GcCell::new(VObj(IndexMap::with_capacity(*n)))));
+                self.pc.index += 1;
+            }
+            Instruction::Fn(register, index) => {
+                self.registers[*register] = Value::Fn(Gc::new(GcCell::new(VFn {
+                    index: *index,
+                    capture: Vec::new(),
+                })));
                 self.pc.index += 1;
             }
             Instruction::Move(dest, src) => {
@@ -229,6 +244,19 @@ impl<'ir> Vm<'ir> {
                     .insert(name, self.registers[*register].clone());
                 self.pc.index += 1;
             }
+            Instruction::Call(register, f, args) => {
+                let closure = require_function(&self.registers[*f])?;
+                let args = require_array(&self.registers[*args])?;
+                let function = &self.functions[closure.borrow().index];
+                let capture = closure.borrow().capture.clone();
+                match function {
+                    Function::User(_function) => todo!(),
+                    Function::Native(function) => {
+                        self.registers[*register] = function(args.borrow().clone(), capture, self)?;
+                    }
+                }
+                self.pc.index += 1;
+            }
         }
 
         return Ok(VmState::Continue);
@@ -261,6 +289,8 @@ impl<'ir> Vm<'ir> {
         }
     }
 }
+
+impl Context for Vm<'_> {}
 
 struct ProgramCounter<'ir> {
     instructions: &'ir [Instruction],

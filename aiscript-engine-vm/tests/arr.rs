@@ -1,11 +1,11 @@
-use aiscript_engine_ir::{Instruction, Ir, Procedure};
+use aiscript_engine_ir::{Function, Instruction, Ir, UserFn};
 use aiscript_engine_vm::{Value, Vm};
 
 #[test]
 fn arr_literal() {
     let ir = Ir {
         data: Vec::new(),
-        functions: vec![Procedure {
+        functions: vec![Function::User(UserFn {
             register_length: 4,
             instructions: vec![
                 Instruction::Num(1, 42.0),
@@ -16,7 +16,7 @@ fn arr_literal() {
                 Instruction::StoreIndex(2, 0, 1),
                 Instruction::StoreIndex(3, 0, 2),
             ],
-        }],
+        })],
         entry_point: 0,
     };
     let mut vm = Vm::new(&ir);
@@ -34,7 +34,7 @@ fn arr_literal() {
 fn store_and_load_index() {
     let ir = Ir {
         data: Vec::new(),
-        functions: vec![Procedure {
+        functions: vec![Function::User(UserFn {
             register_length: 2,
             instructions: vec![
                 Instruction::Arr(0, 1),
@@ -42,7 +42,7 @@ fn store_and_load_index() {
                 Instruction::StoreIndex(1, 0, 0),
                 Instruction::LoadIndex(0, 0, 0),
             ],
-        }],
+        })],
         entry_point: 0,
     };
     let mut vm = Vm::new(&ir);
@@ -54,7 +54,7 @@ fn store_and_load_index() {
 fn store_and_load() {
     let ir = Ir {
         data: Vec::new(),
-        functions: vec![Procedure {
+        functions: vec![Function::User(UserFn {
             register_length: 3,
             instructions: vec![
                 Instruction::Arr(0, 1),
@@ -63,7 +63,7 @@ fn store_and_load() {
                 Instruction::Store(1, 0, 2),
                 Instruction::Load(0, 0, 2),
             ],
-        }],
+        })],
         entry_point: 0,
     };
     let mut vm = Vm::new(&ir);

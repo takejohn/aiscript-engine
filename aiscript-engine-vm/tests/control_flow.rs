@@ -1,11 +1,11 @@
-use aiscript_engine_ir::{Instruction, Ir, Procedure};
+use aiscript_engine_ir::{Function, Instruction, Ir, UserFn};
 use aiscript_engine_vm::{Value, Vm};
 
 #[test]
 fn test_if_true() {
     let ir = Ir {
         data: Vec::new(),
-        functions: vec![Procedure {
+        functions: vec![Function::User(UserFn {
             register_length: 2,
             instructions: vec![
                 Instruction::Bool(1, true),
@@ -15,7 +15,7 @@ fn test_if_true() {
                     vec![Instruction::Num(0, 2.0)],
                 ),
             ],
-        }],
+        })],
         entry_point: 0,
     };
     let mut vm = Vm::new(&ir);
@@ -27,7 +27,7 @@ fn test_if_true() {
 fn test_if_false() {
     let ir = Ir {
         data: Vec::new(),
-        functions: vec![Procedure {
+        functions: vec![Function::User(UserFn {
             register_length: 2,
             instructions: vec![
                 Instruction::Bool(1, false),
@@ -37,7 +37,7 @@ fn test_if_false() {
                     vec![Instruction::Num(0, 2.0)],
                 ),
             ],
-        }],
+        })],
         entry_point: 0,
     };
     let mut vm = Vm::new(&ir);

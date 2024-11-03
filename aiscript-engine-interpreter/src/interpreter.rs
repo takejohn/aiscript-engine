@@ -14,7 +14,8 @@ impl Interpreter {
 
     pub fn run(&mut self, program: &[ast::Node]) -> Result<Value> {
         let mut translator = Translator::new();
-        translator.link_library(&aiscript_engine_library::STD);
+        let std = aiscript_engine_library::STD;
+        translator.link_library(&std);
         translator.translate(&program);
         let ir = translator.build();
         let mut vm = Vm::new(&ir);

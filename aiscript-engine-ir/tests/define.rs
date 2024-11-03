@@ -1,5 +1,5 @@
 use aiscript_engine_common::Utf16String;
-use aiscript_engine_ir::{DataItem, Instruction, Ir, Procedure};
+use aiscript_engine_ir::{DataItem, Function, Instruction, Ir, UserFn};
 use common::to_ir;
 use pretty_assertions::assert_eq;
 
@@ -12,7 +12,7 @@ fn define_arr() {
         ir,
         Ir {
             data: Vec::new(),
-            functions: vec![Procedure {
+            functions: vec![Function::User(UserFn {
                 register_length: 5,
                 instructions: vec![
                     Instruction::Arr(1, 2),
@@ -24,7 +24,7 @@ fn define_arr() {
                     Instruction::LoadIndex(4, 1, 1),
                     Instruction::Null(0),
                 ]
-            }],
+            })],
             entry_point: 0,
         },
     );
@@ -40,7 +40,7 @@ fn define_obj() {
                 DataItem::Str(Utf16String::from("a")),
                 DataItem::Str(Utf16String::from("b")),
             ],
-            functions: vec![Procedure {
+            functions: vec![Function::User(UserFn {
                 register_length: 5,
                 instructions: vec![
                     Instruction::Obj(1, 2),
@@ -52,7 +52,7 @@ fn define_obj() {
                     Instruction::LoadProp(4, 1, 1),
                     Instruction::Null(0),
                 ]
-            }],
+            })],
             entry_point: 0,
         }
     )
