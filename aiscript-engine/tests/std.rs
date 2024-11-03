@@ -3,8 +3,7 @@ mod common;
 mod core {
     use std::rc::Rc;
 
-    use aiscript_engine_vm::Value;
-    use utf16_literal::utf16;
+    use aiscript_engine::{utf16, Value};
 
     use super::common::exe;
 

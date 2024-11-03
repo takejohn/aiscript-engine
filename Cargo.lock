@@ -6,7 +6,12 @@ version = 3
 name = "aiscript-engine"
 version = "0.1.0+1.0.0"
 dependencies = [
+ "aiscript-engine-common",
+ "aiscript-engine-interpreter",
  "aiscript-engine-parser",
+ "aiscript-engine-values",
+ "aiscript-engine-vm",
+ "utf16-literal",
 ]
 
 [[package]]
@@ -42,7 +47,6 @@ dependencies = [
  "aiscript-engine-common",
  "aiscript-engine-ir",
  "aiscript-engine-library",
- "aiscript-engine-parser",
  "aiscript-engine-types",
  "aiscript-engine-vm",
  "indexmap",

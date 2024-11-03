@@ -1,7 +1,4 @@
-use aiscript_engine_common::{Result, Utf16String};
-use aiscript_engine_interpreter::{Interpreter, InterpreterOpts};
-use aiscript_engine_parser::Parser;
-use aiscript_engine_vm::Value;
+use aiscript_engine::{Interpreter, InterpreterOpts, Parser, Result, Utf16String, Value};
 
 struct TestOpts {
     result: Value,

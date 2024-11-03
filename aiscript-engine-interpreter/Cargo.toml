@@ -13,6 +13,3 @@ aiscript-engine-types.workspace = true
 aiscript-engine-vm.workspace = true
 indexmap.workspace = true
 utf16-literal.workspace = true
-
-[dev-dependencies]
-aiscript-engine-parser.workspace = true

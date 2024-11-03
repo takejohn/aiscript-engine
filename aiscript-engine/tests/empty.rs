@@ -1,4 +1,4 @@
-use aiscript_engine_vm::Value;
+use aiscript_engine::Value;
 use common::exe;
 
 mod common;
