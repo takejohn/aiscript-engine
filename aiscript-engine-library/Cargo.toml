@@ -1,0 +1,10 @@
+[package]
+name = "aiscript-engine-library"
+version.workspace = true
+license.workspace = true
+edition.workspace = true
+
+[dependencies]
+aiscript-engine-values.workspace = true
+indexmap.workspace = true
+utf16-literal.workspace = true

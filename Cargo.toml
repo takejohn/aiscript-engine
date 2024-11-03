@@ -6,6 +6,7 @@ members = [
     "aiscript-engine-interpreter",
     "aiscript-engine-ir",
     "aiscript-engine-lexer",
+    "aiscript-engine-library",
     "aiscript-engine-parser",
     "aiscript-engine-types",
     "aiscript-engine-values",
@@ -29,6 +30,7 @@ aiscript-engine-ast.path = "aiscript-engine-ast"
 aiscript-engine-common.path = "aiscript-engine-common"
 aiscript-engine-ir.path = "aiscript-engine-ir"
 aiscript-engine-lexer.path = "aiscript-engine-lexer"
+aiscript-engine-library.path = "aiscript-engine-library"
 aiscript-engine-parser.path = "aiscript-engine-parser"
 aiscript-engine-types.path = "aiscript-engine-types"
 aiscript-engine-values.path = "aiscript-engine-values"

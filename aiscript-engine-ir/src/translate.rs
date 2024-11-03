@@ -1,5 +1,9 @@
+use std::borrow::Cow;
+
 use aiscript_engine_ast::{self as ast, NamespaceMember};
-use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Utf16Str};
+use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, NamePath, Utf16Str, Utf16String};
+use aiscript_engine_library::Library;
+use aiscript_engine_values::Value;
 
 use crate::{
     scopes::{Scopes, Variable},
@@ -7,10 +11,12 @@ use crate::{
 };
 
 pub fn translate(ast: &[ast::Node]) -> Ir {
-    Translator::new().translate(ast)
+    let mut translator = Translator::new();
+    translator.translate(ast);
+    return translator.build();
 }
 
-struct Translator<'ast> {
+pub struct Translator<'ast> {
     scopes: Scopes<'ast>,
     data: Vec<DataItem>,
     register_length: usize,
@@ -19,7 +25,7 @@ struct Translator<'ast> {
 }
 
 impl<'ast> Translator<'ast> {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Translator {
             scopes: Scopes::new(),
             data: Vec::new(),
@@ -29,9 +35,36 @@ impl<'ast> Translator<'ast> {
         }
     }
 
-    fn translate(mut self, ast: &'ast [ast::Node]) -> Ir {
+    pub fn link_library(&mut self, library: &Library) {
+        for (name, value) in library {
+            let register = self.use_register();
+            match value {
+                Value::Uninitialized => {}
+                Value::Null => self.append_instruction(Instruction::Null(register)),
+                Value::Bool(value) => self.append_instruction(Instruction::Bool(register, *value)),
+                Value::Num(value) => self.append_instruction(Instruction::Num(register, *value)),
+                Value::Str(value) => {
+                    let index = self.str_literal(Utf16Str::new(&value));
+                    self.append_instruction(Instruction::Data(register, index));
+                },
+                Value::Obj(_value) => todo!(),
+                Value::Arr(_value) => todo!(),
+                Value::Fn(_value) => todo!(),
+                Value::Return(_value) => todo!(),
+                Value::Break => todo!(),
+                Value::Continue => todo!(),
+                Value::Error(_value) => todo!(),
+            }
+            self.scopes.root.add(Cow::Owned(NamePath::from(Utf16String::from(*name))), Variable {
+                register,
+                is_mutable: false,
+            });
+        }
+    }
+
+    pub fn translate(&mut self, ast: &'ast [ast::Node]) {
         if ast.is_empty() {
-            return Ir::default();
+            return;
         }
         self.collect_ns(ast.iter().filter_map(|ns| match ns {
             aiscript_engine_ast::Node::Ns(node) => Some(node),
@@ -39,10 +72,9 @@ impl<'ast> Translator<'ast> {
         }));
         let register = self.use_register();
         self.run(register, ast);
-        return self.build();
     }
 
-    fn build(self) -> Ir {
+    pub fn build(self) -> Ir {
         Ir {
             data: self.data,
             functions: vec![Procedure {

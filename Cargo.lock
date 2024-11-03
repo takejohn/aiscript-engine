@@ -41,6 +41,8 @@ dependencies = [
  "aiscript-engine-ast",
  "aiscript-engine-common",
  "aiscript-engine-ir",
+ "aiscript-engine-library",
+ "aiscript-engine-parser",
  "aiscript-engine-types",
  "aiscript-engine-vm",
  "indexmap",
@@ -53,7 +55,9 @@ version = "0.1.0+1.0.0"
 dependencies = [
  "aiscript-engine-ast",
  "aiscript-engine-common",
+ "aiscript-engine-library",
  "aiscript-engine-parser",
+ "aiscript-engine-values",
  "pretty_assertions",
  "utf16-literal",
 ]
@@ -63,6 +67,15 @@ name = "aiscript-engine-lexer"
 version = "0.1.0+1.0.0"
 dependencies = [
  "aiscript-engine-common",
+ "utf16-literal",
+]
+
+[[package]]
+name = "aiscript-engine-library"
+version = "0.1.0+1.0.0"
+dependencies = [
+ "aiscript-engine-values",
+ "indexmap",
  "utf16-literal",
 ]
 

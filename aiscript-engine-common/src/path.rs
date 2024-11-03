@@ -66,13 +66,24 @@ impl NamePath {
     }
 }
 
-impl<S> From<S> for NamePath
-where
-    S: Borrow<Utf16Str>,
-{
-    fn from(value: S) -> Self {
+impl From<Utf16String> for NamePath {
+    fn from(value: Utf16String) -> Self {
+        NamePath { inner: value }
+    }
+}
+
+impl From<&Utf16String> for NamePath {
+    fn from(value: &Utf16String) -> Self {
         NamePath {
-            inner: value.borrow().to_owned(),
+            inner: value.to_owned(),
+        }
+    }
+}
+
+impl From<&Utf16Str> for NamePath {
+    fn from(value: &Utf16Str) -> Self {
+        NamePath {
+            inner: value.to_owned(),
         }
     }
 }

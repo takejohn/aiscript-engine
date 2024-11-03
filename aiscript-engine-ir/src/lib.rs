@@ -3,4 +3,4 @@ mod scopes;
 mod translate;
 
 pub use ir::*;
-pub use translate::translate;
+pub use translate::{Translator, translate};

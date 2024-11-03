@@ -10,8 +10,14 @@ use crate::Register;
 mod variable;
 
 /// グローバル変数が登録されたスコープ。
-struct RootScope<'ast> {
+pub(crate) struct RootScope<'ast> {
     variables: HashMap<Cow<'ast, NamePath>, Variable>,
+}
+
+impl<'ast> RootScope<'ast> {
+    pub(crate) fn add(&mut self, name: impl Into<Cow<'ast, NamePath>>, variable: Variable) {
+        self.variables.insert(name.into(), variable);
+    }
 }
 
 /// 名前空間内のスコープ。
@@ -26,7 +32,7 @@ struct BlockScope<'ast> {
 }
 
 pub(crate) struct Scopes<'ast> {
-    root: RootScope<'ast>,
+    pub(crate) root: RootScope<'ast>,
     namespaces: Vec<NamespaceScope<'ast>>,
     blocks: Vec<BlockScope<'ast>>,
 }

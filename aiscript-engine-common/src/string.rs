@@ -236,6 +236,14 @@ impl From<&str> for Utf16String {
     }
 }
 
+impl From<&[u16]> for Utf16String {
+    fn from(value: &[u16]) -> Self {
+        Utf16String {
+            data: Vec::from(value),
+        }
+    }
+}
+
 impl From<u16> for Utf16String {
     fn from(value: u16) -> Self {
         Utf16String { data: vec![value] }
