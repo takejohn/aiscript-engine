@@ -18,5 +18,5 @@ fn panics() {
         entry_point: 0,
     };
     let mut vm = Vm::new(&mut ir);
-    assert!(vm.step().is_err());
+    assert!(vm.exec().is_err());
 }

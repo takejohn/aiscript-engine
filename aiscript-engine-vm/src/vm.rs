@@ -9,7 +9,7 @@ use indexmap::IndexMap;
 
 use crate::utils::{require_array, require_bool, require_function, require_object, GetByF64};
 
-pub enum VmState {
+enum VmState {
     Exit,
     Continue,
 }
@@ -53,7 +53,7 @@ impl<'ir, 'lib: 'ir> Vm<'ir, 'lib> {
         }
     }
 
-    pub fn step(&mut self) -> Result<VmState> {
+    fn step(&mut self) -> Result<VmState> {
         let Some(instruction) = self.get_instruction() else {
             return Ok(VmState::Exit);
         };

@@ -1,5 +1,5 @@
 use aiscript_engine_ir::{Instruction, Ir, UserFn};
-use aiscript_engine_vm::{Vm, VmState};
+use aiscript_engine_vm::Vm;
 
 #[test]
 fn nop() {
@@ -13,6 +13,5 @@ fn nop() {
         entry_point: 0,
     };
     let mut vm = Vm::new(&mut ir);
-    assert!(matches!(vm.step().unwrap(), VmState::Continue));
-    assert!(matches!(vm.step().unwrap(), VmState::Exit));
+    assert!(vm.exec().is_ok());
 }

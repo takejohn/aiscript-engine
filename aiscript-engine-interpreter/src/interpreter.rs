@@ -6,7 +6,7 @@ use aiscript_engine_ast as ast;
 use aiscript_engine_common::Result;
 use aiscript_engine_ir::Translator;
 use aiscript_engine_library::{std_library, LibraryValue, NativeFn};
-use aiscript_engine_vm::{Value, Vm, VmState};
+use aiscript_engine_vm::{Value, Vm};
 use utf16_literal::utf16;
 
 pub trait InterpreterOpts {
@@ -38,9 +38,7 @@ impl<'opts> Interpreter<'opts> {
         translator.translate(&program);
         let mut ir = translator.build();
         let mut vm = Vm::new(&mut ir);
-        while let VmState::Continue = vm.step()? {
-            // nop
-        }
+        vm.exec()?;
         return Ok(Value::Null);
     }
 }
