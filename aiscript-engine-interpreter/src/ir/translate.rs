@@ -1,12 +1,12 @@
 use std::borrow::Cow;
 
+use crate::library::{Library, LibraryValue, NativeFn};
 use aiscript_engine_ast::{self as ast, NamespaceMember};
 use aiscript_engine_common::{
     AiScriptBasicError, AiScriptBasicErrorKind, NamePath, Utf16Str, Utf16String,
 };
-use aiscript_engine_library::{Library, LibraryValue, NativeFn};
 
-use crate::{
+use super::{
     scopes::{Scopes, Variable},
     DataIndex, DataItem, Instruction, Ir, Register, UserFn, UserFnIndex,
 };

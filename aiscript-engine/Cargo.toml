@@ -14,5 +14,4 @@ aiscript-engine-common.workspace = true
 aiscript-engine-interpreter.workspace = true
 aiscript-engine-parser.workspace = true
 aiscript-engine-values.workspace = true
-aiscript-engine-vm.workspace = true
 utf16-literal.workspace = true

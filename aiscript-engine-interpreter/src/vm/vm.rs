@@ -1,13 +1,18 @@
-use std::{ops::{Index, IndexMut}, rc::Rc};
+use std::{
+    ops::{Index, IndexMut},
+    rc::Rc,
+};
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
-use aiscript_engine_ir::{DataItem, Instruction, Ir, Register, UserFn};
-use aiscript_engine_library::NativeFn;
 use aiscript_engine_values::{FnIndex, VFn, VObj, Value};
 use gc::{Gc, GcCell};
 use indexmap::IndexMap;
 
-use crate::utils::{require_array, require_bool, require_function, require_num, require_object, GetByF64};
+use super::utils::{
+    require_array, require_bool, require_function, require_num, require_object, GetByF64,
+};
+use crate::ir::{DataItem, Instruction, Ir, Register, UserFn};
+use crate::library::NativeFn;
 
 struct Registers {
     registers: Vec<Value>,
@@ -16,7 +21,7 @@ struct Registers {
 impl Registers {
     fn new(len: usize) -> Self {
         Registers {
-            registers: vec![Value::Uninitialized; len]
+            registers: vec![Value::Uninitialized; len],
         }
     }
 }
@@ -49,7 +54,10 @@ impl<'lib> Vm<'lib> {
     }
 
     pub fn load_data(&mut self, data: &[DataItem]) {
-        self.data.extend(data.iter().map(|DataItem::Str(item)| Rc::from(item.as_u16s())));
+        self.data.extend(
+            data.iter()
+                .map(|DataItem::Str(item)| Rc::from(item.as_u16s())),
+        );
     }
 
     pub fn register_native_fn(&mut self, native_fn: NativeFn<'lib>) {
@@ -57,10 +65,17 @@ impl<'lib> Vm<'lib> {
     }
 
     pub fn exec(&mut self, entry_point: &UserFn) -> Result<()> {
-        self.exec_instructions(&entry_point.instructions, &mut Registers::new(entry_point.register_length))
+        self.exec_instructions(
+            &entry_point.instructions,
+            &mut Registers::new(entry_point.register_length),
+        )
     }
 
-    fn exec_instructions(&mut self, instructions: &[Instruction], registers: &mut Registers) -> Result<()> {
+    fn exec_instructions(
+        &mut self,
+        instructions: &[Instruction],
+        registers: &mut Registers,
+    ) -> Result<()> {
         for instruction in instructions {
             self.step(&instruction, registers)?;
         }
@@ -228,12 +243,10 @@ impl<'lib> Vm<'lib> {
                         let function = &mut self.native_functions[index];
                         match function {
                             NativeFn::Static(function) => {
-                                registers[*register] =
-                                    function(args.borrow().clone(), capture)?;
+                                registers[*register] = function(args.borrow().clone(), capture)?;
                             }
                             NativeFn::Dynamic(function) => {
-                                registers[*register] =
-                                    function(args.borrow().clone(), capture)?;
+                                registers[*register] = function(args.borrow().clone(), capture)?;
                             }
                         };
                     }

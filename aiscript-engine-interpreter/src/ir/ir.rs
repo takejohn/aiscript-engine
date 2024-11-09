@@ -1,7 +1,7 @@
 use std::fmt::Debug;
 
+use crate::library::NativeFn;
 use aiscript_engine_common::{AiScriptBasicError, Utf16String};
-use aiscript_engine_library::NativeFn;
 
 /// 中間表現
 #[derive(Debug, PartialEq)]

@@ -4,10 +4,11 @@ use std::collections::HashMap;
 
 use aiscript_engine_ast as ast;
 use aiscript_engine_common::Result;
-use aiscript_engine_ir::Translator;
-use aiscript_engine_library::{std_library, LibraryValue, NativeFn};
-use aiscript_engine_vm::{Value, Vm};
 use utf16_literal::utf16;
+
+use crate::ir::Translator;
+use crate::library::{std_library, LibraryValue, NativeFn};
+use crate::vm::{Value, Vm};
 
 pub trait InterpreterOpts {
     fn out(&mut self, value: Value);

@@ -2,13 +2,13 @@ use std::collections::HashMap;
 
 use utf16_literal::utf16;
 
-use crate::Library;
+use super::Library;
 
 macro_rules! str {
     ($name: expr , $value: expr) => {
         (
             &$name as &'static [u16],
-            $crate::LibraryValue::Str(::aiscript_engine_common::Utf16String::from(
+            $crate::library::LibraryValue::Str(::aiscript_engine_common::Utf16String::from(
                 &$value as &'static [u16],
             )),
         )
@@ -19,7 +19,7 @@ macro_rules! func {
     ($name: expr , $value: expr) => {
         (
             &$name as &'static [u16],
-            $crate::LibraryValue::Fn($crate::NativeFn::Static(&$value)),
+            $crate::library::LibraryValue::Fn($crate::library::NativeFn::Static(&$value)),
         )
     };
 }

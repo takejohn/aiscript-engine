@@ -5,7 +5,7 @@ use utf16_literal::utf16;
 
 pub(crate) use variable::Variable;
 
-use crate::Register;
+use super::Register;
 
 mod variable;
 

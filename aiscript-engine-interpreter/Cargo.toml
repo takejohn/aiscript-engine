@@ -7,9 +7,8 @@ edition.workspace = true
 [dependencies]
 aiscript-engine-ast.workspace = true
 aiscript-engine-common.workspace = true
-aiscript-engine-ir.workspace = true
-aiscript-engine-library.workspace = true
 aiscript-engine-types.workspace = true
-aiscript-engine-vm.workspace = true
+aiscript-engine-values.workspace = true
+gc.workspace = true
 indexmap.workspace = true
 utf16-literal.workspace = true

@@ -10,7 +10,6 @@ dependencies = [
  "aiscript-engine-interpreter",
  "aiscript-engine-parser",
  "aiscript-engine-values",
- "aiscript-engine-vm",
  "utf16-literal",
 ]
 
@@ -45,23 +44,10 @@ version = "0.1.0+1.0.0"
 dependencies = [
  "aiscript-engine-ast",
  "aiscript-engine-common",
- "aiscript-engine-ir",
- "aiscript-engine-library",
  "aiscript-engine-types",
- "aiscript-engine-vm",
+ "aiscript-engine-values",
+ "gc",
  "indexmap",
- "utf16-literal",
-]
-
-[[package]]
-name = "aiscript-engine-ir"
-version = "0.1.0+1.0.0"
-dependencies = [
- "aiscript-engine-ast",
- "aiscript-engine-common",
- "aiscript-engine-library",
- "aiscript-engine-parser",
- "pretty_assertions",
  "utf16-literal",
 ]
 
@@ -70,17 +56,6 @@ name = "aiscript-engine-lexer"
 version = "0.1.0+1.0.0"
 dependencies = [
  "aiscript-engine-common",
- "utf16-literal",
-]
-
-[[package]]
-name = "aiscript-engine-library"
-version = "0.1.0+1.0.0"
-dependencies = [
- "aiscript-engine-common",
- "aiscript-engine-values",
- "gc",
- "indexmap",
  "utf16-literal",
 ]
 
@@ -110,20 +85,6 @@ name = "aiscript-engine-values"
 version = "0.1.0+1.0.0"
 dependencies = [
  "aiscript-engine-common",
- "gc",
- "indexmap",
- "utf16-literal",
-]
-
-[[package]]
-name = "aiscript-engine-vm"
-version = "0.1.0+1.0.0"
-dependencies = [
- "aiscript-engine-common",
- "aiscript-engine-ir",
- "aiscript-engine-library",
- "aiscript-engine-types",
- "aiscript-engine-values",
  "gc",
  "indexmap",
  "utf16-literal",

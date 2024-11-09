@@ -1,4 +1,4 @@
-use crate::Register;
+use super::Register;
 
 /// 変数の型などを格納する。
 pub(crate) struct Variable {
