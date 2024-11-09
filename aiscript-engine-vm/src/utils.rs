@@ -28,6 +28,18 @@ impl<T> GetByF64<T> for [T] {
     }
 }
 
+pub(crate) fn require_num(val: &Value) -> Result<f64> {
+    if let Value::Num(val) = val {
+        Ok(val.clone())
+    } else {
+        Err(Box::new(AiScriptBasicError::new(
+            AiScriptBasicErrorKind::Runtime,
+            format!("Expect number, but got {}.", val.type_name()),
+            None,
+        )))
+    }
+}
+
 pub(crate) fn require_bool(val: &Value) -> Result<bool> {
     if let Value::Bool(val) = val {
         Ok(val.clone())

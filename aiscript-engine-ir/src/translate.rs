@@ -86,16 +86,13 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
     }
 
     pub fn build(self) -> Ir<'lib> {
-        let mut user_functions: Vec<UserFn> = Vec::new();
-        let entry_point = user_functions.len();
-        user_functions.push(UserFn {
+        let entry_point = UserFn {
             register_length: self.register_length,
             instructions: self.block,
-        });
+        };
         Ir {
             data: self.data,
             native_functions: self.native_functions,
-            user_functions,
             entry_point,
         }
     }

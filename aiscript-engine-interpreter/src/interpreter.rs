@@ -36,9 +36,13 @@ impl<'opts> Interpreter<'opts> {
         translator.link_library(std_library());
         translator.link_library(lib);
         translator.translate(&program);
-        let mut ir = translator.build();
-        let mut vm = Vm::new(&mut ir);
-        vm.exec()?;
+        let ir = translator.build();
+        let mut vm = Vm::new();
+        vm.load_data(&ir.data);
+        for native_fn in ir.native_functions {
+            vm.register_native_fn(native_fn);
+        }
+        vm.exec(&ir.entry_point)?;
         return Ok(Value::Null);
     }
 }

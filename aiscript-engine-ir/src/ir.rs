@@ -8,8 +8,7 @@ use aiscript_engine_library::NativeFn;
 pub struct Ir<'lib> {
     pub data: Vec<DataItem>,
     pub native_functions: Vec<NativeFn<'lib>>,
-    pub user_functions: Vec<UserFn>,
-    pub entry_point: UserFnIndex,
+    pub entry_point: UserFn,
 }
 
 impl Default for Ir<'_> {
@@ -17,8 +16,7 @@ impl Default for Ir<'_> {
         Self {
             data: Vec::new(),
             native_functions: Vec::new(),
-            user_functions: vec![UserFn::new()],
-            entry_point: 0,
+            entry_point: UserFn::new(),
         }
     }
 }
