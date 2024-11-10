@@ -6,9 +6,9 @@ use gc::{Gc, GcCell};
 
 use crate::vm::Vm;
 
-pub type Library = HashMap<&'static [u16], LibraryValue>;
+pub(crate) type Library = HashMap<&'static [u16], LibraryValue>;
 
-pub enum LibraryValue {
+pub(crate) enum LibraryValue {
     Null,
     Bool(bool),
     Num(f64),
@@ -19,7 +19,7 @@ pub enum LibraryValue {
     // TODO: Error
 }
 
-pub enum NativeFn {
+pub(crate) enum NativeFn {
     Static(fn(Vec<Value>, &mut Vm) -> Result<Value>),
     Dynamic(Rc<dyn Fn(Vec<Value>, &mut Vm) -> Result<Value>>),
 }

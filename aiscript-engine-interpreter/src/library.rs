@@ -1,5 +1,5 @@
 mod library;
 mod standard;
 
-pub use library::*;
-pub use standard::std_library;
+pub(crate) use library::*;
+pub(crate) use standard::std_library;

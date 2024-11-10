@@ -5,7 +5,7 @@ use aiscript_engine_common::{AiScriptBasicError, Utf16String};
 
 /// 中間表現
 #[derive(Debug, PartialEq)]
-pub struct Ir {
+pub(crate) struct Ir {
     pub data: Vec<DataItem>,
     pub native_functions: Vec<NativeFn>,
     pub entry_point: UserFn,
@@ -22,18 +22,18 @@ impl Default for Ir {
 }
 
 #[derive(Debug, PartialEq)]
-pub enum DataItem {
+pub(crate) enum DataItem {
     Str(Utf16String),
 }
 
 #[derive(Clone, Debug, PartialEq)]
-pub struct UserFn {
+pub(crate) struct UserFn {
     pub register_length: usize,
     pub instructions: Vec<Instruction>,
 }
 
 impl UserFn {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         UserFn {
             register_length: 0,
             instructions: Vec::new(),
@@ -41,20 +41,16 @@ impl UserFn {
     }
 }
 
-pub type DataIndex = usize;
+pub(crate) type DataIndex = usize;
 
-pub type NativeFnIndex = usize;
+pub(crate) type NativeFnIndex = usize;
 
-pub type UserFnIndex = usize;
+pub(crate) type UserFnIndex = usize;
 
-pub type Register = usize;
-
-pub type Argument = usize;
-
-pub type InstructionAddress = usize;
+pub(crate) type Register = usize;
 
 #[derive(Clone, Debug, PartialEq)]
-pub enum Instruction {
+pub(crate) enum Instruction {
     /// 何もしない
     Nop,
 

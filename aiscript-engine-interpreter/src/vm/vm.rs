@@ -40,31 +40,31 @@ impl IndexMut<Register> for Registers {
     }
 }
 
-pub struct Vm {
+pub(crate) struct Vm {
     data: Vec<Rc<[u16]>>,
     native_functions: Vec<NativeFn>,
 }
 
 impl Vm {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Vm {
             data: Vec::new(),
             native_functions: Vec::new(),
         }
     }
 
-    pub fn load_data(&mut self, data: &[DataItem]) {
+    pub(crate) fn load_data(&mut self, data: &[DataItem]) {
         self.data.extend(
             data.iter()
                 .map(|DataItem::Str(item)| Rc::from(item.as_u16s())),
         );
     }
 
-    pub fn register_native_fn(&mut self, native_fn: NativeFn) {
+    pub(crate) fn register_native_fn(&mut self, native_fn: NativeFn) {
         self.native_functions.push(native_fn);
     }
 
-    pub fn exec(&mut self, entry_point: &UserFn) -> Result<()> {
+    pub(crate) fn exec(&mut self, entry_point: &UserFn) -> Result<()> {
         self.exec_instructions(
             &entry_point.instructions,
             &mut Registers::new(entry_point.register_length),

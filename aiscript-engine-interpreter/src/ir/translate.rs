@@ -11,16 +11,7 @@ use super::{
     DataIndex, DataItem, Instruction, Ir, Register, UserFn, UserFnIndex,
 };
 
-pub fn translate(ast: &[ast::Node]) -> Ir {
-    if ast.is_empty() {
-        return Ir::default();
-    }
-    let mut translator = Translator::new();
-    translator.translate(ast);
-    return translator.build();
-}
-
-pub struct Translator<'ast> {
+pub(crate) struct Translator<'ast> {
     scopes: Scopes<'ast>,
     native_functions: Vec<NativeFn>,
     data: Vec<DataItem>,
@@ -30,7 +21,7 @@ pub struct Translator<'ast> {
 }
 
 impl<'ast> Translator<'ast> {
-    pub fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Translator {
             scopes: Scopes::new(),
             native_functions: Vec::new(),
@@ -41,7 +32,7 @@ impl<'ast> Translator<'ast> {
         }
     }
 
-    pub fn link_library(&mut self, library: Library) {
+    pub(crate) fn link_library(&mut self, library: Library) {
         for (name, value) in library {
             let register = self.use_register();
             match value {
@@ -73,7 +64,7 @@ impl<'ast> Translator<'ast> {
         }
     }
 
-    pub fn translate(&mut self, ast: &'ast [ast::Node]) {
+    pub(crate) fn translate(&mut self, ast: &'ast [ast::Node]) {
         if ast.is_empty() {
             return;
         }
@@ -85,7 +76,7 @@ impl<'ast> Translator<'ast> {
         self.run(register, ast);
     }
 
-    pub fn build(self) -> Ir {
+    pub(crate) fn build(self) -> Ir {
         let entry_point = UserFn {
             register_length: self.register_length,
             instructions: self.block,

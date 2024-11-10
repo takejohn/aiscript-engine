@@ -24,7 +24,7 @@ macro_rules! func {
     };
 }
 
-pub fn std_library() -> Library {
+pub(crate) fn std_library() -> Library {
     HashMap::from([
         str!(utf16!("Core:ai"), utf16!("kawaii")),
         func!(utf16!("Core:not"), core::not),
