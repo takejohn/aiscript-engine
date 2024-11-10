@@ -5,8 +5,10 @@ use aiscript_engine_ast::{self as ast, NamespaceMember};
 use aiscript_engine_common::{
     AiScriptBasicError, AiScriptBasicErrorKind, NamePath, Utf16Str, Utf16String,
 };
+use indexmap::IndexMap;
 
 use super::{
+    reference::Reference,
     scopes::{Scopes, Variable},
     DataIndex, DataItem, Instruction, Ir, Register, UserFn, UserFnIndex,
 };
@@ -175,7 +177,9 @@ impl<'ast> Translator<'ast> {
                 self.eval_expr(register, &node.expr);
                 match node.op {
                     aiscript_engine_ast::AssignOperator::Assign => {
-                        self.assign(&node.dest, register)
+                        if let Some(dest) = self.get_reference(&node.dest) {
+                            self.assign(&dest, register);
+                        }
                     }
                     aiscript_engine_ast::AssignOperator::AddAssign => todo!(),
                     aiscript_engine_ast::AssignOperator::SubAssign => todo!(),
@@ -374,39 +378,50 @@ impl<'ast> Translator<'ast> {
         }
     }
 
-    fn assign(&mut self, dest: &'ast ast::Expression, src: Register) {
+    fn get_reference(&mut self, dest: &'ast ast::Expression) -> Option<Reference> {
         match dest {
-            ast::Expression::Identifier(dest) => match self.scopes.assign(&dest.name) {
-                Ok(dest) => self.append_instruction(Instruction::Move(dest, src)),
-                Err(error) => self.append_instruction(Instruction::Panic(error)),
-            },
+            ast::Expression::Identifier(dest) => {
+                let result = self.scopes.assign(&dest.name);
+                match result {
+                    Ok(dest) => Some(Reference::Variable { dest }),
+                    Err(err) => {
+                        self.append_instruction(Instruction::Panic(err));
+                        None
+                    }
+                }
+            }
             ast::Expression::Index(dest) => {
                 let target = self.use_register();
                 self.eval_expr(target, &dest.target);
                 let index = self.use_register();
                 self.eval_expr(index, &dest.index);
-                self.append_instruction(Instruction::Store(src, target, index));
+                Some(Reference::Index { target, index })
             }
             ast::Expression::Prop(dest) => {
                 let target = self.use_register();
                 self.eval_expr(target, &dest.target);
                 let name = self.str_literal(&dest.name);
-                self.append_instruction(Instruction::StoreProp(src, target, name));
+                Some(Reference::Prop { target, name })
             }
             ast::Expression::Arr(dest) => {
-                let temp = self.use_register();
-                for (index, item) in dest.value.iter().enumerate() {
-                    self.append_instruction(Instruction::LoadIndex(temp, src, index));
-                    self.assign(item, temp);
-                }
+                let items: Option<Vec<_>> = dest
+                    .value
+                    .iter()
+                    .map(|item| self.get_reference(item))
+                    .collect();
+                Some(Reference::Arr { items: items? })
             }
             ast::Expression::Obj(dest) => {
-                let temp = self.use_register();
-                for (key, item) in &dest.value {
-                    let key = self.str_literal(&key);
-                    self.append_instruction(Instruction::LoadProp(temp, src, key));
-                    self.assign(item, temp);
-                }
+                let entries: Option<IndexMap<_, _>> = dest
+                    .value
+                    .iter()
+                    .map(|(key, item)| {
+                        let key = self.str_literal(&key);
+                        let item = self.get_reference(item)?;
+                        Some((key, item))
+                    })
+                    .collect();
+                Some(Reference::Obj { entries: entries? })
             }
             _ => {
                 self.append_instruction(Instruction::Panic(AiScriptBasicError::new(
@@ -414,6 +429,35 @@ impl<'ast> Translator<'ast> {
                     "The left-hand side of an assignment expression must be a variable or a property/index access.",
                     None,
                 )));
+                None
+            }
+        }
+    }
+
+    fn assign(&mut self, dest: &Reference, src: Register) {
+        match dest {
+            Reference::Variable { dest } => {
+                self.append_instruction(Instruction::Move(*dest, src));
+            }
+            Reference::Index { target, index } => {
+                self.append_instruction(Instruction::Store(src, *target, *index));
+            }
+            Reference::Prop { target, name } => {
+                self.append_instruction(Instruction::StoreProp(src, *target, *name));
+            }
+            Reference::Arr { items } => {
+                let temp = self.use_register();
+                for (index, item) in items.iter().enumerate() {
+                    self.append_instruction(Instruction::LoadIndex(temp, src, index));
+                    self.assign(item, temp);
+                }
+            }
+            Reference::Obj { entries } => {
+                let temp = self.use_register();
+                for (key, item) in entries {
+                    self.append_instruction(Instruction::LoadProp(temp, src, *key));
+                    self.assign(item, temp);
+                }
             }
         }
     }

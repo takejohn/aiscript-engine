@@ -246,7 +246,8 @@ impl Vm {
                                 registers[*register] = function(args.borrow().clone(), self)?;
                             }
                             NativeFn::Dynamic(function) => {
-                                registers[*register] = Rc::clone(function)(args.borrow().clone(), self)?;
+                                registers[*register] =
+                                    Rc::clone(function)(args.borrow().clone(), self)?;
                             }
                         };
                     }

@@ -28,11 +28,13 @@ impl Interpreter {
         let opts = Rc::clone(&self.opts);
         let lib = HashMap::from([(
             &utf16!("print") as &[u16],
-            LibraryValue::Fn(NativeFn::Dynamic(Rc::new(move |args: Vec<Value>, vm: &mut Vm| {
-            let mut args = args.into_iter();
-            opts.out(args.next().unwrap()); // todo AiScriptエラーを返す
-            Ok(Value::Null)
-        }))),
+            LibraryValue::Fn(NativeFn::Dynamic(Rc::new(
+                move |args: Vec<Value>, vm: &mut Vm| {
+                    let mut args = args.into_iter();
+                    opts.out(args.next().unwrap()); // todo AiScriptエラーを返す
+                    Ok(Value::Null)
+                },
+            ))),
         )]);
         let mut translator = Translator::new();
         translator.link_library(std_library());

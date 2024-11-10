@@ -1,4 +1,5 @@
 mod ir;
+mod reference;
 mod scopes;
 mod translate;
 
