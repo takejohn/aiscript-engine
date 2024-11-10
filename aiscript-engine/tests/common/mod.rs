@@ -1,22 +1,25 @@
+use std::{cell::RefCell, rc::Rc};
+
 use aiscript_engine::{Interpreter, InterpreterOpts, Parser, Result, Utf16String, Value};
 
 struct TestOpts {
-    result: Value,
+    result: Rc<RefCell<Value>>,
 }
 
 impl InterpreterOpts for TestOpts {
-    fn out(&mut self, value: Value) {
-        self.result = value;
+    fn out(&self, value: Value) {
+        *self.result.borrow_mut() = value;
     }
 }
 
 pub(crate) fn exe(source: &str) -> Result<Value> {
     let mut parser = Parser::new();
     let ast = parser.parse(&Utf16String::from(source))?;
-    let mut opts = TestOpts {
-        result: Value::Uninitialized,
-    };
-    let mut interpreter = Interpreter::new(&mut opts);
+    let result = Rc::new(RefCell::new(Value::Uninitialized));
+    let opts: Rc<dyn InterpreterOpts> = Rc::new(TestOpts {
+        result: Rc::clone(&result),
+    });
+    let mut interpreter = Interpreter::new(Rc::clone(&opts));
     interpreter.run(&ast)?;
-    return Ok(opts.result);
+    return Ok(result.borrow().clone());
 }

@@ -11,7 +11,7 @@ use super::{
     DataIndex, DataItem, Instruction, Ir, Register, UserFn, UserFnIndex,
 };
 
-pub fn translate(ast: &[ast::Node]) -> Ir<'static> {
+pub fn translate(ast: &[ast::Node]) -> Ir {
     if ast.is_empty() {
         return Ir::default();
     }
@@ -20,16 +20,16 @@ pub fn translate(ast: &[ast::Node]) -> Ir<'static> {
     return translator.build();
 }
 
-pub struct Translator<'ast, 'lib> {
+pub struct Translator<'ast> {
     scopes: Scopes<'ast>,
-    native_functions: Vec<NativeFn<'lib>>,
+    native_functions: Vec<NativeFn>,
     data: Vec<DataItem>,
     register_length: usize,
     block: Vec<Instruction>,
     blocks: Vec<Vec<Instruction>>,
 }
 
-impl<'ast, 'lib> Translator<'ast, 'lib> {
+impl<'ast> Translator<'ast> {
     pub fn new() -> Self {
         Translator {
             scopes: Scopes::new(),
@@ -41,7 +41,7 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
         }
     }
 
-    pub fn link_library(&mut self, library: Library<'lib>) {
+    pub fn link_library(&mut self, library: Library) {
         for (name, value) in library {
             let register = self.use_register();
             match value {
@@ -85,7 +85,7 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
         self.run(register, ast);
     }
 
-    pub fn build(self) -> Ir<'lib> {
+    pub fn build(self) -> Ir {
         let entry_point = UserFn {
             register_length: self.register_length,
             instructions: self.block,
@@ -448,7 +448,7 @@ impl<'ast, 'lib> Translator<'ast, 'lib> {
         self.block.push(instruction);
     }
 
-    fn add_native_function(&mut self, f: NativeFn<'lib>) -> UserFnIndex {
+    fn add_native_function(&mut self, f: NativeFn) -> UserFnIndex {
         let index = self.native_functions.len();
         self.native_functions.push(f);
         return index;

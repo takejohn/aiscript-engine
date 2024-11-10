@@ -19,12 +19,12 @@ macro_rules! func {
     ($name: expr , $value: expr) => {
         (
             &$name as &'static [u16],
-            $crate::library::LibraryValue::Fn($crate::library::NativeFn::Static(&$value)),
+            $crate::library::LibraryValue::Fn($crate::library::NativeFn::Static($value)),
         )
     };
 }
 
-pub fn std_library<'lib>() -> Library<'lib> {
+pub fn std_library() -> Library {
     HashMap::from([
         str!(utf16!("Core:ai"), utf16!("kawaii")),
         func!(utf16!("Core:not"), core::not),
@@ -35,7 +35,9 @@ mod core {
     use aiscript_engine_common::Result;
     use aiscript_engine_values::Value;
 
-    pub(super) fn not(args: Vec<Value>, captures: Vec<Value>) -> Result<Value> {
+    use crate::vm::Vm;
+
+    pub(super) fn not(args: Vec<Value>, vm: &mut Vm) -> Result<Value> {
         // todo
         Ok(Value::Bool(true))
     }

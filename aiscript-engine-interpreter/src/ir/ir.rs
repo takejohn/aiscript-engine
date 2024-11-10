@@ -5,13 +5,13 @@ use aiscript_engine_common::{AiScriptBasicError, Utf16String};
 
 /// 中間表現
 #[derive(Debug, PartialEq)]
-pub struct Ir<'lib> {
+pub struct Ir {
     pub data: Vec<DataItem>,
-    pub native_functions: Vec<NativeFn<'lib>>,
+    pub native_functions: Vec<NativeFn>,
     pub entry_point: UserFn,
 }
 
-impl Default for Ir<'_> {
+impl Default for Ir {
     fn default() -> Self {
         Self {
             data: Vec::new(),

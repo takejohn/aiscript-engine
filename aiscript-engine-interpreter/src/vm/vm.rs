@@ -40,12 +40,12 @@ impl IndexMut<Register> for Registers {
     }
 }
 
-pub struct Vm<'lib> {
+pub struct Vm {
     data: Vec<Rc<[u16]>>,
-    native_functions: Vec<NativeFn<'lib>>,
+    native_functions: Vec<NativeFn>,
 }
 
-impl<'lib> Vm<'lib> {
+impl Vm {
     pub fn new() -> Self {
         Vm {
             data: Vec::new(),
@@ -60,7 +60,7 @@ impl<'lib> Vm<'lib> {
         );
     }
 
-    pub fn register_native_fn(&mut self, native_fn: NativeFn<'lib>) {
+    pub fn register_native_fn(&mut self, native_fn: NativeFn) {
         self.native_functions.push(native_fn);
     }
 
@@ -240,13 +240,13 @@ impl<'lib> Vm<'lib> {
                 let capture = closure.borrow().capture.clone();
                 match closure.borrow().index {
                     FnIndex::Native(index) => {
-                        let function = &mut self.native_functions[index];
+                        let function = &self.native_functions[index];
                         match function {
                             NativeFn::Static(function) => {
-                                registers[*register] = function(args.borrow().clone(), capture)?;
+                                registers[*register] = function(args.borrow().clone(), self)?;
                             }
                             NativeFn::Dynamic(function) => {
-                                registers[*register] = function(args.borrow().clone(), capture)?;
+                                registers[*register] = Rc::clone(function)(args.borrow().clone(), self)?;
                             }
                         };
                     }
@@ -259,7 +259,7 @@ impl<'lib> Vm<'lib> {
     }
 }
 
-impl Default for Vm<'_> {
+impl Default for Vm {
     fn default() -> Self {
         Vm {
             data: Vec::new(),
