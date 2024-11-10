@@ -23,3 +23,7 @@ pub(crate) fn exe(source: &str) -> Result<Value> {
     interpreter.run(&ast)?;
     return Ok(result.borrow().clone());
 }
+
+pub(crate) fn str(s: &str) -> Value {
+    Value::Str(Rc::from(Utf16String::from(s).as_u16s()))
+}
