@@ -1,3 +1,4 @@
+mod arguments;
 mod interpreter;
 mod ir;
 mod library;
