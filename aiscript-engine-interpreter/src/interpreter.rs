@@ -42,7 +42,6 @@ impl Interpreter {
         translator.translate(&program);
         let ir = translator.build();
         let mut vm = Vm::new();
-        vm.load_data(&ir.data);
         for native_fn in ir.native_functions {
             vm.register_native_fn(native_fn);
         }

@@ -1,12 +1,11 @@
-use std::fmt::Debug;
+use std::{fmt::Debug, rc::Rc};
 
 use crate::library::NativeFn;
-use aiscript_engine_common::{AiScriptBasicError, Utf16String};
+use aiscript_engine_common::AiScriptBasicError;
 
 /// 中間表現
 #[derive(Debug, PartialEq)]
 pub(crate) struct Ir {
-    pub data: Vec<DataItem>,
     pub native_functions: Vec<NativeFn>,
     pub entry_point: UserFn,
 }
@@ -14,16 +13,10 @@ pub(crate) struct Ir {
 impl Default for Ir {
     fn default() -> Self {
         Self {
-            data: Vec::new(),
             native_functions: Vec::new(),
             entry_point: UserFn::new(),
         }
     }
-}
-
-#[derive(Debug, PartialEq)]
-pub(crate) enum DataItem {
-    Str(Utf16String),
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -40,8 +33,6 @@ impl UserFn {
         }
     }
 }
-
-pub(crate) type DataIndex = usize;
 
 pub(crate) type NativeFnIndex = usize;
 
@@ -69,8 +60,8 @@ pub(crate) enum Instruction {
     /// boolを格納
     Bool(Register, bool),
 
-    /// [`DataItem`]の参照を格納
-    Data(Register, DataIndex),
+    /// strを格納
+    Str(Register, Rc<[u16]>),
 
     /// 指定された長さの未初期化のarrの参照を格納
     Arr(Register, usize),
@@ -100,7 +91,7 @@ pub(crate) enum Instruction {
     LoadIndex(Register, Register, usize),
 
     /// レジスタ1.即値2からレジスタ0にコピー
-    LoadProp(Register, Register, DataIndex),
+    LoadProp(Register, Register, Rc<[u16]>),
 
     /// レジスタ0からレジスタ1[レジスタ2]にコピー
     Store(Register, Register, Register),
@@ -109,7 +100,7 @@ pub(crate) enum Instruction {
     StoreIndex(Register, Register, usize),
 
     /// レジスタ0からレジスタ1.即値2にコピー
-    StoreProp(Register, Register, DataIndex),
+    StoreProp(Register, Register, Rc<[u16]>),
 
     /// レジスタ1の関数をレジスタ2の配列の引数で呼び出し、返値をレジスタ0に格納
     Call(Register, Register, Register),

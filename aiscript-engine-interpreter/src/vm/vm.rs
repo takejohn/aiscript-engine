@@ -11,7 +11,7 @@ use indexmap::IndexMap;
 use super::utils::{
     require_array, require_bool, require_function, require_num, require_object, GetByF64,
 };
-use crate::ir::{DataItem, Instruction, Ir, Register, UserFn};
+use crate::ir::{Instruction, Register, UserFn};
 use crate::library::NativeFn;
 
 struct Registers {
@@ -41,23 +41,14 @@ impl IndexMut<Register> for Registers {
 }
 
 pub(crate) struct Vm {
-    data: Vec<Rc<[u16]>>,
     native_functions: Vec<NativeFn>,
 }
 
 impl Vm {
     pub(crate) fn new() -> Self {
         Vm {
-            data: Vec::new(),
             native_functions: Vec::new(),
         }
-    }
-
-    pub(crate) fn load_data(&mut self, data: &[DataItem]) {
-        self.data.extend(
-            data.iter()
-                .map(|DataItem::Str(item)| Rc::from(item.as_u16s())),
-        );
     }
 
     pub(crate) fn register_native_fn(&mut self, native_fn: NativeFn) {
@@ -105,8 +96,8 @@ impl Vm {
             Instruction::Bool(register, value) => {
                 registers[*register] = Value::Bool(*value);
             }
-            Instruction::Data(register, index) => {
-                registers[*register] = Value::Str(Rc::clone(&self.data[*index]));
+            Instruction::Str(register, value) => {
+                registers[*register] = Value::Str(Rc::clone(value));
             }
             Instruction::Arr(register, len) => {
                 registers[*register] =
@@ -183,7 +174,6 @@ impl Vm {
             }
             Instruction::LoadProp(register, target, name) => {
                 let target = require_object(&registers[*target])?;
-                let name = &self.data[*name];
                 let value = target.borrow().0.get(name).map(|value| value.clone());
                 registers[*register] = value.unwrap_or(Value::Null);
             }
@@ -228,11 +218,10 @@ impl Vm {
             }
             Instruction::StoreProp(register, target, name) => {
                 let target = require_object(&registers[*target])?;
-                let name = Rc::clone(&self.data[*name]);
                 target
                     .borrow_mut()
                     .0
-                    .insert(name, registers[*register].clone());
+                    .insert(Rc::clone(name), registers[*register].clone());
             }
             Instruction::Call(register, f, args) => {
                 let closure = require_function(&registers[*f])?;
@@ -263,7 +252,6 @@ impl Vm {
 impl Default for Vm {
     fn default() -> Self {
         Vm {
-            data: Vec::new(),
             native_functions: Vec::new(),
         }
     }

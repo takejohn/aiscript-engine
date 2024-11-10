@@ -1,4 +1,4 @@
-use std::borrow::Cow;
+use std::{borrow::Cow, collections::HashSet, rc::Rc};
 
 use crate::library::{Library, LibraryValue, NativeFn};
 use aiscript_engine_ast::{self as ast, NamespaceMember};
@@ -10,13 +10,13 @@ use indexmap::IndexMap;
 use super::{
     reference::Reference,
     scopes::{Scopes, Variable},
-    DataIndex, DataItem, Instruction, Ir, Register, UserFn, UserFnIndex,
+    Instruction, Ir, Register, UserFn, UserFnIndex,
 };
 
 pub(crate) struct Translator<'ast> {
     scopes: Scopes<'ast>,
     native_functions: Vec<NativeFn>,
-    data: Vec<DataItem>,
+    strings: HashSet<Rc<[u16]>>,
     register_length: usize,
     block: Vec<Instruction>,
     blocks: Vec<Vec<Instruction>>,
@@ -27,7 +27,7 @@ impl<'ast> Translator<'ast> {
         Translator {
             scopes: Scopes::new(),
             native_functions: Vec::new(),
-            data: Vec::new(),
+            strings: HashSet::new(),
             register_length: 0,
             block: Vec::new(),
             blocks: Vec::new(),
@@ -46,8 +46,8 @@ impl<'ast> Translator<'ast> {
                     self.append_instruction(Instruction::Num(register, value))
                 }
                 LibraryValue::Str(value) => {
-                    let index = self.str_literal(&value);
-                    self.append_instruction(Instruction::Data(register, index));
+                    let value = self.str_literal(&value);
+                    self.append_instruction(Instruction::Str(register, value));
                 }
                 LibraryValue::Obj(_value) => todo!(),
                 LibraryValue::Arr(_value) => todo!(),
@@ -84,7 +84,6 @@ impl<'ast> Translator<'ast> {
             instructions: self.block,
         };
         Ir {
-            data: self.data,
             native_functions: self.native_functions,
             entry_point,
         }
@@ -242,8 +241,8 @@ impl<'ast> Translator<'ast> {
             }
             ast::Expression::Tmpl(_node) => todo!(),
             ast::Expression::Str(node) => {
-                let index = self.str_literal(&node.value);
-                self.append_instruction(Instruction::Data(register, index));
+                let value = self.str_literal(&node.value);
+                self.append_instruction(Instruction::Str(register, value));
             }
             ast::Expression::Num(node) => {
                 self.append_instruction(Instruction::Num(register, node.value));
@@ -443,7 +442,7 @@ impl<'ast> Translator<'ast> {
                 self.append_instruction(Instruction::Store(src, *target, *index));
             }
             Reference::Prop { target, name } => {
-                self.append_instruction(Instruction::StoreProp(src, *target, *name));
+                self.append_instruction(Instruction::StoreProp(src, *target, Rc::clone(name)));
             }
             Reference::Arr { items } => {
                 let temp = self.use_register();
@@ -455,7 +454,7 @@ impl<'ast> Translator<'ast> {
             Reference::Obj { entries } => {
                 let temp = self.use_register();
                 for (key, item) in entries {
-                    self.append_instruction(Instruction::LoadProp(temp, src, *key));
+                    self.append_instruction(Instruction::LoadProp(temp, src, Rc::clone(key)));
                     self.assign(item, temp);
                 }
             }
@@ -489,20 +488,14 @@ impl<'ast> Translator<'ast> {
         return index;
     }
 
-    fn str_literal(&mut self, s: &Utf16Str) -> DataIndex {
-        let existing = self.data.iter().enumerate().find_map(|(index, item)| {
-            let DataItem::Str(str) = item;
-            if str.as_utf16_str() == s {
-                Some(index)
-            } else {
-                None
+    fn str_literal(&mut self, s: &Utf16Str) -> Rc<[u16]> {
+        match self.strings.get(s.as_u16s()) {
+            Some(existing) => Rc::clone(existing),
+            None => {
+                let rc = Rc::from(s.as_u16s());
+                self.strings.insert(Rc::clone(&rc));
+                rc
             }
-        });
-        if let Some(index) = existing {
-            return index;
         }
-        let index = self.data.len();
-        self.data.push(DataItem::Str(s.to_owned()));
-        return index;
     }
 }

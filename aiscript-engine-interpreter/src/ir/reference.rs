@@ -1,6 +1,8 @@
+use std::rc::Rc;
+
 use indexmap::IndexMap;
 
-use super::{DataIndex, Register};
+use super::Register;
 
 pub(super) enum Reference {
     Variable {
@@ -12,12 +14,12 @@ pub(super) enum Reference {
     },
     Prop {
         target: Register,
-        name: DataIndex,
+        name: Rc<[u16]>,
     },
     Arr {
         items: Vec<Reference>,
     },
     Obj {
-        entries: IndexMap<DataIndex, Reference>,
+        entries: IndexMap<Rc<[u16]>, Reference>,
     },
 }
