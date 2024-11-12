@@ -174,16 +174,32 @@ impl<'ast> Translator<'ast> {
             ast::Statement::Break(_node) => todo!(),
             ast::Statement::Continue(_node) => todo!(),
             ast::Statement::Assign(node) => {
-                let register = self.use_register();
-                self.eval_expr(register, &node.expr);
+                let right = self.use_register();
+                self.eval_expr(right, &node.expr);
                 match node.op {
                     aiscript_engine_ast::AssignOperator::Assign => {
                         if let Some(dest) = self.get_reference(&node.dest) {
-                            self.assign(&dest, register);
+                            self.assign(&dest, right);
                         }
                     }
-                    aiscript_engine_ast::AssignOperator::AddAssign => todo!(),
-                    aiscript_engine_ast::AssignOperator::SubAssign => todo!(),
+                    aiscript_engine_ast::AssignOperator::AddAssign => {
+                        if let Some(dest) = self.get_reference(&node.dest) {
+                            let left = self.use_register();
+                            self.dereference(left, &dest);
+                            let result = self.use_register();
+                            self.append_instruction(Instruction::Add(result, left, right));
+                            self.assign(&dest, result);
+                        }
+                    }
+                    aiscript_engine_ast::AssignOperator::SubAssign => {
+                        if let Some(dest) = self.get_reference(&node.dest) {
+                            let left = self.use_register();
+                            self.dereference(left, &dest);
+                            let result = self.use_register();
+                            self.append_instruction(Instruction::Sub(result, left, right));
+                            self.assign(&dest, result);
+                        }
+                    }
                 }
             }
         }
@@ -390,7 +406,7 @@ impl<'ast> Translator<'ast> {
             ast::Expression::Identifier(dest) => {
                 let result = self.scopes.assign(&dest.name);
                 match result {
-                    Ok(dest) => Some(Reference::Variable { dest }),
+                    Ok(register) => Some(Reference::Variable { register }),
                     Err(err) => {
                         self.append_instruction(Instruction::Panic(err));
                         None
@@ -441,10 +457,40 @@ impl<'ast> Translator<'ast> {
         }
     }
 
+    fn dereference(&mut self, dest: Register, reference: &Reference) {
+        match reference {
+            Reference::Variable { register } => {
+                self.append_instruction(Instruction::Move(dest, *register));
+            }
+            Reference::Index { target, index } => {
+                self.append_instruction(Instruction::Load(dest, *target, *index));
+            }
+            Reference::Prop { target, name } => {
+                self.append_instruction(Instruction::LoadProp(dest, *target, Rc::clone(name)));
+            }
+            Reference::Arr { items } => {
+                self.append_instruction(Instruction::Arr(dest, Gc::new(GcCell::new(vec![Value::Uninitialized; items.len()]))));
+                let temp = self.use_register();
+                for (index, item) in items.iter().enumerate() {
+                    self.dereference(temp, item);
+                    self.append_instruction(Instruction::StoreIndex(temp, dest, index));
+                }
+            }
+            Reference::Obj { entries } => {
+                self.append_instruction(Instruction::Obj(dest, Gc::new(GcCell::new(VObj::new()))));
+                let temp = self.use_register();
+                for (key, item) in entries {
+                    self.dereference(temp, item);
+                    self.append_instruction(Instruction::StoreProp(temp, dest, Rc::clone(key)));
+                }
+            }
+        }
+    }
+
     fn assign(&mut self, dest: &Reference, src: Register) {
         match dest {
-            Reference::Variable { dest } => {
-                self.append_instruction(Instruction::Move(*dest, src));
+            Reference::Variable { register } => {
+                self.append_instruction(Instruction::Move(*register, src));
             }
             Reference::Index { target, index } => {
                 self.append_instruction(Instruction::Store(src, *target, *index));

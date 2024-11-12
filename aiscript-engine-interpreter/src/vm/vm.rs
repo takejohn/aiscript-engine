@@ -113,16 +113,16 @@ impl Vm {
             Instruction::Move(dest, src) => {
                 registers[*dest] = registers[*src].clone();
             }
-            Instruction::Add(dest, src) => {
+            Instruction::Add(dest, left, right) => {
                 let dest = *dest;
-                let left = require_num(&registers[dest])?;
-                let right = require_num(&registers[*src])?;
+                let left = require_num(&registers[*left])?;
+                let right = require_num(&registers[*right])?;
                 registers[dest] = Value::Num(left + right);
             }
-            Instruction::Sub(dest, src) => {
+            Instruction::Sub(dest, left, right) => {
                 let dest = *dest;
-                let left = require_num(&registers[dest])?;
-                let right = require_num(&registers[*src])?;
+                let left = require_num(&registers[*left])?;
+                let right = require_num(&registers[*right])?;
                 registers[dest] = Value::Num(left - right);
             }
             Instruction::Not(dest, src) => {

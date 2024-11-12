@@ -65,10 +65,10 @@ pub(crate) enum Instruction {
     /// strを格納
     Str(Register, Rc<[u16]>),
 
-    /// 指定された長さの未初期化のarrの参照を格納
+    /// arrを格納
     Arr(Register, Gc<GcCell<VArr>>),
 
-    /// 指定された初期容量をもつobjの参照を格納
+    /// objを格納
     Obj(Register, Gc<GcCell<VObj>>),
 
     /// ネイティブ関数のクロージャを格納
@@ -77,11 +77,11 @@ pub(crate) enum Instruction {
     /// レジスタ0にレジスタ1の値をコピー
     Move(Register, Register),
 
-    /// レジスタ0にレジスタ1の値を加える
-    Add(Register, Register),
+    /// レジスタ0にレジスタ1+レジスタ2を代入
+    Add(Register, Register, Register),
 
-    /// レジスタ0からレジスタ1の値を減じる
-    Sub(Register, Register),
+    /// レジスタ0にレジスタ1-レジスタ2を代入
+    Sub(Register, Register, Register),
 
     /// レジスタ0にレジスタ1の論理否定を代入
     Not(Register, Register),
@@ -95,10 +95,10 @@ pub(crate) enum Instruction {
     /// レジスタ1.即値2からレジスタ0にコピー
     LoadProp(Register, Register, Rc<[u16]>),
 
-    /// レジスタ0からレジスタ1[レジスタ2]にコピー
+    /// レジスタ0からレジスタ1\[レジスタ2\]にコピー
     Store(Register, Register, Register),
 
-    /// レジスタ0からレジスタ1[即値2]にコピー
+    /// レジスタ0からレジスタ1\[即値2\]にコピー
     StoreIndex(Register, Register, usize),
 
     /// レジスタ0からレジスタ1.即値2にコピー

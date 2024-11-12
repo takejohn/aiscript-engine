@@ -1,5 +1,39 @@
 mod common;
 
+mod assign {
+    use crate::common::{exe, num};
+
+    #[test]
+    fn assign() {
+        let res = exe(r#"
+            var a = 1
+            a = 2
+            <: a
+        "#).unwrap();
+        assert_eq!(res, num(2.0));
+    }
+
+    #[test]
+    fn add_assign() {
+        let res = exe(r#"
+            var a = 1
+            a += 2
+            <: a
+        "#).unwrap();
+        assert_eq!(res, num(3.0));
+    }
+
+    #[test]
+    fn sub_assign() {
+        let res = exe(r#"
+            var a = 1
+            a -= 2
+            <: a
+        "#).unwrap();
+        assert_eq!(res, num(-1.0));
+    }
+}
+
 mod test_if {
     use crate::common::{exe, str};
 

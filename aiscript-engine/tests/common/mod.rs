@@ -24,6 +24,10 @@ pub(crate) fn exe(source: &str) -> Result<Value> {
     return Ok(result.borrow().clone());
 }
 
+pub(crate) fn num(value: f64) -> Value {
+    Value::Num(value)
+}
+
 pub(crate) fn str(s: &str) -> Value {
     Value::Str(Rc::from(Utf16String::from(s).as_u16s()))
 }

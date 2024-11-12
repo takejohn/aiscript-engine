@@ -6,7 +6,7 @@ use super::Register;
 
 pub(super) enum Reference {
     Variable {
-        dest: Register,
+        register: Register,
     },
     Index {
         target: Register,
