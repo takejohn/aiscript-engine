@@ -2,9 +2,11 @@ use std::{fmt::Debug, rc::Rc};
 
 use crate::library::NativeFn;
 use aiscript_engine_common::AiScriptBasicError;
+use aiscript_engine_values::{VArr, VObj};
+use gc::{Gc, GcCell};
 
 /// 中間表現
-#[derive(Debug, PartialEq)]
+#[derive(Debug)]
 pub(crate) struct Ir {
     pub native_functions: Vec<NativeFn>,
     pub entry_point: UserFn,
@@ -19,7 +21,7 @@ impl Default for Ir {
     }
 }
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub(crate) struct UserFn {
     pub register_length: usize,
     pub instructions: Vec<Instruction>,
@@ -40,7 +42,7 @@ pub(crate) type UserFnIndex = usize;
 
 pub(crate) type Register = usize;
 
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug)]
 pub(crate) enum Instruction {
     /// 何もしない
     Nop,
@@ -64,10 +66,10 @@ pub(crate) enum Instruction {
     Str(Register, Rc<[u16]>),
 
     /// 指定された長さの未初期化のarrの参照を格納
-    Arr(Register, usize),
+    Arr(Register, Gc<GcCell<VArr>>),
 
     /// 指定された初期容量をもつobjの参照を格納
-    Obj(Register, usize),
+    Obj(Register, Gc<GcCell<VObj>>),
 
     /// ネイティブ関数のクロージャを格納
     NativeFn(Register, NativeFnIndex),

@@ -4,9 +4,8 @@ use std::{
 };
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
-use aiscript_engine_values::{FnIndex, VFn, VObj, Value};
+use aiscript_engine_values::{FnIndex, VFn, Value};
 use gc::{Gc, GcCell};
-use indexmap::IndexMap;
 
 use super::utils::{
     require_array, require_bool, require_function, require_num, require_object, GetByF64,
@@ -99,13 +98,11 @@ impl Vm {
             Instruction::Str(register, value) => {
                 registers[*register] = Value::Str(Rc::clone(value));
             }
-            Instruction::Arr(register, len) => {
-                registers[*register] =
-                    Value::Arr(Gc::new(GcCell::new(vec![Value::Uninitialized; *len])));
+            Instruction::Arr(register, value) => {
+                registers[*register] = Value::Arr(Gc::clone(value));
             }
-            Instruction::Obj(register, n) => {
-                registers[*register] =
-                    Value::Obj(Gc::new(GcCell::new(VObj(IndexMap::with_capacity(*n)))));
+            Instruction::Obj(register, value) => {
+                registers[*register] = Value::Obj(Gc::clone(value));
             }
             Instruction::NativeFn(register, index) => {
                 registers[*register] = Value::Fn(Gc::new(GcCell::new(VFn {

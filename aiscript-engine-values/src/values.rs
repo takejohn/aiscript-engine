@@ -86,6 +86,12 @@ impl Value {
 #[derive(Clone, Debug, Finalize)]
 pub struct VObj(pub IndexMap<Rc<[u16]>, Value>);
 
+impl VObj {
+    pub fn new() -> Self {
+        VObj(IndexMap::new())
+    }
+}
+
 unsafe impl Trace for VObj {
     custom_trace!(this, {
         for value in this.0.values() {

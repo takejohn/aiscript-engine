@@ -5,6 +5,8 @@ use aiscript_engine_ast::{self as ast, NamespaceMember};
 use aiscript_engine_common::{
     AiScriptBasicError, AiScriptBasicErrorKind, NamePath, Utf16Str, Utf16String,
 };
+use aiscript_engine_values::{VObj, Value};
+use gc::{Gc, GcCell};
 use indexmap::IndexMap;
 
 use super::{
@@ -255,7 +257,10 @@ impl<'ast> Translator<'ast> {
             }
             ast::Expression::Obj(node) => {
                 let len = node.value.len();
-                self.append_instruction(Instruction::Obj(register, len));
+                self.append_instruction(Instruction::Obj(
+                    register,
+                    Gc::new(GcCell::new(VObj::new())),
+                ));
                 if len > 0 {
                     let value_register = self.use_register();
                     for (key, value) in &node.value {
@@ -320,7 +325,10 @@ impl<'ast> Translator<'ast> {
 
     fn eval_arr(&mut self, register: Register, exprs: &'ast [ast::Expression]) {
         let len = exprs.len();
-        self.append_instruction(Instruction::Arr(register, len));
+        self.append_instruction(Instruction::Arr(
+            register,
+            Gc::new(GcCell::new(vec![Value::Uninitialized; len])),
+        ));
         if len > 0 {
             let value_register = self.use_register();
             for (index, value) in exprs.iter().enumerate() {
