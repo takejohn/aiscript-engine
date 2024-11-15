@@ -506,7 +506,10 @@ impl<'ast> Translator<'ast> {
                 self.append_instruction(Instruction::LoadProp(dest, *target, Rc::clone(name)));
             }
             Reference::Arr { items } => {
-                self.append_instruction(Instruction::Arr(dest, Gc::new(GcCell::new(vec![Value::Uninitialized; items.len()]))));
+                self.append_instruction(Instruction::Arr(
+                    dest,
+                    Gc::new(GcCell::new(vec![Value::Uninitialized; items.len()])),
+                ));
                 let temp = self.use_register();
                 for (index, item) in items.iter().enumerate() {
                     self.dereference(temp, item);
@@ -578,7 +581,10 @@ impl<'ast> Translator<'ast> {
 
     /// 命令列を終了して返します。
     fn end_procedure(&mut self) -> Vec<Instruction> {
-        std::mem::replace(&mut self.block, self.procedures.pop().expect("no outer blocks"))
+        std::mem::replace(
+            &mut self.block,
+            self.procedures.pop().expect("no outer blocks"),
+        )
     }
 
     fn append_instruction(&mut self, instruction: Instruction) {

@@ -9,7 +9,8 @@ mod assign {
             var a = 1
             a = 2
             <: a
-        "#).unwrap();
+        "#)
+        .unwrap();
         assert_eq!(res, num(2.0));
     }
 
@@ -19,7 +20,8 @@ mod assign {
             var a = 1
             a += 2
             <: a
-        "#).unwrap();
+        "#)
+        .unwrap();
         assert_eq!(res, num(3.0));
     }
 
@@ -29,7 +31,8 @@ mod assign {
             var a = 1
             a -= 2
             <: a
-        "#).unwrap();
+        "#)
+        .unwrap();
         assert_eq!(res, num(-1.0));
     }
 }
