@@ -1,3 +1,5 @@
+use common::{bool, exe, num};
+
 mod common;
 
 mod assign {
@@ -185,36 +187,44 @@ mod test_if {
     }
 }
 
-mod and {
-    use crate::common::{bool, exe};
+#[test]
+fn add() {
+    let res = exe("<: 2 + 3").unwrap();
+    assert_eq!(res, num(5.0));
+}
 
-    #[test]
-    fn and() {
-        let res = exe("<: false && false").unwrap();
-        assert_eq!(res, bool(false));
+#[test]
+fn sub() {
+    let res = exe("<: 2 - 3").unwrap();
+    assert_eq!(res, num(-1.0));
+}
 
-        let res = exe("<: false && true").unwrap();
-        assert_eq!(res, bool(false));
+#[test]
+fn and() {
+    let res = exe("<: false && false").unwrap();
+    assert_eq!(res, bool(false));
 
-        let res = exe("<: true && false").unwrap();
-        assert_eq!(res, bool(false));
+    let res = exe("<: false && true").unwrap();
+    assert_eq!(res, bool(false));
 
-        let res = exe("<: true && true").unwrap();
-        assert_eq!(res, bool(true));
-    }
+    let res = exe("<: true && false").unwrap();
+    assert_eq!(res, bool(false));
 
-    #[test]
-    fn or() {
-        let res = exe("<: false || false").unwrap();
-        assert_eq!(res, bool(false));
+    let res = exe("<: true && true").unwrap();
+    assert_eq!(res, bool(true));
+}
 
-        let res = exe("<: false || true").unwrap();
-        assert_eq!(res, bool(true));
+#[test]
+fn or() {
+    let res = exe("<: false || false").unwrap();
+    assert_eq!(res, bool(false));
 
-        let res = exe("<: true || false").unwrap();
-        assert_eq!(res, bool(true));
+    let res = exe("<: false || true").unwrap();
+    assert_eq!(res, bool(true));
 
-        let res = exe("<: true || true").unwrap();
-        assert_eq!(res, bool(true));
-    }
+    let res = exe("<: true || false").unwrap();
+    assert_eq!(res, bool(true));
+
+    let res = exe("<: true || true").unwrap();
+    assert_eq!(res, bool(true));
 }

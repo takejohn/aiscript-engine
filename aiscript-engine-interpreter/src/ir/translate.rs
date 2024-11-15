@@ -341,8 +341,14 @@ impl<'ast> Translator<'ast> {
                     ast::BinaryOperator::Mul => todo!(),
                     ast::BinaryOperator::Div => todo!(),
                     ast::BinaryOperator::Rem => todo!(),
-                    ast::BinaryOperator::Add => todo!(),
-                    ast::BinaryOperator::Sub => todo!(),
+                    ast::BinaryOperator::Add => {
+                        let (left, right) = self.eval_left_and_right(node);
+                        self.append_instruction(Instruction::Add(register, left, right));
+                    }
+                    ast::BinaryOperator::Sub => {
+                        let (left, right) = self.eval_left_and_right(node);
+                        self.append_instruction(Instruction::Sub(register, left, right));
+                    }
                     ast::BinaryOperator::Lt => todo!(),
                     ast::BinaryOperator::Lteq => todo!(),
                     ast::BinaryOperator::Gt => todo!(),
@@ -374,6 +380,14 @@ impl<'ast> Translator<'ast> {
                 }
             }
         }
+    }
+
+    fn eval_left_and_right(&mut self, node: &'ast ast::Binary) -> (Register, Register) {
+        let left = self.use_register();
+        let right = self.use_register();
+        self.eval_expr(left, &node.left);
+        self.eval_expr(right, &node.right);
+        return (left, right);
     }
 
     fn eval_arr(&mut self, register: Register, exprs: &'ast [ast::Expression]) {
