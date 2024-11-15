@@ -24,6 +24,10 @@ pub(crate) fn exe(source: &str) -> Result<Value> {
     return Ok(result.borrow().clone());
 }
 
+pub(crate) fn bool(value: bool) -> Value {
+    Value::Bool(value)
+}
+
 pub(crate) fn num(value: f64) -> Value {
     Value::Num(value)
 }

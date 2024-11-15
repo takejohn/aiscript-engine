@@ -21,7 +21,7 @@ pub(crate) struct Translator<'ast> {
     strings: HashSet<Rc<[u16]>>,
     register_length: usize,
     block: Vec<Instruction>,
-    blocks: Vec<Vec<Instruction>>,
+    procedures: Vec<Vec<Instruction>>,
 }
 
 impl<'ast> Translator<'ast> {
@@ -32,7 +32,7 @@ impl<'ast> Translator<'ast> {
             strings: HashSet::new(),
             register_length: 0,
             block: Vec::new(),
-            blocks: Vec::new(),
+            procedures: Vec::new(),
         }
     }
 
@@ -212,20 +212,20 @@ impl<'ast> Translator<'ast> {
                 self.eval_expr(register, &node.cond);
 
                 // then節
-                self.enter_block();
+                self.begin_block();
                 self.eval_statement_or_expr(register, &node.then);
-                let then_code = self.exit_block();
+                let then_code = self.end_block();
 
                 for _ in &node.elseif {
-                    self.enter_block();
+                    self.begin_block();
                 }
 
                 // else節
                 let mut else_code = match &node.else_statement {
                     Some(else_statement) => {
-                        self.enter_block();
+                        self.begin_block();
                         self.eval_statement_or_expr(register, else_statement);
-                        self.exit_block()
+                        self.end_block()
                     }
                     None => vec![Instruction::Null(register)],
                 };
@@ -234,12 +234,12 @@ impl<'ast> Translator<'ast> {
                 for elif in node.elseif.iter().rev() {
                     self.eval_expr(register, &elif.cond);
 
-                    self.enter_block();
+                    self.begin_block();
                     self.eval_statement_or_expr(register, &elif.then);
-                    let elif_code = self.exit_block();
+                    let elif_code = self.end_block();
 
                     self.append_instruction(Instruction::If(register, elif_code, else_code));
-                    else_code = self.exit_block();
+                    else_code = self.end_block();
                 }
 
                 self.append_instruction(Instruction::If(register, then_code, else_code));
@@ -335,7 +335,44 @@ impl<'ast> Translator<'ast> {
                 let name = self.str_literal(&node.name);
                 self.append_instruction(Instruction::LoadProp(register, target, name));
             }
-            ast::Expression::Binary(_node) => todo!(),
+            ast::Expression::Binary(node) => {
+                match node.op {
+                    ast::BinaryOperator::Pow => todo!(),
+                    ast::BinaryOperator::Mul => todo!(),
+                    ast::BinaryOperator::Div => todo!(),
+                    ast::BinaryOperator::Rem => todo!(),
+                    ast::BinaryOperator::Add => todo!(),
+                    ast::BinaryOperator::Sub => todo!(),
+                    ast::BinaryOperator::Lt => todo!(),
+                    ast::BinaryOperator::Lteq => todo!(),
+                    ast::BinaryOperator::Gt => todo!(),
+                    ast::BinaryOperator::Gteq => todo!(),
+                    ast::BinaryOperator::Eq => todo!(),
+                    ast::BinaryOperator::Neq => todo!(),
+                    ast::BinaryOperator::And => {
+                        self.eval_expr(register, &node.left);
+                        // 右辺の処理
+                        let right = {
+                            self.begin_procedure();
+                            self.eval_expr(register, &node.right);
+                            self.end_procedure()
+                        };
+                        // 短絡処理: 左辺が真なら右辺を実行
+                        self.append_instruction(Instruction::If(register, right, vec![]));
+                    }
+                    ast::BinaryOperator::Or => {
+                        self.eval_expr(register, &node.left);
+                        // 右辺の処理
+                        let right = {
+                            self.begin_procedure();
+                            self.eval_expr(register, &node.right);
+                            self.end_procedure()
+                        };
+                        // 短絡処理: 左辺が偽なら右辺を実行
+                        self.append_instruction(Instruction::If(register, vec![], right));
+                    }
+                }
+            }
         }
     }
 
@@ -521,15 +558,27 @@ impl<'ast> Translator<'ast> {
         return index;
     }
 
-    fn enter_block(&mut self) {
-        self.blocks
+    /// 新しく命令列を開始します。
+    fn begin_procedure(&mut self) {
+        self.procedures
             .push(std::mem::replace(&mut self.block, Vec::new()));
+    }
+
+    /// ローカルスコープを生成して新しく命令列を開始します。
+    fn begin_block(&mut self) {
+        self.begin_procedure();
         self.scopes.push_block_scope();
     }
 
-    fn exit_block(&mut self) -> Vec<Instruction> {
+    /// ローカルスコープを破棄し、命令列を終了して返します。
+    fn end_block(&mut self) -> Vec<Instruction> {
         self.scopes.drop_local_scope();
-        std::mem::replace(&mut self.block, self.blocks.pop().expect("no outer blocks"))
+        self.end_procedure()
+    }
+
+    /// 命令列を終了して返します。
+    fn end_procedure(&mut self) -> Vec<Instruction> {
+        std::mem::replace(&mut self.block, self.procedures.pop().expect("no outer blocks"))
     }
 
     fn append_instruction(&mut self, instruction: Instruction) {
