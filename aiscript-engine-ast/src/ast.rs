@@ -327,11 +327,11 @@ pub enum Expression {
 
     /// 二項演算
     #[serde(untagged)]
-    Binary(Binary),
+    Binary(BinaryOperation),
 }
 
 #[derive(Debug, PartialEq, Eq, NodeBase, Serialize, Deserialize)]
-pub struct Binary {
+pub struct BinaryOperation {
     pub loc: Loc,
 
     #[serde(rename = "type")]
@@ -342,8 +342,15 @@ pub struct Binary {
 }
 
 #[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
+#[serde(untagged, rename_all = "camelCase")]
 pub enum BinaryOperator {
+    Arithmetic(BinaryArithmeticOperator),
+    Logical(BinaryLogicalOperator),
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum BinaryArithmeticOperator {
     Pow,
     Mul,
     Div,
@@ -356,6 +363,11 @@ pub enum BinaryOperator {
     Gteq,
     Eq,
     Neq,
+}
+
+#[derive(Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub enum BinaryLogicalOperator {
     And,
     Or,
 }

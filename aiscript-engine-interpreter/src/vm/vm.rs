@@ -114,16 +114,14 @@ impl Vm {
                 registers[*dest] = registers[*src].clone();
             }
             Instruction::Add(dest, left, right) => {
-                let dest = *dest;
                 let left = require_num(&registers[*left])?;
                 let right = require_num(&registers[*right])?;
-                registers[dest] = Value::Num(left + right);
+                registers[*dest] = Value::Num(left + right);
             }
             Instruction::Sub(dest, left, right) => {
-                let dest = *dest;
                 let left = require_num(&registers[*left])?;
                 let right = require_num(&registers[*right])?;
-                registers[dest] = Value::Num(left - right);
+                registers[*dest] = Value::Num(left - right);
             }
             Instruction::Not(dest, src) => {
                 let src = require_bool(&registers[*src])?;

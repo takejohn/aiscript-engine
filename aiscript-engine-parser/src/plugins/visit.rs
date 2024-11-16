@@ -123,7 +123,7 @@ pub(super) trait Visitor {
         Ok(())
     }
 
-    fn visit_binary(&mut self, node: &mut Binary) -> Result<()> {
+    fn visit_binary(&mut self, node: &mut BinaryOperation) -> Result<()> {
         let _ = node;
         Ok(())
     }
@@ -347,7 +347,7 @@ impl<'a> Visitor for RecursiveVisitor<'a> {
         return self.visit_expr(&mut node.expr);
     }
 
-    fn visit_binary(&mut self, node: &mut Binary) -> Result<()> {
+    fn visit_binary(&mut self, node: &mut BinaryOperation) -> Result<()> {
         self.visitor.visit_binary(node)?;
         self.visit_expr(&mut node.left)?;
         return self.visit_expr(&mut node.right);

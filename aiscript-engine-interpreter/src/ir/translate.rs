@@ -336,58 +336,59 @@ impl<'ast> Translator<'ast> {
                 self.append_instruction(Instruction::LoadProp(register, target, name));
             }
             ast::Expression::Binary(node) => {
-                match node.op {
-                    ast::BinaryOperator::Pow => todo!(),
-                    ast::BinaryOperator::Mul => todo!(),
-                    ast::BinaryOperator::Div => todo!(),
-                    ast::BinaryOperator::Rem => todo!(),
-                    ast::BinaryOperator::Add => {
-                        let (left, right) = self.eval_left_and_right(node);
-                        self.append_instruction(Instruction::Add(register, left, right));
-                    }
-                    ast::BinaryOperator::Sub => {
-                        let (left, right) = self.eval_left_and_right(node);
-                        self.append_instruction(Instruction::Sub(register, left, right));
-                    }
-                    ast::BinaryOperator::Lt => todo!(),
-                    ast::BinaryOperator::Lteq => todo!(),
-                    ast::BinaryOperator::Gt => todo!(),
-                    ast::BinaryOperator::Gteq => todo!(),
-                    ast::BinaryOperator::Eq => todo!(),
-                    ast::BinaryOperator::Neq => todo!(),
-                    ast::BinaryOperator::And => {
-                        self.eval_expr(register, &node.left);
-                        // 右辺の処理
-                        let right = {
-                            self.begin_procedure();
-                            self.eval_expr(register, &node.right);
-                            self.end_procedure()
+                match &node.op {
+                    ast::BinaryOperator::Arithmetic(op) => {
+                        let left = self.use_register();
+                        let right = self.use_register();
+                        self.eval_expr(left, &node.left);
+                        self.eval_expr(right, &node.right);
+                        let instruction = match op {
+                            ast::BinaryArithmeticOperator::Pow => todo!(),
+                            ast::BinaryArithmeticOperator::Mul => todo!(),
+                            ast::BinaryArithmeticOperator::Div => todo!(),
+                            ast::BinaryArithmeticOperator::Rem => todo!(),
+                            ast::BinaryArithmeticOperator::Add => {
+                                Instruction::Add(register, left, right)
+                            }
+                            ast::BinaryArithmeticOperator::Sub => {
+                                Instruction::Sub(register, left, right)
+                            }
+                            ast::BinaryArithmeticOperator::Lt => todo!(),
+                            ast::BinaryArithmeticOperator::Lteq => todo!(),
+                            ast::BinaryArithmeticOperator::Gt => todo!(),
+                            ast::BinaryArithmeticOperator::Gteq => todo!(),
+                            ast::BinaryArithmeticOperator::Eq => todo!(),
+                            ast::BinaryArithmeticOperator::Neq => todo!(),
                         };
-                        // 短絡処理: 左辺が真なら右辺を実行
-                        self.append_instruction(Instruction::If(register, right, vec![]));
+                        self.append_instruction(instruction);
                     }
-                    ast::BinaryOperator::Or => {
-                        self.eval_expr(register, &node.left);
-                        // 右辺の処理
-                        let right = {
-                            self.begin_procedure();
-                            self.eval_expr(register, &node.right);
-                            self.end_procedure()
-                        };
-                        // 短絡処理: 左辺が偽なら右辺を実行
-                        self.append_instruction(Instruction::If(register, vec![], right));
-                    }
+                    ast::BinaryOperator::Logical(op) => match op {
+                        ast::BinaryLogicalOperator::And => {
+                            self.eval_expr(register, &node.left);
+                            // 右辺の処理
+                            let right = {
+                                self.begin_procedure();
+                                self.eval_expr(register, &node.right);
+                                self.end_procedure()
+                            };
+                            // 短絡処理: 左辺が真なら右辺を実行
+                            self.append_instruction(Instruction::If(register, right, vec![]));
+                        }
+                        ast::BinaryLogicalOperator::Or => {
+                            self.eval_expr(register, &node.left);
+                            // 右辺の処理
+                            let right = {
+                                self.begin_procedure();
+                                self.eval_expr(register, &node.right);
+                                self.end_procedure()
+                            };
+                            // 短絡処理: 左辺が偽なら右辺を実行
+                            self.append_instruction(Instruction::If(register, vec![], right));
+                        }
+                    },
                 }
             }
         }
-    }
-
-    fn eval_left_and_right(&mut self, node: &'ast ast::Binary) -> (Register, Register) {
-        let left = self.use_register();
-        let right = self.use_register();
-        self.eval_expr(left, &node.left);
-        self.eval_expr(right, &node.right);
-        return (left, right);
     }
 
     fn eval_arr(&mut self, register: Register, exprs: &'ast [ast::Expression]) {

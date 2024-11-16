@@ -128,20 +128,24 @@ fn parse_infix(
         let end_pos = s.get_pos().clone();
 
         let op = match op {
-            TokenKind::Hat => ast::BinaryOperator::Pow,
-            TokenKind::Asterisk => ast::BinaryOperator::Mul,
-            TokenKind::Slash => ast::BinaryOperator::Div,
-            TokenKind::Percent => ast::BinaryOperator::Rem,
-            TokenKind::Plus => ast::BinaryOperator::Add,
-            TokenKind::Minus => ast::BinaryOperator::Sub,
-            TokenKind::Lt => ast::BinaryOperator::Lt,
-            TokenKind::LtEq => ast::BinaryOperator::Lteq,
-            TokenKind::Gt => ast::BinaryOperator::Gt,
-            TokenKind::GtEq => ast::BinaryOperator::Gteq,
-            TokenKind::Eq2 => ast::BinaryOperator::Eq,
-            TokenKind::NotEq => ast::BinaryOperator::Neq,
-            TokenKind::And2 => ast::BinaryOperator::And,
-            TokenKind::Or2 => ast::BinaryOperator::Or,
+            TokenKind::Hat => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Pow),
+            TokenKind::Asterisk => {
+                ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Mul)
+            }
+            TokenKind::Slash => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Div),
+            TokenKind::Percent => {
+                ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Rem)
+            }
+            TokenKind::Plus => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Add),
+            TokenKind::Minus => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Sub),
+            TokenKind::Lt => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Lt),
+            TokenKind::LtEq => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Lteq),
+            TokenKind::Gt => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Gt),
+            TokenKind::GtEq => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Gteq),
+            TokenKind::Eq2 => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Eq),
+            TokenKind::NotEq => ast::BinaryOperator::Arithmetic(ast::BinaryArithmeticOperator::Neq),
+            TokenKind::And2 => ast::BinaryOperator::Logical(ast::BinaryLogicalOperator::And),
+            TokenKind::Or2 => ast::BinaryOperator::Logical(ast::BinaryLogicalOperator::Or),
             _ => {
                 return Err(Box::new(AiScriptSyntaxError::new(
                     format!("unexpected token: {:?}", op),
@@ -150,7 +154,7 @@ fn parse_infix(
             }
         };
 
-        return Ok(ast::Binary {
+        return Ok(ast::BinaryOperation {
             loc: Loc {
                 start: start_pos,
                 end: end_pos,
