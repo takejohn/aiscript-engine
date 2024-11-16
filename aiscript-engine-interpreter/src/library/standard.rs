@@ -35,10 +35,10 @@ mod core {
     use aiscript_engine_common::Result;
     use aiscript_engine_values::Value;
 
-    use crate::vm::Vm;
+    use crate::{arguments::Arguments, vm::Vm};
 
-    pub(super) fn not(args: Vec<Value>, vm: &mut Vm) -> Result<Value> {
-        // todo
-        Ok(Value::Bool(true))
+    pub(super) fn not(args: Vec<Value>, _: &mut Vm) -> Result<Value> {
+        let mut args = Arguments::from(args);
+        Ok(Value::Bool(!args.expect_boolean()?))
     }
 }

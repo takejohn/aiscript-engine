@@ -17,6 +17,7 @@ mod core {
 
     #[test]
     fn not() {
-        assert_eq!(exe("<: Core:not(false)").unwrap(), Value::Bool(true))
+        assert_eq!(exe("<: Core:not(false)").unwrap(), Value::Bool(true));
+        assert_eq!(exe("<: Core:not(true)").unwrap(), Value::Bool(false));
     }
 }

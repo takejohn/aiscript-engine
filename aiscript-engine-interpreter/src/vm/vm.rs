@@ -4,12 +4,13 @@ use std::{
 };
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
-use aiscript_engine_values::{FnIndex, VFn, Value};
+use aiscript_engine_values::{
+    require_array, require_boolean, require_function, require_number, require_object, FnIndex, VFn,
+    Value,
+};
 use gc::{Gc, GcCell};
 
-use super::utils::{
-    require_array, require_bool, require_function, require_num, require_object, GetByF64,
-};
+use super::utils::GetByF64;
 use crate::ir::{Instruction, Register, UserFn};
 use crate::library::NativeFn;
 
@@ -79,7 +80,7 @@ impl Vm {
                 return Err(Box::new(ai_script_basic_error.to_owned()))
             }
             Instruction::If(cond, then_code, else_code) => {
-                let cond = require_bool(&registers[*cond])?;
+                let cond = require_boolean(&registers[*cond])?;
                 if cond {
                     self.exec_instructions(then_code, registers)?;
                 } else {
@@ -114,24 +115,24 @@ impl Vm {
                 registers[*dest] = registers[*src].clone();
             }
             Instruction::Add(dest, left, right) => {
-                let left = require_num(&registers[*left])?;
-                let right = require_num(&registers[*right])?;
+                let left = require_number(&registers[*left])?;
+                let right = require_number(&registers[*right])?;
                 registers[*dest] = Value::Num(left + right);
             }
             Instruction::Sub(dest, left, right) => {
-                let left = require_num(&registers[*left])?;
-                let right = require_num(&registers[*right])?;
+                let left = require_number(&registers[*left])?;
+                let right = require_number(&registers[*right])?;
                 registers[*dest] = Value::Num(left - right);
             }
             Instruction::Not(dest, src) => {
-                let src = require_bool(&registers[*src])?;
+                let src = require_boolean(&registers[*src])?;
                 registers[*dest] = Value::Bool(!src);
             }
             Instruction::Load(register, target, index) => {
                 let target = registers[*target].clone();
                 match target {
                     Value::Arr(target) => {
-                        let index_float = require_num(&registers[*index])?;
+                        let index_float = require_number(&registers[*index])?;
                         if let Some(value) = target.as_ref().borrow().get_by_f64(index_float) {
                             let value = value.clone();
                             registers[*register] = value;
@@ -176,7 +177,7 @@ impl Vm {
                 let target = registers[*target].clone();
                 match target {
                     Value::Arr(target) => {
-                        let index_float = require_num(&registers[*index])?;
+                        let index_float = require_number(&registers[*index])?;
                         if let Some(value) = target.borrow_mut().get_mut_by_f64(index_float) {
                             *value = registers[*register].clone();
                         } else {

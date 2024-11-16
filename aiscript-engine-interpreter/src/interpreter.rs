@@ -31,7 +31,7 @@ impl Interpreter {
             &utf16!("print") as &[u16],
             LibraryValue::Fn(NativeFn::Dynamic(Rc::new(move |args, _| {
                 let mut args = Arguments::from(args);
-                opts.out(args.require_any()?);
+                opts.out(args.expect_any()?);
                 Ok(Value::Null)
             }))),
         )]);

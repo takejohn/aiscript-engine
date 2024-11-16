@@ -1,5 +1,7 @@
+use std::borrow::Cow;
+
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
-use aiscript_engine_values::Value;
+use aiscript_engine_values::{require_any, require_boolean, Value};
 
 /// 関数の引数を取り出す。
 pub(crate) struct Arguments {
@@ -15,14 +17,15 @@ impl From<Vec<Value>> for Arguments {
 }
 
 impl Arguments {
-    pub(crate) fn require_any(&mut self) -> Result<Value> {
-        match self.iterator.next() {
-            Some(value) => Ok(value),
-            None => Err(Box::new(AiScriptBasicError::new(
-                AiScriptBasicErrorKind::Runtime,
-                "Expect anything, but got nothing.",
-                None,
-            ))),
-        }
+    fn next(&mut self) -> Value {
+        self.iterator.next().unwrap_or(Value::Uninitialized)
+    }
+
+    pub(crate) fn expect_any(&mut self) -> Result<Value> {
+        require_any(&self.next())
+    }
+
+    pub(crate) fn expect_boolean(&mut self) -> Result<bool> {
+        require_boolean(&self.next())
     }
 }
