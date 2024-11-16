@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
+use aiscript_engine_common::Utf16String;
 use utf16_literal::utf16;
 
-use super::Library;
+use super::{Library, LibraryValue};
 
 macro_rules! str {
     ($name: expr , $value: expr) => {
@@ -26,9 +27,21 @@ macro_rules! func {
 
 pub(crate) fn std_library() -> Library {
     HashMap::from([
+        (
+            &utf16!("Core:v") as &'static [u16],
+            LibraryValue::Str(version()),
+        ),
         str!(utf16!("Core:ai"), utf16!("kawaii")),
         func!(utf16!("Core:not"), core::not),
     ])
+}
+
+fn version() -> Utf16String {
+    let version_str = env!("CARGO_PKG_VERSION");
+    let separator = version_str
+        .find('+')
+        .expect("no plus sign in package version");
+    return Utf16String::from(&version_str[separator + 1..]);
 }
 
 mod core {
