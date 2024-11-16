@@ -62,6 +62,23 @@ impl PartialEq for Value {
             _ => false,
         }
     }
+
+    fn ne(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Null, Self::Null) => false,
+            (Self::Bool(a), Self::Bool(b)) => a != b,
+            (Self::Num(a), Self::Num(b)) => a != b,
+            (Self::Str(a), Self::Str(b)) => a != b,
+            (Self::Obj(a), Self::Obj(b)) => !std::ptr::eq(a, b),
+            (Self::Arr(a), Self::Arr(b)) => !std::ptr::eq(a, b),
+            (Self::Fn(a), Self::Fn(b)) => !std::ptr::eq(a, b),
+            (Self::Return(a), Self::Return(b)) => !std::ptr::eq(a, b),
+            (Self::Break, Self::Break) => false,
+            (Self::Continue, Self::Continue) => false,
+            (Self::Error(a), Self::Error(b)) => !std::ptr::eq(a, b),
+            _ => true,
+        }
+    }
 }
 
 impl Value {

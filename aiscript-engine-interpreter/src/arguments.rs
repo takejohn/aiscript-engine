@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 
 use aiscript_engine_common::{AiScriptBasicError, AiScriptBasicErrorKind, Result};
-use aiscript_engine_values::{require_any, require_boolean, Value};
+use aiscript_engine_values::{require_any, require_boolean, require_number, Value};
 
 /// 関数の引数を取り出す。
 pub(crate) struct Arguments {
@@ -27,5 +27,9 @@ impl Arguments {
 
     pub(crate) fn expect_boolean(&mut self) -> Result<bool> {
         require_boolean(&self.next())
+    }
+
+    pub(crate) fn expect_number(&mut self) -> Result<f64> {
+        require_number(&self.next())
     }
 }
